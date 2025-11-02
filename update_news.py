@@ -63,7 +63,7 @@ body {{
 }}
 
 header {{
-  background: #001f3f;
+  background: linear-gradient(90deg, #001f3f, #004aad);
   color: #fff;
   text-align: center;
   padding: 2rem 1rem;
@@ -71,61 +71,62 @@ header {{
 }}
 
 h1 {{
-  font-size: 2rem;
-  margin-bottom: 0.5rem;
+  font-size: 2.2rem;
+  margin-bottom: 0.3rem;
 }}
 
 header p {{
-  font-size: 0.9rem;
+  font-size: 0.95rem;
   color: #cfd8dc;
 }}
 
 .container {{
-  max-width: 1000px;
+  max-width: 1200px;
   margin: 2rem auto;
   padding: 0 1rem;
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
   gap: 1.5rem;
 }}
 
 .news-card {{
   background: #fff;
-  border-radius: 10px;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-  padding: 1.2rem 1.5rem;
+  border-radius: 12px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+  padding: 1.5rem;
   transition: transform 0.2s ease, box-shadow 0.2s ease;
+  border-left: 5px solid #0078d4;
 }}
 
 .news-card:hover {{
   transform: translateY(-5px);
-  box-shadow: 0 4px 18px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 6px 22px rgba(0, 0, 0, 0.15);
 }}
 
 .news-card a {{
   color: #0078d4;
   text-decoration: none;
   font-weight: 600;
-  font-size: 1.05rem;
+  font-size: 1.1rem;
+  display: block;
+  margin-bottom: 0.5rem;
 }}
 
 .news-card a:hover {{
-  color: #005fa3;
+  color: #004aad;
   text-decoration: underline;
 }}
 
 .news-card small {{
-  display: block;
-  margin-top: 0.6rem;
   color: #555;
-  font-size: 0.85rem;
+  font-size: 0.9rem;
 }}
 
 footer {{
   text-align: center;
   background: #001f3f;
   color: #fff;
-  padding: 1rem 0;
+  padding: 1.2rem 0;
   margin-top: 3rem;
   font-size: 0.9rem;
   box-shadow: 0 -3px 6px rgba(0, 0, 0, 0.2);
