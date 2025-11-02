@@ -54,15 +54,82 @@ html_content = f"""<!DOCTYPE html>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Latest Cybersecurity News</title>
 <style>
-body {{ font-family: Arial, sans-serif; background-color: #f8f9fa; color: #222; margin: 0; }}
-header {{ background: #001f3f; color: #fff; text-align: center; padding: 1rem; }}
-h1 {{ font-size: 1.8rem; }}
-.container {{ max-width: 900px; margin: 2rem auto; padding: 1rem; background: #fff; border-radius: 8px; }}
-.news-item {{ border-bottom: 1px solid #ddd; padding: 1rem 0; }}
-.news-item:last-child {{ border-bottom: none; }}
-.news-item a {{ color: #0074d9; text-decoration: none; font-weight: bold; }}
-.news-item a:hover {{ text-decoration: underline; }}
-footer {{ text-align: center; background: #001f3f; color: #fff; padding: 1rem 0; margin-top: 3rem; }}
+body {{
+  font-family: "Segoe UI", Roboto, Arial, sans-serif;
+  background-color: #f4f6f9;
+  color: #1a1a1a;
+  margin: 0;
+  line-height: 1.6;
+}}
+
+header {{
+  background: #001f3f;
+  color: #fff;
+  text-align: center;
+  padding: 2rem 1rem;
+  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.2);
+}}
+
+h1 {{
+  font-size: 2rem;
+  margin-bottom: 0.5rem;
+}}
+
+header p {{
+  font-size: 0.9rem;
+  color: #cfd8dc;
+}}
+
+.container {{
+  max-width: 1000px;
+  margin: 2rem auto;
+  padding: 0 1rem;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 1.5rem;
+}}
+
+.news-card {{
+  background: #fff;
+  border-radius: 10px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  padding: 1.2rem 1.5rem;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}}
+
+.news-card:hover {{
+  transform: translateY(-5px);
+  box-shadow: 0 4px 18px rgba(0, 0, 0, 0.15);
+}}
+
+.news-card a {{
+  color: #0078d4;
+  text-decoration: none;
+  font-weight: 600;
+  font-size: 1.05rem;
+}}
+
+.news-card a:hover {{
+  color: #005fa3;
+  text-decoration: underline;
+}}
+
+.news-card small {{
+  display: block;
+  margin-top: 0.6rem;
+  color: #555;
+  font-size: 0.85rem;
+}}
+
+footer {{
+  text-align: center;
+  background: #001f3f;
+  color: #fff;
+  padding: 1rem 0;
+  margin-top: 3rem;
+  font-size: 0.9rem;
+  box-shadow: 0 -3px 6px rgba(0, 0, 0, 0.2);
+}}
 </style>
 </head>
 <body>
@@ -75,8 +142,8 @@ footer {{ text-align: center; background: #001f3f; color: #fff; padding: 1rem 0;
 
 for item in news_items:
     html_content += f"""
-    <div class="news-item">
-      <a href="{item['link']}" target="_blank">{item['title']}</a><br>
+    <div class="news-card">
+      <a href="{item['link']}" target="_blank">{item['title']}</a>
       <small>{item['published']} — {item['source']}</small>
     </div>
     """
