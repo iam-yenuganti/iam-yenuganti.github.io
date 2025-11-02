@@ -1,105 +1,115 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>About | Srinivas Yenuganti</title>
   <style>
     body {
-      font-family: 'Arial', sans-serif;
-      margin: 40px;
-      background-color: #fafafa;
-      color: #222;
-      line-height: 1.7;
+      font-family: "Segoe UI", Arial, sans-serif;
+      background: #f9fafc;
+      color: #333;
+      margin: 0;
+      padding: 0;
     }
-
-    .container {
-      display: flex;
-      flex-wrap: wrap;
-      align-items: flex-start;
-      gap: 40px;
-    }
-
-    .photo {
-      flex: 1 1 250px;
+    header {
+      background: #001f3f;
+      color: white;
       text-align: center;
+      padding: 2rem 1rem;
     }
-
-    .photo img {
-      width: 250px;
-      height: 250px;
-      border-radius: 10px;
-      object-fit: cover;
-      box-shadow: 0px 0px 8px rgba(0, 0, 0, 0.2);
+    header h1 {
+      margin: 0;
+      font-size: 2rem;
     }
-
-    .content {
-      flex: 2 1 500px;
+    .container {
+      max-width: 1000px;
+      margin: 3rem auto;
+      padding: 0 1rem;
+      line-height: 1.8;
     }
-
-    h1 {
-      color: #003366;
+    h2 {
+      color: #001f3f;
+      border-bottom: 3px solid #0074d9;
+      display: inline-block;
+      padding-bottom: 0.3rem;
+      margin-top: 2rem;
     }
-
+    h3 {
+      color: #0074d9;
+      margin-bottom: 0.3rem;
+    }
+    ul {
+      margin-left: 1.2rem;
+    }
     a {
-      color: #007acc;
+      color: #0074d9;
       text-decoration: none;
     }
-
     a:hover {
       text-decoration: underline;
     }
-
-    @media (max-width: 768px) {
-      .container {
-        flex-direction: column;
-        align-items: center;
-      }
-      .photo img {
-        width: 180px;
-        height: 180px;
-      }
+    footer {
+      text-align: center;
+      background: #001f3f;
+      color: white;
+      padding: 1rem 0;
+      margin-top: 3rem;
     }
   </style>
 </head>
 <body>
+
+  <header>
+    <h1>About Me</h1>
+  </header>
+
   <div class="container">
-    <div class="photo">
-      <img src="profile.jpg" alt="Srinivas Yenuganti">
-      <!-- Replace 'profile.jpg' with your uploaded image name -->
-    </div>
+    <p>
+      Enterprising and visionary IT Infrastructure, Cloud, and Security Architect with nearly two decades of international experience in defining and executing transformative IT strategies that drive business growth, operational excellence, and digital innovation.
+    </p>
 
-    <div class="content">
-      <h1>About Me</h1>
-      <p>
-        Enterprising and visionary <strong>IT Infrastructure, Cloud, and Security Architect</strong> with nearly two decades of international experience 
-        in defining and executing transformative IT strategies that drive business growth, operational excellence, and digital innovation.
-      </p>
+    <p>
+      Proven expertise in Azure Cloud Architecture, Infrastructure Modernization, Cybersecurity Governance, and DevSecOps transformation for healthcare SaaS platforms. Adept at designing, deploying, and securing mission-critical systems across hybrid and multi-cloud environments with full alignment to HIPAA, HITRUST, ISO 27001, and SOC 2 frameworks.
+    </p>
 
-      <p>
-        I bring proven expertise in <strong>data center architecture</strong>, <strong>cloud transformation</strong>, 
-        <strong>enterprise networking</strong>, and <strong>cybersecurity governance</strong>, delivering resilient, scalable, 
-        and compliant technology ecosystems across diverse global industries. Skilled in steering complex infrastructure programs, 
-        ODC setups, and cloud migrations within defined budgets, I ensure alignment with organizational goals and regulatory mandates.
-      </p>
+    <h2>Professional Experience</h2>
 
-      <p>
-        I have successfully implemented global security and compliance frameworks including 
-        <strong>ISO 27001</strong>, <strong>HIPAA</strong>, <strong>HITRUST</strong>, <strong>SOC 1 & 2</strong>, 
-        <strong>GDPR</strong>, and <strong>PCI DSS</strong>, fostering automation, agility, and risk reduction across hybrid environments.
-      </p>
+    <h3>Cloud Engineer | iSpace Inc. | Los Angeles, California | June 2025 – Present</h3>
+    <ul>
+      <li>Architect and lead <strong>Azure Cloud and DevSecOps</strong> initiatives for healthcare SaaS platforms, ensuring each client operates within an isolated, secure, and compliant cloud environment.</li>
+      <li>Design and deploy <strong>enterprise-grade Azure solutions</strong> leveraging Web Apps, Application Gateway (WAF v2), VNets, Azure Firewall, Private Endpoints, Storage Accounts, Key Vaults, Azure Data Factory, Azure Databricks, and Logic Apps.</li>
+      <li>Implement <strong>Azure DevOps CI/CD pipelines</strong> with integrated code scanning, IaC validation, and security controls using Terraform and Bicep templates.</li>
+      <li>Develop and maintain <strong>isolated landing zones</strong> for each healthcare client aligned with HIPAA, HITRUST, SOC 2, and ISO 27001 compliance standards.</li>
+      <li>Collaborate with architecture, security, and SOC teams to enforce <strong>Zero Trust principles</strong> using Defender for Cloud, Sentinel, and Entra ID for IAM and access governance.</li>
+      <li>Manage <strong>infrastructure lifecycle automation</strong> with ARM templates, Azure Policy, and Blueprints to ensure standardization and governance.</li>
+      <li>Drive <strong>cost optimization (FinOps)</strong> through budgets, cost alerts, and Power BI dashboards to provide financial visibility for leadership.</li>
+      <li>Act as the <strong>technical lead</strong> for new client onboarding, designing tailored cloud and network architectures aligned with security and compliance requirements.</li>
+    </ul>
 
-      <p>
-        Adept in vendor and stakeholder management, strategic negotiation, and cost optimization, I consistently enhance ROI through innovative and disciplined execution. 
-        Recognized for combining technical leadership, business acumen, and strategic foresight, I strive to enable secure, compliant, and future-ready digital enterprises.
-      </p>
+    <h2>Certifications</h2>
+    <ul>
+      <li>Microsoft Certified: Azure Administrator Associate</li>
+      <li>Microsoft Certified: Azure Solutions Architect Expert</li>
+      <li>VMware Certified Professional (VCP)</li>
+      <li>Fortinet Network Security Expert (NSE)</li>
+      <li>EC-Council Certified Ethical Hacker (CEH)</li>
+      <li>Forcepoint DLP Administration</li>
+      <li>Red Hat Certified Engineer (RHCE)</li>
+      <li>Cisco Certified Network Associate (CCNA)</li>
+      <li>ITIL v4 Foundation</li>
+    </ul>
 
-      <h3>Connect</h3>
-      <p>
-        📫 <a href="https://www.linkedin.com/in/syenuganti-bb767744/" target="_blank">LinkedIn Profile</a><br>
-        🌐 <a href="index.html">Back to Home</a>
-      </p>
-    </div>
+    <h2>Connect</h2>
+    <p>
+      <a href="https://www.linkedin.com/in/syenuganti-bb767744/" target="_blank">LinkedIn Profile</a> |
+      <a href="index.html">Back to Home</a>
+    </p>
   </div>
+
+  <footer>
+    © 2025 Srinivas Yenuganti | All Rights Reserved
+  </footer>
+
 </body>
 </html>
