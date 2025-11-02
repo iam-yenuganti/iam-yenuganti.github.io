@@ -13,9 +13,9 @@ sources = {
 }
 
 # Output file path
-output_file = "blog.html"
+output_file = "news.html"
 
-# Filter threshold
+# Filter threshold (7 days)
 today = datetime.utcnow()
 cutoff_date = today - timedelta(days=7)
 
@@ -24,7 +24,6 @@ def parse_feed(url, name):
     items = []
     for entry in feed.entries:
         try:
-            # Parse date
             published = None
             if hasattr(entry, 'published_parsed'):
                 published = datetime(*entry.published_parsed[:6])
@@ -102,4 +101,4 @@ html_content += """
 with open(output_file, "w", encoding="utf-8") as f:
     f.write(html_content)
 
-print(f"✅ Blog updated with {len(news_items)} articles. Output saved to {output_file}")
+print(f"✅ News updated with {len(news_items)} articles. Output saved to {output_file}")
