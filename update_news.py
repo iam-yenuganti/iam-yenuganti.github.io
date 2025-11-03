@@ -8,7 +8,7 @@ sources = {
     "CyberSecurityNews - Threats": "https://cybersecuritynews.com/category/threats/feed/",
     "SecurityAffairs - Data Breaches": "https://securityaffairs.com/category/data-breach/feed",
     "DarkReading - Threat Intelligence": "https://www.darkreading.com/rss_simple.asp?f_n=598",
-    "InfoSecurity Magazine - News": "https://www.infosecurity-magazine.com/rss/news/"
+    "InfoSecurity Magazine - News": "https://www.infosecurity-magazine.com/rss/news/",
     "The Record - Recorded Future": "https://therecord.media/feed/"
 }
 
