@@ -4,6 +4,67 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Thank You | Srinivas Yenuganti</title>
+  <link rel="stylesheet" href="style.css" />
+  <style>
+    .ty-wrapper {
+      min-height: 70vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 3rem 1.5rem;
+    }
+    .ty-card {
+      background: var(--bg-white);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 3.5rem 2.5rem;
+      text-align: center;
+      max-width: 520px;
+      width: 100%;
+    }
+    .ty-icon { font-size: 3.5rem; margin-bottom: 1.25rem; }
+    .ty-card h1 { font-size: 2rem; font-weight: 800; color: var(--primary); letter-spacing: -0.5px; margin-bottom: 0.75rem; }
+    .ty-card p { color: var(--text-muted); font-size: 1rem; line-height: 1.7; margin-bottom: 2rem; }
+  </style>
+</head>
+<body>
+
+  <!-- NAV -->
+  <nav class="main-nav">
+    <a href="index.html" class="nav-logo">Srinivas <span>Y.</span></a>
+    <button class="hamburger" onclick="document.getElementById('navlinks').classList.toggle('open')" aria-label="Toggle menu">
+      <span></span><span></span><span></span>
+    </button>
+    <ul class="nav-links" id="navlinks">
+      <li><a href="index.html">Home</a></li>
+      <li><a href="about.html">About</a></li>
+      <li><a href="blog.html">Blog</a></li>
+      <li><a href="contact.html" class="nav-cta">Contact</a></li>
+    </ul>
+  </nav>
+
+  <div class="ty-wrapper">
+    <div class="ty-card">
+      <div class="ty-icon">✅</div>
+      <h1>Message Received!</h1>
+      <p>Thank you for reaching out. I'll review your message and get back to you as soon as possible.</p>
+      <div class="btn-row">
+        <a href="index.html" class="btn btn-primary btn-sm">Back to Home</a>
+        <a href="https://www.linkedin.com/in/syenuganti-bb767744/" target="_blank" class="btn btn-dark btn-sm">Connect on LinkedIn</a>
+      </div>
+    </div>
+  </div>
+
+  <footer class="main-footer">
+    <p>&copy; 2026 Srinivas Yenuganti &nbsp;&middot;&nbsp;
+      <a href="https://www.linkedin.com/in/syenuganti-bb767744/" target="_blank">LinkedIn</a> &nbsp;&middot;&nbsp;
+      <a href="contact.html">Contact</a>
+    </p>
+  </footer>
+
+</body>
+</html>
   <style>
     body {
       font-family: "Segoe UI", Arial, sans-serif;

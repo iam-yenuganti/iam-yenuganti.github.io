@@ -5,6 +5,122 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta name="description" content="Contact Srinivas Yenuganti – IT Infrastructure, Cloud & Security Architect. Send a message directly via this form." />
   <title>Contact | Srinivas Yenuganti</title>
+  <link rel="stylesheet" href="style.css" />
+  <style>
+    .contact-grid {
+      display: grid;
+      grid-template-columns: 1fr 360px;
+      gap: 2.5rem;
+      align-items: start;
+    }
+    @media (max-width: 768px) { .contact-grid { grid-template-columns: 1fr; } }
+  </style>
+</head>
+<body>
+
+  <!-- NAV -->
+  <nav class="main-nav">
+    <a href="index.html" class="nav-logo">Srinivas <span>Y.</span></a>
+    <button class="hamburger" onclick="document.getElementById('navlinks').classList.toggle('open')" aria-label="Toggle menu">
+      <span></span><span></span><span></span>
+    </button>
+    <ul class="nav-links" id="navlinks">
+      <li><a href="index.html">Home</a></li>
+      <li><a href="about.html">About</a></li>
+      <li><a href="blog.html">Blog</a></li>
+      <li><a href="contact.html" class="nav-cta active">Contact</a></li>
+    </ul>
+  </nav>
+
+  <!-- PAGE HERO -->
+  <div class="page-hero">
+    <h1>Get In Touch</h1>
+    <p>Open to consulting, advisory, and full-time opportunities</p>
+  </div>
+
+  <!-- CONTACT SECTION -->
+  <section class="section">
+    <div class="section-inner">
+      <div class="contact-grid">
+
+        <!-- FORM -->
+        <div>
+          <span class="section-label">Send a Message</span>
+          <h2 class="section-title" style="font-size:1.6rem;margin-bottom:1.75rem;">Let's Connect</h2>
+          <form class="form-card" action="https://formspree.io/f/xzzkypqg" method="POST">
+            <div class="form-group">
+              <label for="name">Your Name</label>
+              <input type="text" id="name" name="name" placeholder="John Smith" required />
+            </div>
+            <div class="form-group">
+              <label for="email">Email Address</label>
+              <input type="email" id="email" name="_replyto" placeholder="john@example.com" required />
+            </div>
+            <div class="form-group">
+              <label for="subject">Subject</label>
+              <input type="text" id="subject" name="subject" placeholder="How can I help?" />
+            </div>
+            <div class="form-group">
+              <label for="message">Message</label>
+              <textarea id="message" name="message" rows="5" placeholder="Tell me about your project or role..." required></textarea>
+            </div>
+            <input type="hidden" name="_subject" value="New message from yenuganti.in" />
+            <input type="hidden" name="_next" value="https://yenuganti.in/thankyou.html" />
+            <button type="submit" class="form-submit">Send Message →</button>
+          </form>
+        </div>
+
+        <!-- INFO CARDS -->
+        <div>
+          <span class="section-label">Contact Info</span>
+          <h2 class="section-title" style="font-size:1.6rem;margin-bottom:1.75rem;">Reach Me At</h2>
+          <div class="info-cards">
+            <div class="info-card">
+              <div class="info-card-icon">💼</div>
+              <div>
+                <div class="info-card-label">LinkedIn</div>
+                <div class="info-card-value">
+                  <a href="https://www.linkedin.com/in/syenuganti-bb767744/" target="_blank">linkedin.com/in/syenuganti</a>
+                </div>
+              </div>
+            </div>
+            <div class="info-card">
+              <div class="info-card-icon">🌐</div>
+              <div>
+                <div class="info-card-label">Website</div>
+                <div class="info-card-value">yenuganti.in</div>
+              </div>
+            </div>
+            <div class="info-card">
+              <div class="info-card-icon">📍</div>
+              <div>
+                <div class="info-card-label">Location</div>
+                <div class="info-card-value">Los Angeles, California</div>
+              </div>
+            </div>
+            <div class="info-card">
+              <div class="info-card-icon">⚡</div>
+              <div>
+                <div class="info-card-label">Availability</div>
+                <div class="info-card-value">Open to opportunities</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <footer class="main-footer">
+    <p>&copy; 2026 Srinivas Yenuganti &nbsp;&middot;&nbsp;
+      <a href="https://www.linkedin.com/in/syenuganti-bb767744/" target="_blank">LinkedIn</a> &nbsp;&middot;&nbsp;
+      <a href="contact.html">Contact</a>
+    </p>
+  </footer>
+
+</body>
+</html>
   <style>
     body {
       font-family: "Segoe UI", Arial, sans-serif;

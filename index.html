@@ -4,129 +4,220 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta name="description" content="Srinivas Yenuganti – IT Infrastructure, Cloud & Security Architect with nearly two decades of international experience in Azure, DevSecOps, and cybersecurity governance." />
-  <title>Srinivas Yenuganti | IT Infrastructure, Cloud & Security Architect</title>
+  <title>Srinivas Yenuganti | Cloud &amp; Security Architect</title>
+  <link rel="stylesheet" href="style.css" />
   <style>
-    body {
-      font-family: "Segoe UI", Arial, sans-serif;
-      margin: 0;
-      background: #f9fafc;
-      color: #333;
-    }
-    header {
-      background: #001f3f;
-      color: white;
-      text-align: center;
-      padding: 2rem 1rem;
-    }
-    header h1 {
-      font-size: 2.5rem;
-      margin: 0;
-    }
-    header p {
-      margin: 0.5rem 0 0;
-      font-size: 1.1rem;
-      color: #bbb;
-    }
-    nav {
-      background: #0074d9;
+    /* ── HERO ── */
+    .hero {
+      background: linear-gradient(135deg, #0d1b2a 0%, #1a3a5c 55%, #0d2137 100%);
+      min-height: 88vh;
       display: flex;
+      align-items: center;
       justify-content: center;
-      flex-wrap: wrap;
-    }
-    nav a {
-      color: white;
-      text-decoration: none;
-      padding: 1rem 1.5rem;
-      display: block;
-    }
-    nav a:hover {
-      background: #005fa3;
-    }
-    .dropdown {
+      text-align: center;
+      padding: 5rem 1.5rem 4rem;
       position: relative;
+      overflow: hidden;
     }
-    .dropdown-content {
-      display: none;
+    .hero::before {
+      content: '';
       position: absolute;
-      background: #0074d9;
-      min-width: 150px;
-      z-index: 1;
+      inset: 0;
+      background: radial-gradient(ellipse at 65% 40%, rgba(30,136,229,0.15) 0%, transparent 65%);
+      pointer-events: none;
     }
-    .dropdown-content a {
-      padding: 0.8rem 1rem;
+    .hero-content { position: relative; z-index: 1; max-width: 800px; }
+    .hero-badge {
+      display: inline-block;
+      background: rgba(30,136,229,0.15);
+      color: #64b5f6;
+      border: 1px solid rgba(30,136,229,0.3);
+      border-radius: 50px;
+      padding: 0.35rem 1rem;
+      font-size: 0.75rem;
+      font-weight: 700;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      margin-bottom: 1.5rem;
     }
-    .dropdown:hover .dropdown-content {
-      display: block;
-    }
-    section {
-      max-width: 900px;
-      margin: 3rem auto;
-      padding: 0 1rem;
-      text-align: left;
-      line-height: 1.7;
-    }
-    section h2 {
-      color: #001f3f;
-      font-size: 2rem;
-      margin-bottom: 1rem;
-      text-align: center;
-    }
-    section p {
-      color: #444;
-      margin-bottom: 1.2rem;
-    }
-    footer {
-      text-align: center;
-      background: #001f3f;
+    .hero h1 {
+      font-size: clamp(2.4rem, 6vw, 4rem);
+      font-weight: 800;
       color: white;
-      padding: 1rem 0;
-      margin-top: 3rem;
+      line-height: 1.12;
+      letter-spacing: -1.5px;
+      margin-bottom: 1rem;
     }
+    .hero h1 span { color: #64b5f6; }
+    .hero-subtitle {
+      font-size: clamp(0.95rem, 2vw, 1.15rem);
+      color: rgba(255,255,255,0.62);
+      max-width: 580px;
+      margin: 0 auto 2rem;
+      line-height: 1.75;
+    }
+    .hero-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      justify-content: center;
+      margin-bottom: 2.5rem;
+    }
+    .hero-tag {
+      background: rgba(255,255,255,0.08);
+      border: 1px solid rgba(255,255,255,0.13);
+      color: rgba(255,255,255,0.72);
+      padding: 0.3rem 0.85rem;
+      border-radius: 50px;
+      font-size: 0.8rem;
+      font-weight: 500;
+    }
+    /* ── ABOUT SPLIT ── */
+    .about-split {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 4rem;
+      align-items: center;
+    }
+    @media (max-width: 700px) { .about-split { grid-template-columns: 1fr; gap: 2rem; } }
+    .about-split h2 { font-size: 1.9rem; font-weight: 800; color: var(--primary); letter-spacing: -0.5px; margin-bottom: 1rem; }
+    .about-split p { color: var(--text-muted); line-height: 1.8; margin-bottom: 1.1rem; font-size: 0.95rem; }
   </style>
 </head>
 <body>
 
-  <header>
-    <h1>Srinivas Yenuganti</h1>
-    <p>IT Infrastructure | Cloud | Security Architect</p>
-  </header>
+  <!-- NAV -->
+  <nav class="main-nav">
+    <a href="index.html" class="nav-logo">Srinivas <span>Y.</span></a>
+    <button class="hamburger" onclick="document.getElementById('navlinks').classList.toggle('open')" aria-label="Toggle menu">
+      <span></span><span></span><span></span>
+    </button>
+    <ul class="nav-links" id="navlinks">
+      <li><a href="index.html" class="active">Home</a></li>
+      <li><a href="about.html">About</a></li>
+      <li><a href="blog.html">Blog</a></li>
+      <li><a href="contact.html" class="nav-cta">Contact</a></li>
+    </ul>
+  </nav>
 
-<nav>
-  <a href="index.html">Home</a>
-  <a href="about.html">About</a>
-  <a href="contact.html">Contact</a>
-  <div class="dropdown">
-    <a href="#">Blog ▾</a>
-    <div class="dropdown-content">
-      <a href="blog.html">Cloud</a>
-      <a href="blog.html">Security</a>
+  <!-- HERO -->
+  <section class="hero">
+    <div class="hero-content">
+      <div class="hero-badge">Open to Senior Cloud &amp; Security Roles</div>
+      <h1>Srinivas<br><span>Yenuganti</span></h1>
+      <p class="hero-subtitle">IT Infrastructure, Cloud &amp; Security Architect — 19+ years transforming enterprises with Azure, DevSecOps, and zero-trust security across healthcare and global industries.</p>
+      <div class="hero-tags">
+        <span class="hero-tag">☁️ Azure Cloud</span>
+        <span class="hero-tag">🔒 Zero Trust</span>
+        <span class="hero-tag">⚙️ DevSecOps</span>
+        <span class="hero-tag">🤖 AI / ML</span>
+        <span class="hero-tag">🏥 HIPAA · HITRUST</span>
+        <span class="hero-tag">📊 FinOps</span>
+      </div>
+      <div class="btn-row">
+        <a href="about.html" class="btn btn-primary">View My Experience</a>
+        <a href="contact.html" class="btn btn-outline">Get In Touch</a>
+      </div>
     </div>
-  </div>
-</nav>
-
-
-
-  <section>
-    <h2>About Me</h2>
-    <p>
-      Enterprising and visionary IT Infrastructure, Cloud, and Security Architect with nearly two decades of international experience in defining and executing transformative IT strategies that drive business growth, operational excellence, and digital innovation.
-    </p>
-    <p>
-      I bring proven expertise in data center architecture, cloud transformation, enterprise networking, and cybersecurity governance, delivering resilient, scalable, and compliant technology ecosystems across diverse global industries. Skilled in steering complex infrastructure programs, ODC setups, and cloud migrations within defined budgets, I ensure alignment with organizational goals and regulatory mandates.
-    </p>
-    <p>
-      I have successfully implemented global security and compliance frameworks including ISO 27001, HIPAA, HITRUST, SOC 1 & 2, GDPR, and PCI DSS, fostering automation, agility, and risk reduction across hybrid environments.
-    </p>
-    <p>
-      Adept in vendor and stakeholder management, strategic negotiation, and cost optimization, I consistently enhance ROI through innovative and disciplined execution. Recognized for combining technical leadership, business acumen, and strategic foresight, I strive to enable secure, compliant, and future-ready digital enterprises.
-    </p>
-    <p style="text-align:center; margin-top: 1.5rem;">
-      <a href="https://www.linkedin.com/in/syenuganti-bb767744/" target="_blank" style="color:#0074d9; font-weight:bold;">Connect on LinkedIn →</a>
-    </p>
   </section>
 
-  <footer>
-    © 2026 Srinivas Yenuganti | All Rights Reserved
+  <!-- EXPERTISE -->
+  <section class="section">
+    <div class="section-inner">
+      <span class="section-label">Core Expertise</span>
+      <h2 class="section-title">What I Bring to the Table</h2>
+      <p class="section-subtitle">Delivering secure, scalable, and compliant cloud architectures for healthcare and enterprise environments.</p>
+      <div class="cards-grid">
+        <div class="card">
+          <div class="card-icon">☁️</div>
+          <h3>Cloud Architecture</h3>
+          <p>Multi-region Azure environments with Application Gateway WAF v2, Private Endpoints, Azure Firewall, and Key Vault — built for scale and compliance.</p>
+        </div>
+        <div class="card">
+          <div class="card-icon">🔒</div>
+          <h3>Cybersecurity &amp; Zero Trust</h3>
+          <p>Zero Trust via Microsoft Entra ID, Azure AD B2C, SentinelOne, CyberArk, and Fortinet across complex hybrid environments.</p>
+        </div>
+        <div class="card">
+          <div class="card-icon">⚙️</div>
+          <h3>DevSecOps</h3>
+          <p>Automated security testing and compliance validation embedded directly into CI/CD pipelines for rapid, risk-free software delivery.</p>
+        </div>
+        <div class="card">
+          <div class="card-icon">📊</div>
+          <h3>Data &amp; AI Platforms</h3>
+          <p>Azure Data Factory, Data Lake, and Databricks for real-time pipelines, plus Azure OpenAI and Cognitive APIs for intelligent operations.</p>
+        </div>
+        <div class="card">
+          <div class="card-icon">🏛️</div>
+          <h3>Compliance Frameworks</h3>
+          <p>End-to-end delivery of HIPAA, HITRUST, ISO 27001, SOC 2, GDPR, and PCI DSS certifications across global enterprises.</p>
+        </div>
+        <div class="card">
+          <div class="card-icon">💰</div>
+          <h3>FinOps &amp; Optimisation</h3>
+          <p>Usage analytics, cost alerts, and governance dashboards to maximise cloud ROI and operational efficiency at enterprise scale.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ABOUT STRIP -->
+  <section class="section section-white">
+    <div class="section-inner">
+      <div class="about-split">
+        <div>
+          <span class="section-label">About Me</span>
+          <h2>Nearly Two Decades of Global Impact</h2>
+          <p>From data center operations to leading cloud transformation for healthcare platforms in Los Angeles — I've built, secured, and scaled technology ecosystems across the globe.</p>
+          <p>Currently driving Azure cloud engineering at iSpace Inc., focused on healthcare compliance automation, AI-powered operations, and zero-downtime deployments.</p>
+          <div class="badges-row" style="margin-bottom:1.5rem;">
+            <span class="badge">ISO 27001</span>
+            <span class="badge">HIPAA</span>
+            <span class="badge">HITRUST</span>
+            <span class="badge">SOC 2</span>
+            <span class="badge">GDPR</span>
+            <span class="badge">PCI DSS</span>
+          </div>
+          <a href="about.html" class="btn btn-dark btn-sm">Full Experience →</a>
+        </div>
+        <div class="stats-grid">
+          <div class="stat-card">
+            <div class="stat-number">19+</div>
+            <div class="stat-label">Years Experience</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-number">6+</div>
+            <div class="stat-label">Compliance Certs</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-number">3</div>
+            <div class="stat-label">Cloud Platforms</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-number">8+</div>
+            <div class="stat-label">Organisations</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA -->
+  <div class="cta-section">
+    <h2>Let's Build Something Together</h2>
+    <p>Open to consulting, full-time, and advisory roles in cloud architecture and cybersecurity leadership.</p>
+    <div class="btn-row">
+      <a href="contact.html" class="btn btn-primary">Send a Message</a>
+      <a href="https://www.linkedin.com/in/syenuganti-bb767744/" target="_blank" class="btn btn-outline">Connect on LinkedIn</a>
+    </div>
+  </div>
+
+  <footer class="main-footer">
+    <p>&copy; 2026 Srinivas Yenuganti &nbsp;&middot;&nbsp;
+      <a href="https://www.linkedin.com/in/syenuganti-bb767744/" target="_blank">LinkedIn</a> &nbsp;&middot;&nbsp;
+      <a href="contact.html">Contact</a>
+    </p>
   </footer>
 
 </body>

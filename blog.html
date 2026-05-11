@@ -5,6 +5,85 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta name="description" content="Blog by Srinivas Yenuganti – insights on Cloud, Security, DevOps, and AI." />
   <title>Blog | Srinivas Yenuganti</title>
+  <link rel="stylesheet" href="style.css" />
+  <style>
+    .coming-soon-card {
+      background: var(--bg-white);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 4rem 2.5rem;
+      text-align: center;
+      box-shadow: var(--shadow-sm);
+      max-width: 680px;
+      margin: 0 auto;
+    }
+    .coming-soon-icon { font-size: 3rem; margin-bottom: 1.25rem; }
+    .coming-soon-card h2 { font-size: 1.75rem; font-weight: 800; color: var(--primary); letter-spacing: -0.5px; margin-bottom: 0.75rem; }
+    .coming-soon-card p { color: var(--text-muted); font-size: 1rem; line-height: 1.7; margin-bottom: 2rem; }
+    .topic-tags { display: flex; flex-wrap: wrap; gap: 0.5rem; justify-content: center; margin-bottom: 2rem; }
+    .topic-tag {
+      background: linear-gradient(135deg, rgba(30,136,229,0.10), rgba(21,101,192,0.10));
+      border: 1px solid rgba(30,136,229,0.2);
+      color: var(--accent-hover);
+      padding: 0.4rem 1rem;
+      border-radius: 50px;
+      font-size: 0.82rem;
+      font-weight: 600;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- NAV -->
+  <nav class="main-nav">
+    <a href="index.html" class="nav-logo">Srinivas <span>Y.</span></a>
+    <button class="hamburger" onclick="document.getElementById('navlinks').classList.toggle('open')" aria-label="Toggle menu">
+      <span></span><span></span><span></span>
+    </button>
+    <ul class="nav-links" id="navlinks">
+      <li><a href="index.html">Home</a></li>
+      <li><a href="about.html">About</a></li>
+      <li><a href="blog.html" class="active">Blog</a></li>
+      <li><a href="contact.html" class="nav-cta">Contact</a></li>
+    </ul>
+  </nav>
+
+  <!-- PAGE HERO -->
+  <div class="page-hero">
+    <h1>Blog</h1>
+    <p>Insights on Cloud, Security, DevSecOps &amp; AI</p>
+  </div>
+
+  <section class="section">
+    <div class="section-inner">
+      <div class="coming-soon-card">
+        <div class="coming-soon-icon">✍️</div>
+        <h2>Articles Coming Soon</h2>
+        <p>I'll be sharing hands-on insights, architecture patterns, and lessons learned from real-world cloud and security projects.</p>
+        <div class="topic-tags">
+          <span class="topic-tag">Azure Cloud</span>
+          <span class="topic-tag">Zero Trust Security</span>
+          <span class="topic-tag">DevSecOps</span>
+          <span class="topic-tag">AI &amp; ML</span>
+          <span class="topic-tag">Infrastructure</span>
+          <span class="topic-tag">FinOps</span>
+          <span class="topic-tag">HIPAA / HITRUST</span>
+          <span class="topic-tag">Kubernetes</span>
+        </div>
+        <a href="contact.html" class="btn btn-primary btn-sm">Get Notified →</a>
+      </div>
+    </div>
+  </section>
+
+  <footer class="main-footer">
+    <p>&copy; 2026 Srinivas Yenuganti &nbsp;&middot;&nbsp;
+      <a href="https://www.linkedin.com/in/syenuganti-bb767744/" target="_blank">LinkedIn</a> &nbsp;&middot;&nbsp;
+      <a href="contact.html">Contact</a>
+    </p>
+  </footer>
+
+</body>
+</html>
   <style>
     body {
       font-family: "Segoe UI", Arial, sans-serif;
