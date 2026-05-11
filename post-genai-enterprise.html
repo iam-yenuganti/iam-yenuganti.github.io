@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Architecture patterns for production-grade generative AI — RAG, fine-tuning, private LLM deployment, responsible AI controls, and FinOps for LLM workloads on Azure." />
+  <title>Generative AI in the Enterprise | Srinivas Yenuganti</title>
+  <link rel="stylesheet" href="style.css" />
+  <style>
+    .post-header{background:linear-gradient(135deg,#0a2744 0%,#0d47a1 55%,#1565c0 100%);padding:3.5rem 1.5rem 3rem}
+    .post-breadcrumb{font-size:.78rem;color:rgba(255,255,255,.5);margin-bottom:1rem}
+    .post-breadcrumb a{color:rgba(255,255,255,.65);text-decoration:none}
+    .post-breadcrumb a:hover{color:#fff}
+    .post-title{font-size:clamp(1.7rem,4vw,2.5rem);font-weight:800;color:#fff;letter-spacing:-.75px;line-height:1.2;margin-bottom:1.25rem;max-width:800px}
+    .post-meta{display:flex;flex-wrap:wrap;gap:1rem;font-size:.78rem;color:rgba(255,255,255,.55);margin-bottom:1rem}
+    .post-tags{display:flex;flex-wrap:wrap;gap:.5rem}
+    .post-tag{background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.25);color:rgba(255,255,255,.85);padding:.22rem .7rem;border-radius:50px;font-size:.7rem;font-weight:600}
+    .article-section{padding:3.5rem 1.5rem 4rem}
+    .article-body{max-width:720px;margin:0 auto;line-height:1.8}
+    .article-body p{color:#374151;font-size:.97rem;margin-bottom:1.2rem}
+    .article-body h2{font-size:1.4rem;font-weight:700;color:#0d1b2a;letter-spacing:-.3px;margin:2.5rem 0 .9rem;padding-top:2rem;border-top:1px solid #e2e8f0}
+    .article-body h2:first-of-type{border-top:none;padding-top:0;margin-top:0}
+    .article-body h3{font-size:1.05rem;font-weight:700;color:#1a3a5c;margin:1.75rem 0 .5rem}
+    .article-body ul,.article-body ol{margin-left:1.4rem;margin-bottom:1.2rem;color:#374151;font-size:.95rem}
+    .article-body li{margin-bottom:.4rem;line-height:1.75}
+    .article-body strong{color:#0d1b2a}
+    .callout{border-radius:8px;padding:1rem 1.25rem;margin:1.5rem 0;border-left:3px solid}
+    .callout-tip{background:rgba(30,136,229,.06);border-color:#1e88e5}
+    .callout-arch{background:rgba(46,125,50,.06);border-color:#388e3c}
+    .callout-warn{background:rgba(245,124,0,.06);border-color:#f57c00}
+    .callout-title{font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:1px;margin-bottom:.35rem}
+    .callout-tip .callout-title{color:#1e88e5}
+    .callout-arch .callout-title{color:#388e3c}
+    .callout-warn .callout-title{color:#f57c00}
+    .callout p{margin:0;font-size:.88rem;color:#374151;line-height:1.7}
+    .arch-table{width:100%;border-collapse:collapse;font-size:.85rem;margin:1.5rem 0;overflow:hidden;box-shadow:0 1px 6px rgba(0,0,0,.07)}
+    .arch-table th{background:#0d1b2a;color:#fff;padding:.7rem 1rem;text-align:left;font-size:.78rem;font-weight:600}
+    .arch-table td{padding:.6rem 1rem;border-bottom:1px solid #e2e8f0;color:#374151;vertical-align:top;line-height:1.6}
+    .arch-table tr:last-child td{border-bottom:none}
+    .arch-table tr:nth-child(even) td{background:#f8fafc}
+    .pattern-cards{display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin:1.5rem 0}
+    @media(max-width:600px){.pattern-cards{grid-template-columns:1fr}}
+    .pattern-card{background:#fff;border:1px solid #e2e8f0;border-radius:8px;padding:1.25rem;box-shadow:0 1px 4px rgba(0,0,0,.05)}
+    .pattern-card h4{font-size:.9rem;font-weight:700;color:#0d1b2a;margin-bottom:.4rem}
+    .pattern-card p{font-size:.82rem;color:#64748b;line-height:1.65;margin:0}
+    .pattern-label{font-size:.65rem;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:#1e88e5;margin-bottom:.35rem;display:block}
+    .author-card{background:#fff;border:1px solid #e2e8f0;border-radius:12px;padding:1.75rem;display:flex;gap:1.25rem;align-items:flex-start;box-shadow:0 2px 8px rgba(0,0,0,.06);margin:3rem auto 0;max-width:720px}
+    .author-avatar{width:52px;height:52px;border-radius:50%;background:linear-gradient(135deg,#1e88e5,#1565c0);display:flex;align-items:center;justify-content:center;color:#fff;font-size:1.1rem;font-weight:700;flex-shrink:0}
+    .author-name{font-size:.97rem;font-weight:700;color:#0d1b2a;margin-bottom:.15rem}
+    .author-role{font-size:.78rem;color:#64748b;margin-bottom:.5rem}
+    .author-bio{font-size:.85rem;color:#64748b;line-height:1.6;margin-bottom:.5rem}
+  </style>
+</head>
+<body>
+
+  <nav class="main-nav">
+    <a href="index.html" class="nav-logo">Srinivas <span>Y.</span></a>
+    <button class="hamburger" onclick="document.getElementById('navlinks').classList.toggle('open')" aria-label="Toggle menu">
+      <span></span><span></span><span></span>
+    </button>
+    <ul class="nav-links" id="navlinks">
+      <li><a href="index.html">Home</a></li>
+      <li><a href="about.html">About</a></li>
+      <li><a href="blog.html" class="active">Blog</a></li>
+      <li><a href="contact.html" class="nav-cta">Contact</a></li>
+    </ul>
+  </nav>
+
+  <header class="post-header">
+    <div class="post-breadcrumb">
+      <a href="blog.html">← Blog</a> &nbsp;·&nbsp; AI Architecture
+    </div>
+    <h1 class="post-title">Generative AI in the Enterprise: Architecture Patterns for Production-Grade LLM Deployments</h1>
+    <div class="post-meta">
+      <span>⏱ 11 min read</span>
+      <span>✍️ Srinivas Yenuganti</span>
+    </div>
+    <div class="post-tags">
+      <span class="post-tag">Generative AI</span>
+      <span class="post-tag">Azure OpenAI</span>
+      <span class="post-tag">RAG</span>
+      <span class="post-tag">LLM</span>
+      <span class="post-tag">Responsible AI</span>
+      <span class="post-tag">AI FinOps</span>
+    </div>
+  </header>
+
+  <section class="article-section">
+    <div class="article-body">
+
+      <p>Most enterprise generative AI projects fail not because the models are inadequate, but because the architecture is not production-ready. A prototype that works beautifully in a demo environment collapses under real load when it encounters the full diversity of production data, concurrent users, adversarial inputs, and compliance requirements that were never modelled in the proof of concept.</p>
+
+      <p>This article covers the architectural patterns, design decisions, and operational disciplines that separate a reliable, cost-efficient enterprise GenAI deployment from an expensive prototype that never made it to production.</p>
+
+      <h2>The Three GenAI Pattern Families</h2>
+
+      <p>Before choosing technology, choose the right pattern for your use case. Every enterprise GenAI use case maps to one of three families, each with a distinct architecture and trade-off profile:</p>
+
+      <div class="pattern-cards">
+        <div class="pattern-card">
+          <span class="pattern-label">Pattern 1</span>
+          <h4>Retrieval-Augmented Generation (RAG)</h4>
+          <p>Combine an LLM with a private knowledge base. The model retrieves relevant documents before generating a response. Best for Q&amp;A over enterprise documents, policies, or knowledge bases.</p>
+        </div>
+        <div class="pattern-card">
+          <span class="pattern-label">Pattern 2</span>
+          <h4>Fine-Tuning</h4>
+          <p>Adapt a base model on domain-specific data to improve performance on a specific task. Best when RAG is insufficient — the model needs to adopt a specific style, format, or domain vocabulary that cannot be conveyed through retrieval alone.</p>
+        </div>
+        <div class="pattern-card">
+          <span class="pattern-label">Pattern 3</span>
+          <h4>Prompt Engineering + Guardrails</h4>
+          <p>Design precise system prompts and wrap the LLM with input/output guardrails. Best for constrained, well-defined tasks where you need consistent, governed output without the operational overhead of RAG or fine-tuning.</p>
+        </div>
+        <div class="pattern-card">
+          <span class="pattern-label">Pattern 4</span>
+          <h4>Agentic (Tool-Using)</h4>
+          <p>Give the LLM access to tools to act on systems, query live data, and execute multi-step tasks. Best for automation workflows where the answer is not in a document but must be derived from real-time data or system state.</p>
+        </div>
+      </div>
+
+      <p>In practice, most production deployments combine patterns — a RAG backbone for knowledge retrieval, with agentic tool access for live data, all wrapped in prompt engineering and guardrails. Understand which pattern solves your specific problem before committing to an architecture.</p>
+
+      <h2>RAG Architecture — The Right Way</h2>
+
+      <p>RAG is the most broadly applicable enterprise GenAI pattern. However, naive RAG — chunk documents, embed them, retrieve the top-k chunks, stuff them into a prompt — works poorly in production. Enterprise RAG requires careful design at every stage of the pipeline.</p>
+
+      <h3>Ingestion Pipeline</h3>
+      <ul>
+        <li><strong>Document processing:</strong> Use Azure Document Intelligence (Form Recognizer) for PDFs and scanned documents — extract structure (tables, headers, paragraphs) rather than raw text. Structure-aware chunking produces dramatically better retrieval results than character-count-based splitting.</li>
+        <li><strong>Chunking strategy:</strong> Semantic chunking (split on meaning boundaries, not arbitrary character counts) outperforms fixed-size chunking. Aim for 400–600 tokens per chunk with 10–15% overlap. Preserve document hierarchy metadata (section title, document name, page number) on every chunk.</li>
+        <li><strong>Embedding model:</strong> Use text-embedding-3-large (Azure OpenAI) for general-purpose enterprise content. Multilingual content requires a multilingual embedding model — the embedding and the query must use the same model.</li>
+        <li><strong>Vector store:</strong> Azure AI Search with hybrid search (vector + keyword BM25) consistently outperforms pure vector search by 15–25% on enterprise document retrieval benchmarks. Enable semantic reranking (Semantic Ranker in Azure AI Search) for further quality improvement.</li>
+      </ul>
+
+      <h3>Query Processing</h3>
+      <ul>
+        <li><strong>Query rewriting:</strong> Before retrieval, have a lightweight LLM call rewrite the user's query into an optimised search query — expanding abbreviations, adding synonyms, resolving ambiguous pronouns from conversation history. This single step typically improves retrieval precision by 20–30%.</li>
+        <li><strong>HyDE (Hypothetical Document Embeddings):</strong> Generate a hypothetical answer to the query, embed it, and use that embedding for retrieval. Documents semantically similar to the ideal answer are retrieved, even if they don't match the question's vocabulary. Effective for technical documentation retrieval.</li>
+        <li><strong>Metadata filtering:</strong> Use document metadata (department, date, classification) to pre-filter the search space before vector similarity. This improves precision and reduces context pollution from irrelevant documents.</li>
+      </ul>
+
+      <h3>Generation and Grounding</h3>
+      <p>Ground the LLM response strictly in the retrieved context. Your system prompt must instruct the model to: answer only from provided context, cite sources explicitly, and respond with "I don't know" rather than hallucinating when the context doesn't contain the answer. Measure groundedness automatically using Azure AI Foundry's evaluation framework before promoting any RAG configuration change to production.</p>
+
+      <div class="callout callout-tip">
+        <div class="callout-title">💡 Architect's Tip</div>
+        <p>The most impactful RAG improvement is usually better chunking and metadata, not a larger or more expensive model. Before upgrading from GPT-4o-mini to GPT-4o (4x cost increase), optimise your retrieval pipeline. In most cases, better retrieval on a cheaper model outperforms poor retrieval on the best model.</p>
+      </div>
+
+      <h2>Private LLM Deployment on Azure</h2>
+
+      <p>For regulated industries — healthcare, finance, government — model calls must never traverse the public internet with enterprise data in the payload. Azure provides the controls to deploy LLMs with complete network isolation.</p>
+
+      <h3>Provisioned Throughput Units (PTU)</h3>
+      <p>Azure OpenAI offers two deployment modes: Pay-As-You-Go (token-based billing, subject to shared capacity throttling) and Provisioned Throughput Units (PTU — reserved capacity with guaranteed latency SLAs). For production workloads with predictable traffic, PTU deployments offer consistent latency, no throttling under load, and 50–70% cost reduction at scale compared to PAYG. Size PTU based on your peak tokens-per-minute requirement with 20% headroom.</p>
+
+      <h3>Private Endpoints and VNet Integration</h3>
+      <ul>
+        <li>Deploy Azure OpenAI with a private endpoint in your workload VNet — disable public network access</li>
+        <li>All model traffic stays within your Azure network boundary — no data egress to the public internet</li>
+        <li>Use Azure API Management as the LLM gateway: centralised auth, rate limiting, usage tracking, model routing, and retry logic across multiple Azure OpenAI deployments</li>
+        <li>For multi-region resilience, deploy Azure OpenAI in two regions and use APIM load balancing between them</li>
+      </ul>
+
+      <h3>Data Residency and Sovereignty</h3>
+      <p>When you call the Azure OpenAI API, your prompts and completions are processed in the Azure region you select and are not used to train Microsoft's models (with standard data processing agreements). For customers requiring explicit data residency guarantees, use Azure OpenAI's Customer Managed Keys for encryption and verify the specific regional data boundary documentation. For the highest isolation requirements, Azure Government regions provide separate sovereign infrastructure.</p>
+
+      <h2>Responsible AI — Not Optional</h2>
+
+      <p>Responsible AI in production means operationalising the principles at the infrastructure layer, not just writing a policy document. Azure provides the tooling; the architect's job is to wire it in.</p>
+
+      <table class="arch-table">
+        <thead>
+          <tr><th>Risk</th><th>Azure Control</th><th>Implementation Note</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Harmful content generation</td>
+            <td>Azure AI Content Safety</td>
+            <td>Wrap all model endpoints — filter inputs and outputs for hate speech, violence, self-harm, and sexual content. Configure severity thresholds per use case.</td>
+          </tr>
+          <tr>
+            <td>Prompt injection / jailbreak</td>
+            <td>Azure AI Content Safety (Prompt Shield)</td>
+            <td>Detect and block both direct jailbreak attempts and indirect injection via documents or web content.</td>
+          </tr>
+          <tr>
+            <td>Hallucination / ungrounded output</td>
+            <td>Azure AI Foundry Groundedness Evaluation</td>
+            <td>Automated groundedness scoring in CI/CD pipeline — block deployment if score drops below threshold.</td>
+          </tr>
+          <tr>
+            <td>PII exposure in prompts or responses</td>
+            <td>Microsoft Purview + Azure AI Content Safety</td>
+            <td>Scan prompts and completions for PII before logging. Never log raw prompts containing customer data to shared observability stores.</td>
+          </tr>
+          <tr>
+            <td>Model bias and fairness</td>
+            <td>Azure AI Foundry Evaluations (fairness metrics)</td>
+            <td>Run fairness evaluations on diverse test sets before production deployment for any user-facing application.</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <h2>AI FinOps — Controlling LLM Costs</h2>
+
+      <p>LLM token consumption is the fastest-growing cloud cost category in most enterprises. Without active management, GenAI costs scale superlinearly with usage. Build cost governance into the architecture, not as an afterthought.</p>
+
+      <h3>Model Selection Strategy</h3>
+      <p>Not every query requires GPT-4o. Use a routing layer (implemented in Azure API Management or as an orchestration step) that classifies query complexity and routes to the most cost-effective model capable of handling it. Simple classification tasks → GPT-4o-mini (10–20x cheaper). Complex reasoning, multi-step analysis → o3. Document summarisation → GPT-4o. Correct model routing typically reduces LLM spend by 40–60% with no user-visible quality change.</p>
+
+      <h3>Caching</h3>
+      <ul>
+        <li><strong>Semantic caching:</strong> Cache LLM responses and retrieve them for semantically similar future queries without calling the model. Azure Redis Cache with vector similarity lookup. Effective for FAQ-style applications where many users ask the same or similar questions.</li>
+        <li><strong>Prompt caching:</strong> Azure OpenAI supports prompt prefix caching — if multiple requests share a long system prompt, the prefix is cached and only billed on first use. Design system prompts to maximise the cacheable prefix length.</li>
+      </ul>
+
+      <h3>Token Budget Enforcement</h3>
+      <p>Set hard token budgets per user session, per API key, and per day at the Azure OpenAI resource level. Use Azure Monitor metrics to alert when a deployment approaches its quota. Track cost per task completion, not just total spend — if cost-per-task rises, it indicates the system is doing more work than necessary (e.g., excessive tool calls, bloated contexts) and signals an optimisation opportunity.</p>
+
+      <div class="callout callout-arch">
+        <div class="callout-title">🏗 Architecture Pattern</div>
+        <p>Deploy Azure API Management as your AI Gateway — it provides a single, observable entry point for all LLM calls across your organisation. Configure products and subscriptions per team, track usage by cost centre, enforce per-subscription rate limits, and route to different Azure OpenAI deployments based on capacity. This single investment pays back across every GenAI use case you build.</p>
+      </div>
+
+      <h2>Evaluation-Driven Development</h2>
+
+      <p>GenAI systems must be evaluated continuously — model updates, prompt changes, data drift, and retrieval configuration changes all affect output quality in ways that traditional unit tests cannot detect. Build an evaluation pipeline into your CI/CD process:</p>
+
+      <ul>
+        <li>Maintain a golden dataset of representative queries with expected outputs — curated by domain experts, not generated by the model</li>
+        <li>Run automated evaluations (groundedness, relevance, coherence, task completion rate) on every pull request that touches prompts, retrieval configuration, or model deployments</li>
+        <li>Gate production deployment on evaluation scores — if groundedness drops below 0.85 or task completion drops 5% vs baseline, block the deployment and alert the team</li>
+        <li>Run A/B experiments for significant changes: serve the new configuration to 10% of traffic, measure quality metrics, promote or roll back based on data</li>
+      </ul>
+
+      <h2>Key Takeaway</h2>
+
+      <p>Production-grade GenAI is an engineering discipline, not a prompt engineering exercise. The same principles that make distributed systems reliable — observability, fault isolation, graceful degradation, cost governance, automated testing — apply directly to LLM-based systems, with additional dimensions unique to AI: evaluation, content safety, grounding, and model selection.</p>
+
+      <p>The enterprises extracting real value from GenAI in 2026 are not those that adopted the technology earliest — they are those that invested in robust architecture, evaluation pipelines, and operational discipline from the start.</p>
+
+    </div>
+  </section>
+
+  <section style="padding:0 1.5rem 3.5rem;">
+    <div class="author-card">
+      <div class="author-avatar">SY</div>
+      <div>
+        <div class="author-name">Srinivas Yenuganti</div>
+        <div class="author-role">Cloud Engineer · IT Infrastructure &amp; Security Architect</div>
+        <div class="author-bio">19+ years designing enterprise technology platforms. Currently building AI-integrated healthcare cloud architectures at iSpace Inc., Los Angeles, with Azure OpenAI, Cognitive APIs, and responsible AI governance frameworks.</div>
+        <a href="https://www.linkedin.com/in/syenuganti-bb767744/" target="_blank" style="color:#1e88e5;font-size:.85rem;text-decoration:none;font-weight:600;">Connect on LinkedIn →</a>
+      </div>
+    </div>
+  </section>
+
+  <footer class="main-footer">
+    <p>&copy; 2026 Srinivas Yenuganti &nbsp;&middot;&nbsp;
+      <a href="https://www.linkedin.com/in/syenuganti-bb767744/" target="_blank">LinkedIn</a> &nbsp;&middot;&nbsp;
+      <a href="blog.html">Blog</a> &nbsp;&middot;&nbsp;
+      <a href="contact.html">Contact</a>
+    </p>
+  </footer>
+
+</body>
+</html>

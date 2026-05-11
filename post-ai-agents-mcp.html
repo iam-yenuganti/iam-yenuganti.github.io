@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="A deep dive into AI Agent architecture and the Model Context Protocol (MCP) — how enterprise architects should design agentic systems for reliability, security, and scale." />
+  <title>AI Agents &amp; MCP Architecture | Srinivas Yenuganti</title>
+  <link rel="stylesheet" href="style.css" />
+  <style>
+    .post-header{background:linear-gradient(135deg,#1a0533 0%,#3a0a72 60%,#1a0533 100%);padding:3.5rem 1.5rem 3rem}
+    .post-breadcrumb{font-size:.78rem;color:rgba(255,255,255,.5);margin-bottom:1rem}
+    .post-breadcrumb a{color:rgba(255,255,255,.65);text-decoration:none}
+    .post-breadcrumb a:hover{color:#fff}
+    .post-title{font-size:clamp(1.7rem,4vw,2.5rem);font-weight:800;color:#fff;letter-spacing:-.75px;line-height:1.2;margin-bottom:1.25rem;max-width:800px}
+    .post-meta{display:flex;flex-wrap:wrap;gap:1rem;font-size:.78rem;color:rgba(255,255,255,.55);margin-bottom:1rem}
+    .post-tags{display:flex;flex-wrap:wrap;gap:.5rem}
+    .post-tag{background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.25);color:rgba(255,255,255,.85);padding:.22rem .7rem;border-radius:50px;font-size:.7rem;font-weight:600}
+    .article-section{padding:3.5rem 1.5rem 4rem}
+    .article-body{max-width:720px;margin:0 auto;line-height:1.8}
+    .article-body p{color:#374151;font-size:.97rem;margin-bottom:1.2rem}
+    .article-body h2{font-size:1.4rem;font-weight:700;color:#0d1b2a;letter-spacing:-.3px;margin:2.5rem 0 .9rem;padding-top:2rem;border-top:1px solid #e2e8f0}
+    .article-body h2:first-of-type{border-top:none;padding-top:0;margin-top:0}
+    .article-body h3{font-size:1.05rem;font-weight:700;color:#1a3a5c;margin:1.75rem 0 .5rem}
+    .article-body ul,.article-body ol{margin-left:1.4rem;margin-bottom:1.2rem;color:#374151;font-size:.95rem}
+    .article-body li{margin-bottom:.4rem;line-height:1.75}
+    .article-body strong{color:#0d1b2a}
+    .callout{border-radius:8px;padding:1rem 1.25rem;margin:1.5rem 0;border-left:3px solid}
+    .callout-tip{background:rgba(30,136,229,.06);border-color:#1e88e5}
+    .callout-arch{background:rgba(46,125,50,.06);border-color:#388e3c}
+    .callout-warn{background:rgba(245,124,0,.06);border-color:#f57c00}
+    .callout-title{font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:1px;margin-bottom:.35rem}
+    .callout-tip .callout-title{color:#1e88e5}
+    .callout-arch .callout-title{color:#388e3c}
+    .callout-warn .callout-title{color:#f57c00}
+    .callout p{margin:0;font-size:.88rem;color:#374151;line-height:1.7}
+    .arch-table{width:100%;border-collapse:collapse;font-size:.85rem;margin:1.5rem 0;overflow:hidden;box-shadow:0 1px 6px rgba(0,0,0,.07)}
+    .arch-table th{background:#0d1b2a;color:#fff;padding:.7rem 1rem;text-align:left;font-size:.78rem;font-weight:600}
+    .arch-table td{padding:.6rem 1rem;border-bottom:1px solid #e2e8f0;color:#374151;vertical-align:top;line-height:1.6}
+    .arch-table tr:last-child td{border-bottom:none}
+    .arch-table tr:nth-child(even) td{background:#f8fafc}
+    .mcp-diagram{background:#0d1b2a;border-radius:10px;padding:1.75rem;margin:1.5rem 0;font-family:'Courier New',monospace;font-size:.8rem;color:#a5f3fc;line-height:2;overflow-x:auto}
+    .mcp-diagram .dim{color:rgba(165,243,252,.4)}
+    .mcp-diagram .highlight{color:#fbbf24}
+    .author-card{background:#fff;border:1px solid #e2e8f0;border-radius:12px;padding:1.75rem;display:flex;gap:1.25rem;align-items:flex-start;box-shadow:0 2px 8px rgba(0,0,0,.06);margin:3rem auto 0;max-width:720px}
+    .author-avatar{width:52px;height:52px;border-radius:50%;background:linear-gradient(135deg,#7c3aed,#4f46e5);display:flex;align-items:center;justify-content:center;color:#fff;font-size:1.1rem;font-weight:700;flex-shrink:0}
+    .author-name{font-size:.97rem;font-weight:700;color:#0d1b2a;margin-bottom:.15rem}
+    .author-role{font-size:.78rem;color:#64748b;margin-bottom:.5rem}
+    .author-bio{font-size:.85rem;color:#64748b;line-height:1.6;margin-bottom:.5rem}
+  </style>
+</head>
+<body>
+
+  <nav class="main-nav">
+    <a href="index.html" class="nav-logo">Srinivas <span>Y.</span></a>
+    <button class="hamburger" onclick="document.getElementById('navlinks').classList.toggle('open')" aria-label="Toggle menu">
+      <span></span><span></span><span></span>
+    </button>
+    <ul class="nav-links" id="navlinks">
+      <li><a href="index.html">Home</a></li>
+      <li><a href="about.html">About</a></li>
+      <li><a href="blog.html" class="active">Blog</a></li>
+      <li><a href="contact.html" class="nav-cta">Contact</a></li>
+    </ul>
+  </nav>
+
+  <header class="post-header">
+    <div class="post-breadcrumb">
+      <a href="blog.html">← Blog</a> &nbsp;·&nbsp; AI Architecture
+    </div>
+    <h1 class="post-title">Building Agentic AI Systems: MCP, Orchestration, and the Architecture Behind AI Agents</h1>
+    <div class="post-meta">
+      <span>⏱ 13 min read</span>
+      <span>✍️ Srinivas Yenuganti</span>
+    </div>
+    <div class="post-tags">
+      <span class="post-tag">AI Agents</span>
+      <span class="post-tag">MCP</span>
+      <span class="post-tag">Azure OpenAI</span>
+      <span class="post-tag">Semantic Kernel</span>
+      <span class="post-tag">AutoGen</span>
+      <span class="post-tag">Agentic AI</span>
+    </div>
+  </header>
+
+  <section class="article-section">
+    <div class="article-body">
+
+      <p>We have moved past the era of single-shot prompts. The most impactful AI deployments in 2026 are <strong>agentic systems</strong> — AI that reasons, plans, uses tools, delegates to other agents, and iterates toward a goal with minimal human intervention. For enterprise architects, the question is no longer whether to adopt agents, but how to design them so they are reliable, observable, secure, and cost-controlled.</p>
+
+      <p>At the centre of this shift is a new standard that has rapidly become the backbone of agentic interoperability: the <strong>Model Context Protocol (MCP)</strong>.</p>
+
+      <h2>What Is MCP — and Why Does It Matter?</h2>
+
+      <p>The Model Context Protocol, introduced by Anthropic and rapidly adopted across the AI tooling ecosystem, is an open standard that defines how AI models communicate with external tools, data sources, and other agents. Think of it as the USB-C of AI integration: a single, standardised interface that replaces the previous situation where every LLM provider, every tool, and every orchestrator had a bespoke connection protocol.</p>
+
+      <p>Before MCP, connecting an LLM to a database, a file system, an API, or another model required custom code for every combination. MCP defines a clean client-server architecture:</p>
+
+      <div class="mcp-diagram">
+        <span class="highlight">MCP Host</span> (AI agent / orchestrator)
+        <span class="dim">  ──[MCP Client]──▶</span>  <span class="highlight">MCP Server</span> (tool / data source)
+        <br>
+        <span class="dim">                              ├──</span> Resources  <span class="dim">(expose data: files, DBs, APIs)</span>
+        <span class="dim">                              ├──</span> Tools      <span class="dim">(callable functions the model invokes)</span>
+        <span class="dim">                              └──</span> Prompts    <span class="dim">(reusable instruction templates)</span>
+      </div>
+
+      <p>An MCP Server exposes capabilities — a GitHub server exposes tools like <code>create_pull_request</code> or <code>read_file</code>; a database server exposes <code>run_query</code>; a Kubernetes server exposes <code>get_pod_logs</code>. The AI model consumes these through a standardised client interface. Any model that speaks MCP can use any MCP server — one integration, universal compatibility.</p>
+
+      <p>For enterprise architects, MCP solves three critical problems: <strong>composability</strong> (mix and match tools without glue code), <strong>security boundary isolation</strong> (each MCP Server enforces its own auth and permissions), and <strong>observability</strong> (tool calls flow through a structured protocol with clear logging hooks).</p>
+
+      <h2>The Anatomy of an AI Agent</h2>
+
+      <p>An AI agent is a system that combines an LLM with a set of tools, a memory mechanism, and a planning loop. Understanding the components lets you reason about where things break and what you need to monitor.</p>
+
+      <table class="arch-table">
+        <thead>
+          <tr><th>Component</th><th>Purpose</th><th>Azure / Tooling Options</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>LLM Backbone</strong></td>
+            <td>Reasoning, planning, generating responses</td>
+            <td>Azure OpenAI (GPT-4o, o1, o3), Claude via API</td>
+          </tr>
+          <tr>
+            <td><strong>Tool Registry</strong></td>
+            <td>Functions the agent can call (MCP servers or native plugins)</td>
+            <td>MCP Servers, Semantic Kernel plugins, Azure Functions</td>
+          </tr>
+          <tr>
+            <td><strong>Memory</strong></td>
+            <td>Short-term (conversation), long-term (vector search), episodic (past tasks)</td>
+            <td>Azure AI Search (vector), Cosmos DB, Redis Cache</td>
+          </tr>
+          <tr>
+            <td><strong>Planner / Orchestrator</strong></td>
+            <td>Decompose goals into sub-tasks, route to sub-agents</td>
+            <td>Semantic Kernel, AutoGen, LangGraph, Azure AI Foundry</td>
+          </tr>
+          <tr>
+            <td><strong>State Management</strong></td>
+            <td>Persist agent state across long-running workflows</td>
+            <td>Azure Durable Functions, Cosmos DB, Service Bus</td>
+          </tr>
+          <tr>
+            <td><strong>Observation Layer</strong></td>
+            <td>Trace every LLM call, tool call, and decision</td>
+            <td>Azure Monitor, Application Insights, OpenTelemetry</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <h2>Multi-Agent Architecture Patterns</h2>
+
+      <p>Single agents are powerful but limited — they operate sequentially and hit context window limits on complex tasks. Multi-agent systems decompose problems across specialised agents that collaborate.</p>
+
+      <h3>Orchestrator–Worker Pattern</h3>
+      <p>An Orchestrator agent receives a high-level goal, breaks it into sub-tasks, and dispatches each to a specialised Worker agent. Workers complete their tasks and return results. The Orchestrator aggregates, decides on next steps, and either returns a final answer or continues the loop. This is the most common enterprise pattern — it maps cleanly to existing workflow concepts and is straightforward to monitor.</p>
+
+      <p><strong>Example:</strong> An IT Operations agent that receives "Investigate and resolve the latency spike in the payment service." The Orchestrator routes to: a Metrics agent (queries Azure Monitor), a Logs agent (searches Application Insights), a Config agent (checks recent deployments). Results are synthesised and a remediation recommendation is generated — or the Orchestrator invokes a Remediation agent to take direct action.</p>
+
+      <h3>Peer-to-Peer Agent Network</h3>
+      <p>Agents operate as peers — any agent can invoke any other. Useful for exploration tasks where the path is not known in advance. More complex to govern and trace than the orchestrator pattern; use it selectively for research-oriented workflows.</p>
+
+      <h3>Supervisor with Human-in-the-Loop</h3>
+      <p>A Supervisor agent routes tasks to workers but requires human approval before taking irreversible actions (deleting resources, making purchases, sending external communications). This is the correct default pattern for enterprise production deployments until you have sufficient confidence in the agent's reliability for a specific task class.</p>
+
+      <div class="callout callout-warn">
+        <div class="callout-title">⚠️ Architect's Warning</div>
+        <p>Fully autonomous agents with destructive tool access (delete, write to production, send emails) should never be deployed without a human-in-the-loop gate and a kill switch. Agent loops can compound errors faster than humans can intervene. Start with read-only tool access, validate thoroughly, then progressively expand write permissions with staged rollout and rollback capability.</p>
+      </div>
+
+      <h2>Designing MCP Servers for Enterprise Use</h2>
+
+      <p>Every MCP Server you build or adopt is an extension of your attack surface. Enterprise-grade MCP Servers require the same security rigour as any API you expose.</p>
+
+      <h3>Authentication and Authorisation</h3>
+      <ul>
+        <li>MCP Servers must authenticate callers — use OAuth 2.0 with client credentials for server-to-server calls; managed identity is the preferred mechanism within Azure</li>
+        <li>Each tool operation should enforce RBAC at the data level — an agent with read-only intent must not receive a tool that has write access unless explicitly required and approved</li>
+        <li>Scope MCP Server permissions to the minimum required for the specific agent use case — one MCP Server per permission boundary, not one omnibus server with all tools</li>
+      </ul>
+
+      <h3>Input Validation — Prompt Injection Defence</h3>
+      <p>Tool inputs flowing from an LLM to an MCP Server must be validated. Prompt injection attacks — where adversarial content in a document or web page manipulates an agent's tool calls — are the primary attack vector for agentic systems. Validate parameter types, enforce length limits, reject patterns that look like injected instructions, and never pass raw LLM output directly to shell commands or SQL queries.</p>
+
+      <h3>Rate Limiting and Cost Guardrails</h3>
+      <p>Agent loops can invoke tools hundreds of times in a single run. Implement per-agent, per-session token budgets and tool call limits enforced at the orchestration layer. Set hard stops — if a session exceeds N LLM calls or M tool invocations, terminate and alert. Without these, a misbehaving agent or a prompt injection can generate thousands of dollars of Azure OpenAI consumption before a human notices.</p>
+
+      <div class="callout callout-arch">
+        <div class="callout-title">🏗 Architecture Pattern</div>
+        <p>Deploy your MCP Servers as Azure Container Apps — they scale to zero when idle (zero cost), scale out under load, and integrate natively with managed identity and Azure API Management for centralised auth, rate limiting, and observability across all your agent tools.</p>
+      </div>
+
+      <h2>Memory Architecture for Production Agents</h2>
+
+      <p>Memory is what separates a stateless chatbot from an agent that can handle complex, multi-session workflows. Design memory in three distinct layers:</p>
+
+      <ul>
+        <li><strong>In-context (short-term):</strong> The current conversation thread plus relevant retrieved context, within the model's context window. Keep this lean — irrelevant context degrades response quality and increases cost. Use a sliding window or summarisation for long conversations.</li>
+        <li><strong>Vector memory (semantic long-term):</strong> Past interactions, documents, and domain knowledge embedded and stored in Azure AI Search. The agent retrieves semantically relevant memories at the start of each turn. This is the RAG (Retrieval-Augmented Generation) pattern applied to agent memory.</li>
+        <li><strong>Episodic memory (task history):</strong> Structured records of past tasks — what was attempted, what succeeded, what failed, what the outcome was. Stored in Cosmos DB or Azure SQL. Enables agents to learn from past performance and avoid repeating mistakes within a session or across sessions.</li>
+      </ul>
+
+      <h2>Observability — You Cannot Manage What You Cannot See</h2>
+
+      <p>Agent systems produce complex, non-deterministic execution traces. Traditional application monitoring is insufficient. You need trace-level observability for every agent decision.</p>
+
+      <ul>
+        <li><strong>Instrument with OpenTelemetry:</strong> Trace every LLM call (model, prompt, token count, latency, cost), every tool invocation (tool name, input, output, duration), and every agent decision (which path was taken and why)</li>
+        <li><strong>Azure Application Insights:</strong> Collect all agent traces. Use custom dimensions to tag traces by agent ID, session ID, user context, and task type — this makes filtering and correlation practical</li>
+        <li><strong>LLM-specific metrics to track:</strong> tokens consumed per session, tool call frequency, loop depth (how many iterations before completion or timeout), failure rate per tool, and cost per task completion</li>
+        <li><strong>Alert on anomalies:</strong> Unusually deep loops, spike in tool call errors, sudden token consumption increase — these are early indicators of either prompt injection, model behaviour drift, or infrastructure issues</li>
+      </ul>
+
+      <h2>Azure AI Foundry — The Enterprise Agent Platform</h2>
+
+      <p>Azure AI Foundry (the evolution of Azure AI Studio and Azure Machine Learning) is Microsoft's unified platform for building, evaluating, and operating AI agents at enterprise scale. Key capabilities for architects:</p>
+
+      <ul>
+        <li><strong>Model catalogue and deployment:</strong> Deploy GPT-4o, o1, o3, Phi-4, Llama 3.3, Mistral, and others as private endpoints within your VNet — no data leaves your Azure boundary</li>
+        <li><strong>Prompt flow:</strong> Visual and code-first orchestration of multi-step LLM workflows with built-in evaluation, A/B testing, and deployment pipelines</li>
+        <li><strong>Evaluations:</strong> Automated groundedness, coherence, relevance, and safety scoring for agent outputs before promotion to production</li>
+        <li><strong>Content Safety:</strong> Azure AI Content Safety integration blocks harmful outputs and jailbreak attempts at the API layer — essential for any agent exposed to external users</li>
+        <li><strong>Private networking:</strong> Deploy AI Foundry hubs with private endpoints — all model traffic stays within your VNet, essential for regulated workloads</li>
+      </ul>
+
+      <h2>A Reference Architecture: Enterprise IT Operations Agent</h2>
+
+      <p>This pattern is repeatable across use cases — replace the tool set for HR, finance, legal, or any domain:</p>
+
+      <ol>
+        <li><strong>Entry point:</strong> Teams bot or web UI sends user request to Azure API Management</li>
+        <li><strong>API Management:</strong> Enforces auth (Entra ID token), rate limiting, and routes to Orchestrator Agent (Azure Container App)</li>
+        <li><strong>Orchestrator Agent:</strong> Calls Azure OpenAI GPT-4o with a system prompt defining the agent's role and available tools. Receives a plan.</li>
+        <li><strong>Tool execution:</strong> Orchestrator dispatches tool calls via MCP to specialised servers: Azure Monitor MCP Server, Log Analytics MCP Server, ServiceNow MCP Server, GitHub MCP Server</li>
+        <li><strong>Memory retrieval:</strong> Before each LLM call, relevant past incidents are retrieved from Azure AI Search (vector store)</li>
+        <li><strong>Human-in-the-loop gate:</strong> Any remediation action (restart service, apply config change) triggers an approval request via Teams Adaptive Card before execution</li>
+        <li><strong>Observability:</strong> All traces sent to Application Insights; cost and token usage sent to Log Analytics; alerts configured for anomalous loop depth or cost spikes</li>
+      </ol>
+
+      <h2>Key Takeaway</h2>
+
+      <p>MCP is not hype — it is fast becoming the connective tissue of enterprise AI, and architects who understand it now will be positioned to design composable, secure, maintainable agent systems instead of brittle, one-off integrations. The same principles that make cloud architecture good — least privilege, observability, composability, infrastructure as code — apply directly to agentic systems. The technology is new; the discipline is not.</p>
+
+      <p>Start with a single, well-scoped agent with read-only tools and robust observability. Earn trust progressively. The most successful enterprise AI deployments in 2026 are not the most autonomous — they are the most reliably useful.</p>
+
+    </div>
+  </section>
+
+  <section style="padding:0 1.5rem 3.5rem;">
+    <div class="author-card">
+      <div class="author-avatar">SY</div>
+      <div>
+        <div class="author-name">Srinivas Yenuganti</div>
+        <div class="author-role">Cloud Engineer · IT Infrastructure &amp; Security Architect</div>
+        <div class="author-bio">19+ years building enterprise technology platforms. Currently integrating Azure OpenAI and AI services into healthcare cloud architectures at iSpace Inc., with a focus on governance, security, and operational reliability for AI workloads.</div>
+        <a href="https://www.linkedin.com/in/syenuganti-bb767744/" target="_blank" style="color:#1e88e5;font-size:.85rem;text-decoration:none;font-weight:600;">Connect on LinkedIn →</a>
+      </div>
+    </div>
+  </section>
+
+  <footer class="main-footer">
+    <p>&copy; 2026 Srinivas Yenuganti &nbsp;&middot;&nbsp;
+      <a href="https://www.linkedin.com/in/syenuganti-bb767744/" target="_blank">LinkedIn</a> &nbsp;&middot;&nbsp;
+      <a href="blog.html">Blog</a> &nbsp;&middot;&nbsp;
+      <a href="contact.html">Contact</a>
+    </p>
+  </footer>
+
+</body>
+</html>
