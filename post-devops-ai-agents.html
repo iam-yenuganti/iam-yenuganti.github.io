@@ -38,6 +38,9 @@
     .callout-azure .callout-title{color:#0078d4}
     .callout p,.callout ul{margin:0;font-size:.88rem;color:#374151;line-height:1.7}
     .callout ul{margin-left:1.2rem;margin-top:.35rem}
+    .callout-disclaimer{background:#fafafa;border-color:#94a3b8;border-left-width:4px;border-radius:8px}
+    .callout-disclaimer .callout-title{color:#475569}
+    .callout-disclaimer p{color:#475569;font-size:.83rem;line-height:1.75}
     .arch-table{width:100%;border-collapse:collapse;font-size:.85rem;margin:1.5rem 0;overflow:hidden;border-radius:8px;box-shadow:0 1px 6px rgba(0,0,0,.07)}
     .arch-table th{background:#0d1b2a;color:#fff;padding:.7rem 1rem;text-align:left;font-size:.78rem;font-weight:600}
     .arch-table td{padding:.65rem 1rem;border-bottom:1px solid #e2e8f0;color:#374151;vertical-align:top;line-height:1.6}
@@ -115,6 +118,11 @@
 
   <section class="article-section">
     <div class="article-body">
+
+      <div class="callout callout-disclaimer">
+        <div class="callout-title">Editorial Disclaimer</div>
+        <p>The views, analyses, and opinions expressed in this article are <strong>solely my own</strong> and do not represent, reflect, or constitute the views of my employer, any client, or any organisation I am affiliated with. All vendor capability descriptions are based on publicly available documentation and announcements as of May 2026 and are subject to change. The illustrative prompt-and-response scenarios are <strong>constructed examples</strong> for educational purposes — they do not represent actual session transcripts from any live system. Tool and platform comparisons reflect my personal assessment as a practitioner and should not be relied upon as professional advice. Always validate AI-generated infrastructure changes in a non-production environment before applying them to production systems. Product names, trademarks, and logos referenced herein (Amazon Q, GitHub Copilot, Azure DevOps, etc.) are the property of their respective owners.</p>
+      </div>
 
       <p>Your pipeline failed at 2am. You got paged. You open your laptop, squint at logs, dig through CloudWatch or Azure Monitor, trace back through three pipeline stages, and finally find it — a missing secret rotation that broke the OIDC token exchange. Forty-five minutes later you're back in bed.</p>
 
