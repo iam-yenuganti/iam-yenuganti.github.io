@@ -3,38 +3,32 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="description" content="Blog by Srinivas Yenuganti – insights on Cloud, Security, DevOps, and AI." />
+  <meta name="description" content="Architecture blog by Srinivas Yenuganti – practical guides on Azure, Zero Trust, Healthcare Cloud, and enterprise infrastructure design." />
   <title>Blog | Srinivas Yenuganti</title>
   <link rel="stylesheet" href="style.css" />
   <style>
-    .coming-soon-card {
-      background: var(--bg-white);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      padding: 4rem 2.5rem;
-      text-align: center;
-      box-shadow: var(--shadow-sm);
-      max-width: 680px;
-      margin: 0 auto;
-    }
-    .coming-soon-icon { font-size: 3rem; margin-bottom: 1.25rem; }
-    .coming-soon-card h2 { font-size: 1.75rem; font-weight: 800; color: var(--primary); letter-spacing: -0.5px; margin-bottom: 0.75rem; }
-    .coming-soon-card p { color: var(--text-muted); font-size: 1rem; line-height: 1.7; margin-bottom: 2rem; }
-    .topic-tags { display: flex; flex-wrap: wrap; gap: 0.5rem; justify-content: center; margin-bottom: 2rem; }
-    .topic-tag {
-      background: linear-gradient(135deg, rgba(30,136,229,0.10), rgba(21,101,192,0.10));
-      border: 1px solid rgba(30,136,229,0.2);
-      color: var(--accent-hover);
-      padding: 0.4rem 1rem;
-      border-radius: 50px;
-      font-size: 0.82rem;
-      font-weight: 600;
-    }
+    .blog-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1.5rem; }
+    .blog-card { background: var(--bg-white); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; box-shadow: var(--shadow-sm); transition: all 0.25s; display: flex; flex-direction: column; text-decoration: none; color: inherit; }
+    .blog-card:hover { box-shadow: var(--shadow-lg); transform: translateY(-5px); }
+    .blog-card-header { padding: 2rem 1.75rem; }
+    .blog-card-header.blue   { background: linear-gradient(135deg, #0d1b2a 0%, #1a3a5c 100%); }
+    .blog-card-header.teal   { background: linear-gradient(135deg, #004d40 0%, #00695c 100%); }
+    .blog-card-header.purple { background: linear-gradient(135deg, #311b92 0%, #4a148c 100%); }
+    .blog-category { display: block; background: rgba(255,255,255,0.18); color: rgba(255,255,255,0.9); border: 1px solid rgba(255,255,255,0.25); padding: 0.22rem 0.7rem; border-radius: 50px; font-size: 0.68rem; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; margin-bottom: 0.85rem; width: fit-content; }
+    .blog-card-header h2 { color: white; font-size: 1.1rem; font-weight: 700; line-height: 1.4; margin: 0; }
+    .blog-card-body { padding: 1.5rem; flex: 1; display: flex; flex-direction: column; }
+    .blog-meta { display: flex; gap: 0.85rem; font-size: 0.75rem; color: var(--text-muted); margin-bottom: 0.85rem; }
+    .blog-excerpt { font-size: 0.875rem; color: var(--text-muted); line-height: 1.7; flex: 1; margin-bottom: 1rem; }
+    .blog-tags { display: flex; flex-wrap: wrap; gap: 0.35rem; margin-bottom: 1.1rem; }
+    .blog-tag { background: var(--bg); border: 1px solid var(--border); color: var(--text-muted); padding: 0.18rem 0.6rem; border-radius: 50px; font-size: 0.68rem; font-weight: 600; }
+    .read-more { color: var(--accent); font-weight: 600; font-size: 0.85rem; display: inline-flex; align-items: center; gap: 0.25rem; margin-top: auto; }
+    .newsletter-strip { background: linear-gradient(135deg, #0d1b2a 0%, #1a3a5c 100%); border-radius: var(--radius); padding: 2.5rem; text-align: center; margin-top: 3.5rem; }
+    .newsletter-strip h3 { color: white; font-size: 1.35rem; font-weight: 700; margin-bottom: 0.5rem; }
+    .newsletter-strip p { color: rgba(255,255,255,0.62); font-size: 0.95rem; margin-bottom: 1.5rem; }
   </style>
 </head>
 <body>
 
-  <!-- NAV -->
   <nav class="main-nav">
     <a href="index.html" class="nav-logo">Srinivas <span>Y.</span></a>
     <button class="hamburger" onclick="document.getElementById('navlinks').classList.toggle('open')" aria-label="Toggle menu">
@@ -48,29 +42,70 @@
     </ul>
   </nav>
 
-  <!-- PAGE HERO -->
   <div class="page-hero">
-    <h1>Blog</h1>
-    <p>Insights on Cloud, Security, DevSecOps &amp; AI</p>
+    <h1>Architecture Blog</h1>
+    <p>Solution design guides for cloud, security, and infrastructure architects</p>
   </div>
 
   <section class="section">
     <div class="section-inner">
-      <div class="coming-soon-card">
-        <div class="coming-soon-icon">✍️</div>
-        <h2>Articles Coming Soon</h2>
-        <p>I'll be sharing hands-on insights, architecture patterns, and lessons learned from real-world cloud and security projects.</p>
-        <div class="topic-tags">
-          <span class="topic-tag">Azure Cloud</span>
-          <span class="topic-tag">Zero Trust Security</span>
-          <span class="topic-tag">DevSecOps</span>
-          <span class="topic-tag">AI &amp; ML</span>
-          <span class="topic-tag">Infrastructure</span>
-          <span class="topic-tag">FinOps</span>
-          <span class="topic-tag">HIPAA / HITRUST</span>
-          <span class="topic-tag">Kubernetes</span>
-        </div>
-        <a href="contact.html" class="btn btn-primary btn-sm">Get Notified →</a>
+      <span class="section-label">Latest Articles</span>
+      <h2 class="section-title">Solution Architecture Insights</h2>
+      <p class="section-subtitle">Practical, hands-on guides covering the patterns, principles, and tools that enterprise architects rely on every day.</p>
+
+      <div class="blog-grid">
+
+        <a href="post-zero-trust.html" class="blog-card">
+          <div class="blog-card-header blue">
+            <span class="blog-category">Security Architecture</span>
+            <h2>Zero Trust Architecture on Azure: A Practitioner's Blueprint</h2>
+          </div>
+          <div class="blog-card-body">
+            <div class="blog-meta"><span>📅 May 2026</span><span>⏱ 10 min read</span></div>
+            <p class="blog-excerpt">Implement Zero Trust end-to-end on Azure — from identity and Conditional Access through network micro-segmentation, data encryption, and SIEM-driven threat detection.</p>
+            <div class="blog-tags">
+              <span class="blog-tag">Azure</span><span class="blog-tag">Zero Trust</span><span class="blog-tag">Entra ID</span><span class="blog-tag">Security</span>
+            </div>
+            <span class="read-more">Read Article →</span>
+          </div>
+        </a>
+
+        <a href="post-healthcare-cloud.html" class="blog-card">
+          <div class="blog-card-header teal">
+            <span class="blog-category">Cloud Architecture</span>
+            <h2>Healthcare Cloud: Designing for HIPAA &amp; HITRUST Compliance</h2>
+          </div>
+          <div class="blog-card-body">
+            <div class="blog-meta"><span>📅 May 2026</span><span>⏱ 12 min read</span></div>
+            <p class="blog-excerpt">A comprehensive blueprint for building HIPAA and HITRUST-compliant cloud platforms — PHI data flows, encryption, network isolation, audit logging, and DR design.</p>
+            <div class="blog-tags">
+              <span class="blog-tag">Healthcare</span><span class="blog-tag">HIPAA</span><span class="blog-tag">HITRUST</span><span class="blog-tag">Azure</span>
+            </div>
+            <span class="read-more">Read Article →</span>
+          </div>
+        </a>
+
+        <a href="post-landing-zone.html" class="blog-card">
+          <div class="blog-card-header purple">
+            <span class="blog-category">Infrastructure Design</span>
+            <h2>Azure Landing Zone Design: Building Enterprise-Grade Cloud Foundations</h2>
+          </div>
+          <div class="blog-card-body">
+            <div class="blog-meta"><span>📅 April 2026</span><span>⏱ 9 min read</span></div>
+            <p class="blog-excerpt">Get your cloud foundation right before you build anything — management group hierarchy, hub-spoke networking, Policy as Code, and governance at enterprise scale.</p>
+            <div class="blog-tags">
+              <span class="blog-tag">Landing Zone</span><span class="blog-tag">Governance</span><span class="blog-tag">Azure Policy</span><span class="blog-tag">Hub-Spoke</span>
+            </div>
+            <span class="read-more">Read Article →</span>
+          </div>
+        </a>
+
+      </div>
+
+      <div class="newsletter-strip">
+        <h3>New articles in your inbox?</h3>
+        <p>Drop me a message and I'll reach out when new architecture guides are published.</p>
+        <a href="contact.html" class="btn btn-primary btn-sm">Get In Touch</a>
       </div>
     </div>
   </section>
@@ -80,142 +115,6 @@
       <a href="https://www.linkedin.com/in/syenuganti-bb767744/" target="_blank">LinkedIn</a> &nbsp;&middot;&nbsp;
       <a href="contact.html">Contact</a>
     </p>
-  </footer>
-
-</body>
-</html>
-  <style>
-    body {
-      font-family: "Segoe UI", Arial, sans-serif;
-      background: #f9fafc;
-      color: #333;
-      margin: 0;
-      padding: 0;
-    }
-    header {
-      background: #001f3f;
-      color: white;
-      text-align: center;
-      padding: 2rem 1rem;
-    }
-    header h1 {
-      margin: 0;
-      font-size: 2rem;
-    }
-    nav {
-      background: #0074d9;
-      display: flex;
-      justify-content: center;
-      flex-wrap: wrap;
-    }
-    nav a {
-      color: white;
-      text-decoration: none;
-      padding: 1rem 1.5rem;
-      display: block;
-    }
-    nav a:hover {
-      background: #005fa3;
-    }
-    .dropdown {
-      position: relative;
-    }
-    .dropdown-content {
-      display: none;
-      position: absolute;
-      background: #0074d9;
-      min-width: 150px;
-      z-index: 1;
-    }
-    .dropdown-content a {
-      padding: 0.8rem 1rem;
-    }
-    .dropdown:hover .dropdown-content {
-      display: block;
-    }
-    .container {
-      max-width: 800px;
-      margin: 3rem auto;
-      padding: 0 1rem;
-      text-align: center;
-      line-height: 1.8;
-    }
-    h2 {
-      color: #001f3f;
-      border-bottom: 3px solid #0074d9;
-      display: inline-block;
-      padding-bottom: 0.3rem;
-    }
-    .coming-soon {
-      background: #fff;
-      border-radius: 8px;
-      box-shadow: 0 0 10px rgba(0,0,0,0.06);
-      padding: 3rem 2rem;
-      margin-top: 2rem;
-    }
-    .coming-soon p {
-      color: #555;
-      font-size: 1.1rem;
-    }
-    .tags {
-      margin-top: 1.5rem;
-      display: flex;
-      gap: 0.6rem;
-      flex-wrap: wrap;
-      justify-content: center;
-    }
-    .tag {
-      background: #0074d9;
-      color: white;
-      border-radius: 20px;
-      padding: 0.3rem 0.9rem;
-      font-size: 0.9rem;
-    }
-    footer {
-      text-align: center;
-      background: #001f3f;
-      color: white;
-      padding: 1rem 0;
-      margin-top: 3rem;
-    }
-  </style>
-</head>
-<body>
-
-  <header>
-    <h1>Blog</h1>
-  </header>
-
-  <nav>
-    <a href="index.html">Home</a>
-    <a href="about.html">About</a>
-    <a href="contact.html">Contact</a>
-    <div class="dropdown">
-      <a href="blog.html">Blog ▾</a>
-      <div class="dropdown-content">
-        <a href="blog.html">Cloud</a>
-        <a href="blog.html">Security</a>
-      </div>
-    </div>
-  </nav>
-
-  <div class="container">
-    <h2>Insights &amp; Articles</h2>
-    <div class="coming-soon">
-      <p>Coming soon — I'll be sharing hands-on insights and lessons learned on topics I work with every day.</p>
-      <div class="tags">
-        <span class="tag">Azure Cloud</span>
-        <span class="tag">Security</span>
-        <span class="tag">DevSecOps</span>
-        <span class="tag">AI &amp; ML</span>
-        <span class="tag">Infrastructure</span>
-        <span class="tag">FinOps</span>
-      </div>
-    </div>
-  </div>
-
-  <footer>
-    &copy; 2026 Srinivas Yenuganti | All Rights Reserved
   </footer>
 
 </body>

@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Implement Zero Trust end-to-end on Azure — identity, Conditional Access, network micro-segmentation, Key Vault, and Microsoft Sentinel." />
+  <title>Zero Trust Architecture on Azure | Srinivas Yenuganti</title>
+  <link rel="stylesheet" href="style.css" />
+  <style>
+    .post-header{background:linear-gradient(135deg,#0d1b2a 0%,#1a3a5c 100%);padding:3.5rem 1.5rem 3rem}
+    .post-breadcrumb{font-size:.78rem;color:rgba(255,255,255,.5);margin-bottom:1rem}
+    .post-breadcrumb a{color:rgba(255,255,255,.65);text-decoration:none}
+    .post-breadcrumb a:hover{color:#fff}
+    .post-title{font-size:clamp(1.7rem,4vw,2.5rem);font-weight:800;color:#fff;letter-spacing:-.75px;line-height:1.2;margin-bottom:1.25rem;max-width:800px}
+    .post-meta{display:flex;flex-wrap:wrap;gap:1rem;font-size:.78rem;color:rgba(255,255,255,.55);margin-bottom:1rem}
+    .post-tags{display:flex;flex-wrap:wrap;gap:.5rem}
+    .post-tag{background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.2);color:rgba(255,255,255,.8);padding:.22rem .7rem;border-radius:50px;font-size:.7rem;font-weight:600}
+    .article-section{padding:3.5rem 1.5rem 4rem}
+    .article-body{max-width:720px;margin:0 auto;line-height:1.8}
+    .article-body p{color:#374151;font-size:.97rem;margin-bottom:1.2rem}
+    .article-body h2{font-size:1.4rem;font-weight:700;color:#0d1b2a;letter-spacing:-.3px;margin:2.5rem 0 .9rem;padding-top:2rem;border-top:1px solid #e2e8f0}
+    .article-body h2:first-of-type{border-top:none;padding-top:0;margin-top:0}
+    .article-body h3{font-size:1.05rem;font-weight:700;color:#1a3a5c;margin:1.75rem 0 .5rem}
+    .article-body ul,.article-body ol{margin-left:1.4rem;margin-bottom:1.2rem;color:#374151;font-size:.95rem}
+    .article-body li{margin-bottom:.4rem;line-height:1.75}
+    .article-body strong{color:#0d1b2a}
+    .callout{border-radius:8px;padding:1rem 1.25rem;margin:1.5rem 0;border-left:3px solid}
+    .callout-tip{background:rgba(30,136,229,.06);border-color:#1e88e5}
+    .callout-arch{background:rgba(46,125,50,.06);border-color:#388e3c}
+    .callout-warn{background:rgba(245,124,0,.06);border-color:#f57c00}
+    .callout-title{font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:1px;margin-bottom:.35rem}
+    .callout-tip .callout-title{color:#1e88e5}
+    .callout-arch .callout-title{color:#388e3c}
+    .callout-warn .callout-title{color:#f57c00}
+    .callout p{margin:0;font-size:.88rem;color:#374151;line-height:1.7}
+    .arch-table{width:100%;border-collapse:collapse;font-size:.85rem;margin:1.5rem 0;overflow:hidden;box-shadow:0 1px 6px rgba(0,0,0,.07)}
+    .arch-table th{background:#0d1b2a;color:#fff;padding:.7rem 1rem;text-align:left;font-size:.78rem;font-weight:600}
+    .arch-table td{padding:.6rem 1rem;border-bottom:1px solid #e2e8f0;color:#374151;vertical-align:top;line-height:1.6}
+    .arch-table tr:last-child td{border-bottom:none}
+    .arch-table tr:nth-child(even) td{background:#f8fafc}
+    .checklist{list-style:none!important;margin-left:0!important}
+    .checklist li{padding:.5rem 0 .5rem 1.75rem;position:relative;border-bottom:1px solid #e2e8f0;font-size:.9rem;margin:0;color:#374151}
+    .checklist li:last-child{border-bottom:none}
+    .checklist li::before{content:'☐';position:absolute;left:0;color:#1e88e5}
+    .author-card{background:#fff;border:1px solid #e2e8f0;border-radius:12px;padding:1.75rem;display:flex;gap:1.25rem;align-items:flex-start;box-shadow:0 2px 8px rgba(0,0,0,.06);margin:3rem auto 0;max-width:720px}
+    .author-avatar{width:52px;height:52px;border-radius:50%;background:linear-gradient(135deg,#1e88e5,#1565c0);display:flex;align-items:center;justify-content:center;color:#fff;font-size:1.1rem;font-weight:700;flex-shrink:0}
+    .author-name{font-size:.97rem;font-weight:700;color:#0d1b2a;margin-bottom:.15rem}
+    .author-role{font-size:.78rem;color:#64748b;margin-bottom:.5rem}
+    .author-bio{font-size:.85rem;color:#64748b;line-height:1.6;margin-bottom:.5rem}
+  </style>
+</head>
+<body>
+
+  <nav class="main-nav">
+    <a href="index.html" class="nav-logo">Srinivas <span>Y.</span></a>
+    <button class="hamburger" onclick="document.getElementById('navlinks').classList.toggle('open')" aria-label="Toggle menu">
+      <span></span><span></span><span></span>
+    </button>
+    <ul class="nav-links" id="navlinks">
+      <li><a href="index.html">Home</a></li>
+      <li><a href="about.html">About</a></li>
+      <li><a href="blog.html" class="active">Blog</a></li>
+      <li><a href="contact.html" class="nav-cta">Contact</a></li>
+    </ul>
+  </nav>
+
+  <header class="post-header">
+    <div class="post-breadcrumb">
+      <a href="blog.html">← Blog</a> &nbsp;·&nbsp; Security Architecture
+    </div>
+    <h1 class="post-title">Zero Trust Architecture on Azure: A Practitioner's Blueprint</h1>
+    <div class="post-meta">
+      <span>📅 May 2026</span>
+      <span>⏱ 10 min read</span>
+      <span>✍️ Srinivas Yenuganti</span>
+    </div>
+    <div class="post-tags">
+      <span class="post-tag">Azure</span>
+      <span class="post-tag">Zero Trust</span>
+      <span class="post-tag">Microsoft Entra ID</span>
+      <span class="post-tag">Security Architecture</span>
+      <span class="post-tag">Microsoft Sentinel</span>
+    </div>
+  </header>
+
+  <section class="article-section">
+    <div class="article-body">
+
+      <p>The Zero Trust model, formalized in NIST Special Publication 800-207, fundamentally shifts network security from a perimeter-centric approach to an identity and context-driven one. The traditional "castle and moat" assumption — that anything inside the network is trusted — is a liability in the era of cloud, remote work, and sophisticated lateral movement attacks.</p>
+
+      <p>Zero Trust replaces that assumption with three non-negotiable principles: <strong>Verify explicitly</strong>, <strong>Use least privilege access</strong>, and <strong>Assume breach</strong>. For Azure architects, this is not a single product to deploy — it is an architectural discipline expressed across six control planes: Identities, Devices, Applications, Data, Infrastructure, and Networks.</p>
+
+      <h2>The Identity Plane — Your New Perimeter</h2>
+
+      <p>In a Zero Trust architecture, identity becomes the primary security perimeter. Microsoft Entra ID is the backbone of that perimeter for every Azure deployment.</p>
+
+      <h3>Conditional Access — The Policy Engine</h3>
+      <p>Conditional Access policies gate access based on user risk, sign-in risk, device compliance, location, and application sensitivity. A strong baseline for privileged accounts:</p>
+      <ul>
+        <li>Require phishing-resistant MFA (FIDO2 hardware keys preferred for admins)</li>
+        <li>Require Entra ID-joined or Intune-compliant device</li>
+        <li>Block all legacy authentication protocols (SMTP AUTH, IMAP, POP3, Basic Auth)</li>
+        <li>Enforce named locations — restrict admin access to trusted networks or countries</li>
+        <li>Use Sign-in Risk and User Risk policies to trigger step-up MFA or block access automatically</li>
+      </ul>
+
+      <div class="callout callout-tip">
+        <div class="callout-title">💡 Architect's Tip</div>
+        <p>Start Conditional Access in Report-Only mode for 2–4 weeks before enforcing. This surfaces false positives without impacting users, and gives you the data to tune policies confidently.</p>
+      </div>
+
+      <h3>Privileged Identity Management (PIM)</h3>
+      <p>PIM eliminates standing privilege — one of the most exploited vectors in enterprise breaches. No one should hold Global Administrator permanently. PIM enforces just-in-time (JIT) elevation with approval workflows, time-bound access (e.g., 4 hours), and mandatory MFA at activation. Pair this with Entra ID Access Reviews to automatically remove stale role assignments on a quarterly cadence.</p>
+
+      <h3>Managed Identities — No Passwords in Code</h3>
+      <p>Any Azure resource (VM, Function App, Logic App, AKS pod) that authenticates to another service should do so via a system-assigned or user-assigned managed identity — never a service principal with a client secret stored in configuration files or environment variables. Managed identities eliminate the credential lifecycle problem entirely.</p>
+
+      <h2>The Network Plane — Micro-Segmentation Over Perimeter</h2>
+
+      <p>In Zero Trust, the network is untrusted by default. You design for breach containment, not breach prevention alone.</p>
+
+      <h3>Private Endpoints — Eliminate Public Attack Surface</h3>
+      <p>Every Azure PaaS service handling sensitive data — Storage Accounts, SQL Database, Key Vault, Service Bus, Event Hub, Container Registry — should be accessible only via private endpoints on your VNet. Disable public network access via Azure Policy at the management group level. This is non-negotiable for any workload carrying business-critical or regulated data.</p>
+
+      <h3>Azure Firewall Premium</h3>
+      <p>Deploy Azure Firewall Premium in the hub of a hub-spoke topology to inspect all east-west and north-south traffic. The Premium tier adds IDPS (60,000+ signatures), TLS inspection, and URL categorization. Use application rules rather than network rules wherever possible — they provide intent-based policy (e.g., "allow *.microsoft.com") rather than raw IP/port rules that degrade with cloud's dynamic addressing.</p>
+
+      <h3>NSGs and Application Security Groups</h3>
+      <p>Apply NSGs to every subnet with a deny-all inbound baseline. Use Application Security Groups (ASGs) to tag workloads by role (e.g., web-tier, app-tier, db-tier) and write NSG rules against ASGs rather than individual IPs. This approach scales dramatically better as workloads grow and IP addresses change.</p>
+
+      <table class="arch-table">
+        <thead>
+          <tr>
+            <th>Control Layer</th>
+            <th>Azure Service</th>
+            <th>Primary Purpose</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Inbound web traffic</td>
+            <td>Application Gateway WAF v2</td>
+            <td>OWASP protection, TLS termination, path routing</td>
+          </tr>
+          <tr>
+            <td>East-west / north-south</td>
+            <td>Azure Firewall Premium</td>
+            <td>IDPS, TLS inspection, URL filtering</td>
+          </tr>
+          <tr>
+            <td>Workload segmentation</td>
+            <td>NSG + ASG</td>
+            <td>Subnet-level isolation, least-privilege network rules</td>
+          </tr>
+          <tr>
+            <td>PaaS access</td>
+            <td>Private Endpoints</td>
+            <td>Eliminate public endpoints for Storage, SQL, Key Vault</td>
+          </tr>
+          <tr>
+            <td>VM management</td>
+            <td>Azure Bastion</td>
+            <td>Browser-based RDP/SSH — no public management ports</td>
+          </tr>
+          <tr>
+            <td>DDoS protection</td>
+            <td>DDoS Protection Standard</td>
+            <td>Volumetric and protocol attack mitigation</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <h2>The Application and Data Layer</h2>
+
+      <h3>Key Vault — The Secret Single Source of Truth</h3>
+      <p>Every secret, certificate, and encryption key must live in Azure Key Vault. Access must be granted via RBAC (not legacy access policies, which are deprecated for new deployments). Enable soft delete with 90-day retention and purge protection — this prevents accidental or malicious key deletion from becoming an immediate catastrophe. For the most sensitive key material, use Managed HSM.</p>
+
+      <h3>Customer Managed Keys</h3>
+      <p>Azure encrypts data at rest by default using platform-managed keys. For regulated or sensitive workloads, implement Customer Managed Keys (CMK) — encryption keys under your control, stored in Key Vault, with rotation schedules you define. If a CMK is revoked, access to the encrypted data is terminated immediately. This is both a compliance tool and a powerful data destruction mechanism for offboarding.</p>
+
+      <h3>Microsoft Defender for Cloud</h3>
+      <p>Enable all Defender plans at the management group level — Servers, SQL, Storage, Containers, App Service, Key Vault, DNS, and Resource Manager. Defender provides real-time threat detection at the resource layer that complements your network and identity controls. The Secure Score gives you a single quantified posture metric to track and improve over time.</p>
+
+      <div class="callout callout-arch">
+        <div class="callout-title">🏗 Architecture Pattern</div>
+        <p>Never grant application managed identities more than the data-plane RBAC role they need. A Function App reading blobs needs <em>Storage Blob Data Reader</em> — not <em>Contributor</em>. Review all managed identity assignments in Entra ID regularly using access reviews.</p>
+      </div>
+
+      <h2>Monitoring — Assume Breach Means You Must Detect It</h2>
+
+      <p>The "assume breach" principle is hollow without comprehensive detection, investigation, and response capabilities. The platform is instrumented; the job of the architect is to ensure nothing is silent.</p>
+
+      <h3>Microsoft Sentinel</h3>
+      <p>Sentinel is your SIEM and SOAR platform. Connect all key data sources: Entra ID sign-in and audit logs, Azure Activity Logs, Microsoft Defender alerts, Azure Firewall logs, NSG flow logs, and application logs. Build Analytic Rules to detect high-signal threats: impossible travel, password spray, lateral movement between VMs, anomalous Key Vault access, and bulk data downloads.</p>
+
+      <h3>Log Analytics Workspace</h3>
+      <p>Centralise all diagnostic settings in a Log Analytics Workspace. Set retention to 90 days minimum for hot data, with archival to immutable Azure Blob Storage for compliance periods. Use workspace-level RBAC to restrict access to sensitive log data (e.g., security analysts can query Sentinel but not application performance logs).</p>
+
+      <h3>User and Entity Behavior Analytics (UEBA)</h3>
+      <p>Enable UEBA in Sentinel to establish behavioral baselines for users and machines. UEBA flags deviations — a developer accessing production Key Vault at 2 AM for the first time is suspicious even without a known threat signature. It provides one of the highest-signal, lowest-noise detections available in the platform.</p>
+
+      <h2>Zero Trust Architecture Checklist</h2>
+
+      <p>Use this as a design review checklist before every production deployment:</p>
+
+      <ol class="checklist">
+        <li>Phishing-resistant MFA enforced for all privileged accounts (FIDO2 or certificate-based)</li>
+        <li>MFA enforced for all users via Conditional Access</li>
+        <li>All legacy authentication protocols blocked</li>
+        <li>No standing privileged access — PIM deployed for all admin roles</li>
+        <li>Managed identities used for all workload-to-service authentication</li>
+        <li>Public network access disabled on all PaaS services — private endpoints only</li>
+        <li>Azure Firewall Premium deployed in hub for centralised traffic inspection</li>
+        <li>NSGs applied to all subnets with deny-all inbound baseline</li>
+        <li>WAF v2 in Prevention mode for all inbound HTTP/S traffic</li>
+        <li>Azure Bastion used for all VM management (no public RDP/SSH)</li>
+        <li>All secrets, keys, and certificates stored in Key Vault — none in code or config</li>
+        <li>CMK implemented for all sensitive data at rest</li>
+        <li>Defender for Cloud enabled at management group scope with all plans active</li>
+        <li>Microsoft Sentinel deployed with Entra ID, Azure Activity, and Defender connectors</li>
+        <li>Regular Secure Score review and quarterly access reviews scheduled</li>
+      </ol>
+
+      <h2>Key Takeaway</h2>
+
+      <p>Zero Trust is not a product — it is a discipline. Start with identity: fix Conditional Access and PIM first, because identity-based attacks account for the majority of breach paths. Layer in network controls next (private endpoints and Firewall). Then instrument detection with Sentinel. Attempting all three simultaneously is overwhelming; sequential hardening with a clear roadmap is more effective and sustainable.</p>
+
+      <p>The Azure platform provides every control you need. The challenge is in the architecture decisions, policy design, and the operational discipline to enforce and maintain them consistently over time.</p>
+
+    </div>
+  </section>
+
+  <section style="padding:0 1.5rem 3.5rem;">
+    <div class="author-card">
+      <div class="author-avatar">SY</div>
+      <div>
+        <div class="author-name">Srinivas Yenuganti</div>
+        <div class="author-role">Cloud Engineer · IT Infrastructure &amp; Security Architect</div>
+        <div class="author-bio">19+ years building secure, compliant cloud environments across healthcare and global enterprise. Currently at iSpace Inc., Los Angeles, driving Azure cloud architecture and Zero Trust implementation for large-scale healthcare platforms.</div>
+        <a href="https://www.linkedin.com/in/syenuganti-bb767744/" target="_blank" style="color:#1e88e5;font-size:.85rem;text-decoration:none;font-weight:600;">Connect on LinkedIn →</a>
+      </div>
+    </div>
+  </section>
+
+  <footer class="main-footer">
+    <p>&copy; 2026 Srinivas Yenuganti &nbsp;&middot;&nbsp;
+      <a href="https://www.linkedin.com/in/syenuganti-bb767744/" target="_blank">LinkedIn</a> &nbsp;&middot;&nbsp;
+      <a href="blog.html">Blog</a> &nbsp;&middot;&nbsp;
+      <a href="contact.html">Contact</a>
+    </p>
+  </footer>
+
+</body>
+</html>

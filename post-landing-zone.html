@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="A practical guide to Azure Landing Zone design — management group hierarchy, hub-spoke networking, Policy as Code, and governance at enterprise scale." />
+  <title>Azure Landing Zone Design | Srinivas Yenuganti</title>
+  <link rel="stylesheet" href="style.css" />
+  <style>
+    .post-header{background:linear-gradient(135deg,#311b92 0%,#4a148c 100%);padding:3.5rem 1.5rem 3rem}
+    .post-breadcrumb{font-size:.78rem;color:rgba(255,255,255,.5);margin-bottom:1rem}
+    .post-breadcrumb a{color:rgba(255,255,255,.65);text-decoration:none}
+    .post-breadcrumb a:hover{color:#fff}
+    .post-title{font-size:clamp(1.7rem,4vw,2.5rem);font-weight:800;color:#fff;letter-spacing:-.75px;line-height:1.2;margin-bottom:1.25rem;max-width:800px}
+    .post-meta{display:flex;flex-wrap:wrap;gap:1rem;font-size:.78rem;color:rgba(255,255,255,.55);margin-bottom:1rem}
+    .post-tags{display:flex;flex-wrap:wrap;gap:.5rem}
+    .post-tag{background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.25);color:rgba(255,255,255,.85);padding:.22rem .7rem;border-radius:50px;font-size:.7rem;font-weight:600}
+    .article-section{padding:3.5rem 1.5rem 4rem}
+    .article-body{max-width:720px;margin:0 auto;line-height:1.8}
+    .article-body p{color:#374151;font-size:.97rem;margin-bottom:1.2rem}
+    .article-body h2{font-size:1.4rem;font-weight:700;color:#0d1b2a;letter-spacing:-.3px;margin:2.5rem 0 .9rem;padding-top:2rem;border-top:1px solid #e2e8f0}
+    .article-body h2:first-of-type{border-top:none;padding-top:0;margin-top:0}
+    .article-body h3{font-size:1.05rem;font-weight:700;color:#1a3a5c;margin:1.75rem 0 .5rem}
+    .article-body ul,.article-body ol{margin-left:1.4rem;margin-bottom:1.2rem;color:#374151;font-size:.95rem}
+    .article-body li{margin-bottom:.4rem;line-height:1.75}
+    .article-body strong{color:#0d1b2a}
+    .callout{border-radius:8px;padding:1rem 1.25rem;margin:1.5rem 0;border-left:3px solid}
+    .callout-tip{background:rgba(30,136,229,.06);border-color:#1e88e5}
+    .callout-arch{background:rgba(46,125,50,.06);border-color:#388e3c}
+    .callout-warn{background:rgba(245,124,0,.06);border-color:#f57c00}
+    .callout-title{font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:1px;margin-bottom:.35rem}
+    .callout-tip .callout-title{color:#1e88e5}
+    .callout-arch .callout-title{color:#388e3c}
+    .callout-warn .callout-title{color:#f57c00}
+    .callout p{margin:0;font-size:.88rem;color:#374151;line-height:1.7}
+    .arch-table{width:100%;border-collapse:collapse;font-size:.85rem;margin:1.5rem 0;overflow:hidden;box-shadow:0 1px 6px rgba(0,0,0,.07)}
+    .arch-table th{background:#0d1b2a;color:#fff;padding:.7rem 1rem;text-align:left;font-size:.78rem;font-weight:600}
+    .arch-table td{padding:.6rem 1rem;border-bottom:1px solid #e2e8f0;color:#374151;vertical-align:top;line-height:1.6}
+    .arch-table tr:last-child td{border-bottom:none}
+    .arch-table tr:nth-child(even) td{background:#f8fafc}
+    .tree-block{background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;padding:1.25rem 1.5rem;font-family:'Courier New',monospace;font-size:.82rem;color:#374151;line-height:1.9;margin:1.5rem 0;overflow-x:auto}
+    .phase-grid{display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin:1.5rem 0}
+    @media(max-width:600px){.phase-grid{grid-template-columns:1fr}}
+    .phase-card{background:#fff;border:1px solid #e2e8f0;border-radius:8px;padding:1.25rem;box-shadow:0 1px 4px rgba(0,0,0,.05)}
+    .phase-label{font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:#6a1b9a;margin-bottom:.4rem}
+    .phase-card h4{font-size:.95rem;font-weight:700;color:#0d1b2a;margin-bottom:.5rem}
+    .phase-card ul{margin-left:1rem;font-size:.83rem;color:#64748b;margin-bottom:0}
+    .phase-card li{margin-bottom:.25rem}
+    .author-card{background:#fff;border:1px solid #e2e8f0;border-radius:12px;padding:1.75rem;display:flex;gap:1.25rem;align-items:flex-start;box-shadow:0 2px 8px rgba(0,0,0,.06);margin:3rem auto 0;max-width:720px}
+    .author-avatar{width:52px;height:52px;border-radius:50%;background:linear-gradient(135deg,#7b1fa2,#4a148c);display:flex;align-items:center;justify-content:center;color:#fff;font-size:1.1rem;font-weight:700;flex-shrink:0}
+    .author-name{font-size:.97rem;font-weight:700;color:#0d1b2a;margin-bottom:.15rem}
+    .author-role{font-size:.78rem;color:#64748b;margin-bottom:.5rem}
+    .author-bio{font-size:.85rem;color:#64748b;line-height:1.6;margin-bottom:.5rem}
+  </style>
+</head>
+<body>
+
+  <nav class="main-nav">
+    <a href="index.html" class="nav-logo">Srinivas <span>Y.</span></a>
+    <button class="hamburger" onclick="document.getElementById('navlinks').classList.toggle('open')" aria-label="Toggle menu">
+      <span></span><span></span><span></span>
+    </button>
+    <ul class="nav-links" id="navlinks">
+      <li><a href="index.html">Home</a></li>
+      <li><a href="about.html">About</a></li>
+      <li><a href="blog.html" class="active">Blog</a></li>
+      <li><a href="contact.html" class="nav-cta">Contact</a></li>
+    </ul>
+  </nav>
+
+  <header class="post-header">
+    <div class="post-breadcrumb">
+      <a href="blog.html">← Blog</a> &nbsp;·&nbsp; Infrastructure Design
+    </div>
+    <h1 class="post-title">Azure Landing Zone Design: Building Enterprise-Grade Cloud Foundations</h1>
+    <div class="post-meta">
+      <span>📅 April 2026</span>
+      <span>⏱ 9 min read</span>
+      <span>✍️ Srinivas Yenuganti</span>
+    </div>
+    <div class="post-tags">
+      <span class="post-tag">Azure</span>
+      <span class="post-tag">Landing Zone</span>
+      <span class="post-tag">Azure Policy</span>
+      <span class="post-tag">Hub-Spoke</span>
+      <span class="post-tag">Governance</span>
+      <span class="post-tag">CAF</span>
+    </div>
+  </header>
+
+  <section class="article-section">
+    <div class="article-body">
+
+      <p>The most expensive mistake in enterprise cloud adoption is building workloads before the foundation is ready. You provision a few Azure subscriptions, teams start deploying, and six months later you have security gaps, no governance, inconsistent naming conventions, orphaned resources with unknown ownership, and an operations team drowning in alerts they cannot correlate.</p>
+
+      <p>The Azure Landing Zone pattern, defined by Microsoft's Cloud Adoption Framework (CAF), is the antidote. A Landing Zone is an environment — with identity, network, security, management, and governance pre-configured — into which workloads land. Think of it as the building code for your cloud estate: you define the rules before construction begins, not after.</p>
+
+      <h2>Management Group Hierarchy — Governance at Scale</h2>
+
+      <p>Azure Policy and RBAC assignments at the Management Group level cascade automatically to all child subscriptions. This is the most powerful governance mechanism in Azure — design the hierarchy carefully, because restructuring it later is painful and disruptive.</p>
+
+      <p>The recommended CAF hierarchy:</p>
+
+      <div class="tree-block">Tenant Root Group
+  └─ Platform
+  │    ├─ Identity          (Entra Connect, Domain Controllers)
+  │    ├─ Management        (Log Analytics, Automation, Monitoring)
+  │    └─ Connectivity      (Hub VNet, Firewall, VPN/ER Gateway, DNS)
+  └─ Landing Zones
+  │    ├─ Corp              (Internal, VNet-connected workloads)
+  │    └─ Online            (Internet-facing workloads)
+  └─ Sandboxes              (Isolated dev/test — less restrictive policies)
+  └─ Decommissioned         (Subscriptions pending offboarding)</div>
+
+      <p>Assign policy at the highest appropriate level. Global requirements — allowed regions, mandatory encryption, audit logging — go at the Tenant Root or just below it. Workload-specific controls go at the Corp or Online level. The Sandbox management group carries audit-only (non-enforcing) policies to allow experimentation without governance friction.</p>
+
+      <div class="callout callout-warn">
+        <div class="callout-title">⚠️ Common Mistake</div>
+        <p>Avoid assigning Deny policies broadly in the early stages — they block deployments and frustrate teams unfamiliar with the controls. Start with Audit to understand the compliance gap, switch to Deny once teams have adjusted their deployment patterns. Do it management group by management group, not all at once.</p>
+      </div>
+
+      <h2>Subscription Design — Use Boundaries Strategically</h2>
+
+      <p>Subscriptions are your strongest isolation boundary in Azure. They separate billing, RBAC scope, and policy scope cleanly. Use them to separate environments (prod vs non-prod), business units, workload criticalities, or regulatory perimeters (a subscription exclusively for PHI workloads, for example).</p>
+
+      <p>Implement a <strong>subscription vending model</strong>: a pipeline (Terraform or Bicep in Azure DevOps or GitHub Actions) that provisions new subscriptions with baseline configuration pre-applied at creation time — Management Group placement, required tags, Policy assignments, RBAC baseline, and connectivity to the hub. This makes every new subscription start from a known-good state instead of a blank slate.</p>
+
+      <h2>Hub-Spoke Network Topology — The Connectivity Foundation</h2>
+
+      <p>The Connectivity subscription hosts the hub VNet — the nerve centre of your network architecture. All traffic between spoke VNets transits through the hub, providing centralised visibility, policy enforcement, and traffic inspection.</p>
+
+      <h3>Hub VNet Contains</h3>
+      <ul>
+        <li><strong>Azure Firewall Premium</strong> — centralised east-west and north-south traffic inspection with IDPS and TLS inspection</li>
+        <li><strong>VPN Gateway or ExpressRoute Gateway</strong> — on-premises connectivity</li>
+        <li><strong>Azure Bastion</strong> — browser-based secure VM management for the entire estate</li>
+        <li><strong>Private DNS Resolver</strong> — centralised DNS for all private endpoint FQDNs</li>
+        <li><strong>Azure DDoS Protection Standard</strong> — shared protection plan across all connected spoke VNets</li>
+      </ul>
+
+      <h3>Spoke VNets</h3>
+      <p>One spoke per workload subscription, peered to the hub. User-Defined Routes (UDRs) force all outbound traffic through Azure Firewall. Private DNS Zones are centralised in the hub subscription — linked to the hub VNet with DNS forwarding ensuring all spokes can resolve private endpoint FQDNs without individual DNS zone links (which become unmanageable at scale).</p>
+
+      <div class="callout callout-arch">
+        <div class="callout-title">🏗 Architecture Decision</div>
+        <p>For large estates (&gt;50 spoke VNets) or global deployments, consider <strong>Azure Virtual WAN</strong> instead of classic hub-spoke. Virtual WAN automates routing between spokes, supports multiple hubs for regional resiliency, and integrates natively with SD-WAN partners. The trade-off is reduced customisation flexibility compared to a manually managed hub.</p>
+      </div>
+
+      <h2>Azure Policy as Code — Enforcing Guardrails at Scale</h2>
+
+      <p>Policy is your governance enforcement mechanism. Treat it as code — version-controlled in Git, peer-reviewed, and deployed via CI/CD pipeline. Never manually assign policies through the portal in production.</p>
+
+      <table class="arch-table">
+        <thead>
+          <tr><th>Scope</th><th>Example Policy Assignments</th><th>Effect</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Root MG</td>
+            <td>Allowed regions, require tags (environment, cost-center, owner), diagnostic settings</td>
+            <td>Deny / DeployIfNotExists</td>
+          </tr>
+          <tr>
+            <td>Platform MG</td>
+            <td>Defender for Cloud plans enabled, Log Analytics agent deployed</td>
+            <td>DeployIfNotExists</td>
+          </tr>
+          <tr>
+            <td>Landing Zones MG</td>
+            <td>No public IPs, private endpoints required, TLS 1.2 minimum, CMK for storage</td>
+            <td>Deny</td>
+          </tr>
+          <tr>
+            <td>Corp MG</td>
+            <td>NSG required on all subnets, no internet egress without Firewall</td>
+            <td>Deny</td>
+          </tr>
+          <tr>
+            <td>Sandboxes MG</td>
+            <td>Same policies as above</td>
+            <td>Audit only</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <p>Use <strong>DeployIfNotExists</strong> for remediating missing configurations at scale — deploying the Log Analytics agent to all VMs automatically, or creating diagnostic settings on new resources. Use <strong>Deny</strong> for hard guardrails where non-compliance is unacceptable. Built-in initiatives for ISO 27001, NIST 800-53, SOC 2, and HIPAA/HITRUST provide a compliance baseline you can assign in minutes.</p>
+
+      <h2>Identity Baseline</h2>
+
+      <p>The Platform Identity subscription contains hybrid identity components (Entra Connect for AD sync, Domain Controllers for legacy Kerberos workloads). Keep it as minimal as possible — modern workloads should authenticate natively to Entra ID without requiring on-premises AD dependencies.</p>
+
+      <p>Key identity baselines enforced at the management group level via Policy:</p>
+      <ul>
+        <li>MFA required for all users (Conditional Access, not Security Defaults — the latter has no exclusion model)</li>
+        <li>Legacy authentication blocked across all applications</li>
+        <li>PIM activated for all management-plane role assignments</li>
+        <li>Service principal usage audited via Entra ID Workload Identities — certificate auth enforced (no client secrets)</li>
+        <li>Entra ID Access Reviews scheduled quarterly for all privileged roles</li>
+      </ul>
+
+      <h2>Management Subscription — The Observability Foundation</h2>
+
+      <p>Every workload subscription forwards telemetry to the centralised Log Analytics Workspace in the Management subscription. This single workspace becomes the source of truth for operations, security, and compliance.</p>
+
+      <ul>
+        <li><strong>Log Analytics Workspace</strong> — centralised, with workspace-level RBAC (security team vs operations team access separation)</li>
+        <li><strong>Microsoft Sentinel</strong> — SIEM/SOAR, connected to Entra ID, Defender, Firewall, and Activity Logs</li>
+        <li><strong>Defender for Cloud</strong> — enabled at management group scope, all plans active</li>
+        <li><strong>Azure Automation Account</strong> — update management, runbooks, hybrid worker for on-premises patching</li>
+        <li><strong>Azure Monitor Workbooks and Dashboards</strong> — operational visibility per subscription and workload</li>
+        <li><strong>Cost Management + Budgets</strong> — per-subscription budget alerts at 80% and 100% of monthly forecast</li>
+      </ul>
+
+      <h2>Tagging and Cost Management</h2>
+
+      <p>Define required tags via Azure Policy (Deny effect for non-compliant deployments) before any workload lands:</p>
+      <ul>
+        <li><code>environment</code>: prod | staging | dev | sandbox</li>
+        <li><code>cost-center</code>: e.g., 1234 (maps to finance allocation)</li>
+        <li><code>application</code>: e.g., patient-portal, ehr-integration</li>
+        <li><code>owner</code>: team alias or individual responsible</li>
+        <li><code>data-classification</code>: public | internal | confidential | restricted</li>
+      </ul>
+      <p>Consistent tagging enables meaningful cost allocation, chargeback reporting, and targeted governance — without it, cloud spend becomes an undifferentiated blob that no team owns.</p>
+
+      <h2>Getting Started: A Phased Approach</h2>
+
+      <div class="phase-grid">
+        <div class="phase-card">
+          <div class="phase-label">Phase 1 — Week 1–2</div>
+          <h4>Foundation</h4>
+          <ul>
+            <li>Create Management Group hierarchy</li>
+            <li>Apply baseline Policy assignments (Audit mode)</li>
+            <li>Enable Defender for Cloud at MG scope</li>
+            <li>Deploy centralised Log Analytics workspace</li>
+          </ul>
+        </div>
+        <div class="phase-card">
+          <div class="phase-label">Phase 2 — Week 2–3</div>
+          <h4>Connectivity Hub</h4>
+          <ul>
+            <li>Provision Connectivity subscription</li>
+            <li>Deploy hub VNet, Azure Firewall, Bastion</li>
+            <li>Configure Private DNS Zones</li>
+            <li>Connect on-premises (VPN or ExpressRoute)</li>
+          </ul>
+        </div>
+        <div class="phase-card">
+          <div class="phase-label">Phase 3 — Week 3–4</div>
+          <h4>First Landing Zone</h4>
+          <ul>
+            <li>Provision first workload subscription via vending model</li>
+            <li>Deploy spoke VNet, peer to hub</li>
+            <li>Apply workload-specific Policy assignments</li>
+            <li>Onboard to centralised monitoring</li>
+          </ul>
+        </div>
+        <div class="phase-card">
+          <div class="phase-label">Phase 4 — Ongoing</div>
+          <h4>Workload Migration</h4>
+          <ul>
+            <li>Land workloads with governance pre-applied</li>
+            <li>Progressively switch Audit policies to Deny</li>
+            <li>Iterate on tagging and cost allocation</li>
+            <li>Enable Sentinel analytics rules</li>
+          </ul>
+        </div>
+      </div>
+
+      <h2>Key Takeaway</h2>
+
+      <p>The investment in a proper Landing Zone pays back within months — in reduced incident response time, faster audit preparation, predictable operational costs, and fewer security exceptions to manage. Every shortcut taken at the foundation becomes a structural debt that compounds as the estate grows.</p>
+
+      <p>Start small (a single management group and one workload subscription), build the pattern correctly, then scale it. The CAF Landing Zone accelerators (available as Bicep and Terraform modules on GitHub) give you a working foundation in hours, not weeks — the real work is in tailoring the Policy assignments and networking design to your organisation's specific requirements.</p>
+
+    </div>
+  </section>
+
+  <section style="padding:0 1.5rem 3.5rem;">
+    <div class="author-card">
+      <div class="author-avatar">SY</div>
+      <div>
+        <div class="author-name">Srinivas Yenuganti</div>
+        <div class="author-role">Cloud Engineer · IT Infrastructure &amp; Security Architect</div>
+        <div class="author-bio">19+ years designing and operating enterprise cloud environments. Currently building Azure cloud foundations and healthcare platforms at iSpace Inc., Los Angeles, with a focus on governance automation and zero-trust security.</div>
+        <a href="https://www.linkedin.com/in/syenuganti-bb767744/" target="_blank" style="color:#1e88e5;font-size:.85rem;text-decoration:none;font-weight:600;">Connect on LinkedIn →</a>
+      </div>
+    </div>
+  </section>
+
+  <footer class="main-footer">
+    <p>&copy; 2026 Srinivas Yenuganti &nbsp;&middot;&nbsp;
+      <a href="https://www.linkedin.com/in/syenuganti-bb767744/" target="_blank">LinkedIn</a> &nbsp;&middot;&nbsp;
+      <a href="blog.html">Blog</a> &nbsp;&middot;&nbsp;
+      <a href="contact.html">Contact</a>
+    </p>
+  </footer>
+
+</body>
+</html>
