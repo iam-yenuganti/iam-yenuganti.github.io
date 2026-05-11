@@ -3,12 +3,12 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="description" content="Level up your cloud architecture workflow with AI coding assistants. Gamified guide covering IDE setup, prompting cheat codes, before/after IaC, and enterprise governance — GitHub Copilot, Cursor, VS Code." />
-  <title>AI Coding Assistants for Cloud Architects | Srinivas Yenuganti</title>
+  <meta name="description" content="Step-by-step guide to integrating AI agents into VS Code and JetBrains IDEs — GitHub Copilot, Claude, Cursor, MCP tools — from first install to agentic build-and-deploy workflows for developers and architects." />
+  <title>AI Agents in Your IDE: From First Install to Agentic Workflows | Srinivas Yenuganti</title>
   <link rel="stylesheet" href="style.css" />
   <style>
     .post-header{background:linear-gradient(135deg,#0f1c3f 0%,#1a237e 55%,#283593 100%);padding:3.5rem 1.5rem 3rem;position:relative;overflow:hidden}
-    .post-header::before{content:'';position:absolute;inset:0;background:url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.03'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")}
+    .post-header::before{content:'';position:absolute;inset:0;opacity:.04;background-image:repeating-linear-gradient(0deg,transparent,transparent 40px,rgba(255,255,255,.3) 40px,rgba(255,255,255,.3) 41px),repeating-linear-gradient(90deg,transparent,transparent 40px,rgba(255,255,255,.3) 40px,rgba(255,255,255,.3) 41px)}
     .post-breadcrumb{font-size:.78rem;color:rgba(255,255,255,.5);margin-bottom:1rem;position:relative}
     .post-breadcrumb a{color:rgba(255,255,255,.65);text-decoration:none}
     .post-breadcrumb a:hover{color:#fff}
@@ -16,104 +16,140 @@
     .post-meta{display:flex;flex-wrap:wrap;gap:1rem;font-size:.78rem;color:rgba(255,255,255,.55);margin-bottom:1rem;position:relative}
     .post-tags{display:flex;flex-wrap:wrap;gap:.5rem;position:relative}
     .post-tag{background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.25);color:rgba(255,255,255,.85);padding:.22rem .7rem;border-radius:50px;font-size:.7rem;font-weight:600}
+
+    /* shell */
     .article-section{padding:3rem 1.5rem 4rem}
-    .article-body{max-width:720px;margin:0 auto;line-height:1.8}
+    .article-body{max-width:740px;margin:0 auto;line-height:1.8}
     .article-body p{color:#374151;font-size:.97rem;margin-bottom:1.2rem}
     .article-body ul,.article-body ol{margin-left:1.4rem;margin-bottom:1.2rem;color:#374151;font-size:.95rem}
-    .article-body li{margin-bottom:.4rem;line-height:1.75}
+    .article-body li{margin-bottom:.45rem;line-height:1.75}
     .article-body strong{color:#0d1b2a}
-    .speedrun{background:#0d1b2a;border-radius:12px;padding:1.5rem 1.75rem;margin-bottom:2.5rem;border:1px solid rgba(255,255,255,.08)}
-    .speedrun-label{font-size:.65rem;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;color:#ffd54f;margin-bottom:.75rem;display:flex;align-items:center;gap:.5rem}
-    .speedrun h3{color:#fff;font-size:1rem;font-weight:700;margin:0 0 .6rem}
-    .speedrun ul{margin:0 0 0 1.1rem;padding:0;color:rgba(255,255,255,.7);font-size:.85rem;line-height:1.8}
+
+    /* speed run */
+    .speedrun{background:#0d1b2a;border-radius:12px;padding:1.5rem 1.75rem;margin-bottom:2.5rem}
+    .speedrun-label{font-size:.63rem;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;color:#ffd54f;margin-bottom:.75rem}
+    .speedrun h3{color:#fff;font-size:.97rem;font-weight:700;margin:0 0 .6rem}
+    .speedrun ul{margin:0 0 0 1.1rem;padding:0;color:rgba(255,255,255,.72);font-size:.85rem;line-height:1.85}
     .speedrun li{margin-bottom:.2rem}
-    .xp-tracker{background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;padding:1rem 1.25rem;margin:2.5rem 0 1rem;display:flex;align-items:center;gap:1rem}
-    .xp-label{font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:#1a237e;white-space:nowrap}
-    .xp-bar-bg{flex:1;height:8px;background:#e2e8f0;border-radius:4px;overflow:hidden}
-    .xp-bar{height:8px;border-radius:4px;background:linear-gradient(90deg,#1a237e,#5c6bc0)}
-    .xp-val{font-size:.75rem;font-weight:700;color:#1a237e;white-space:nowrap}
-    .level-header{display:flex;align-items:center;gap:.9rem;margin:3rem 0 1.25rem;padding-top:2.5rem;border-top:1px solid #e2e8f0}
-    .level-header:first-of-type{border-top:none;padding-top:0;margin-top:0}
-    .level-badge{width:46px;height:46px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:1.1rem;flex-shrink:0}
-    .lv1{background:linear-gradient(135deg,#e3f2fd,#bbdefb)}
-    .lv2{background:linear-gradient(135deg,#e8f5e9,#c8e6c9)}
-    .lv3{background:linear-gradient(135deg,#fff3e0,#ffe0b2)}
-    .lv4{background:linear-gradient(135deg,#fce4ec,#f8bbd0)}
-    .lv5{background:linear-gradient(135deg,#ede7f6,#d1c4e9)}
-    .lv6{background:linear-gradient(135deg,#e0f7fa,#b2ebf2)}
-    .lv-boss{background:linear-gradient(135deg,#0d1b2a,#1a237e)}
-    .level-text h2{font-size:1.25rem;font-weight:800;color:#0d1b2a;margin:0 0 .15rem;letter-spacing:-.3px}
-    .level-text p{font-size:.78rem;color:#64748b;margin:0}
-    .achievement{display:flex;align-items:flex-start;gap:.9rem;background:#fff;border:1.5px solid #ffd54f;border-radius:10px;padding:1rem 1.25rem;margin:1.25rem 0;box-shadow:0 2px 12px rgba(255,213,79,.18)}
-    .achievement-icon{font-size:1.5rem;flex-shrink:0;margin-top:.1rem}
-    .achievement-label{font-size:.6rem;font-weight:700;text-transform:uppercase;letter-spacing:1.2px;color:#f9a825;margin-bottom:.2rem}
-    .achievement-title{font-size:.92rem;font-weight:700;color:#0d1b2a;margin-bottom:.2rem}
-    .achievement-desc{font-size:.8rem;color:#64748b;line-height:1.6}
-    .before-after{display:grid;grid-template-columns:1fr 1fr;gap:0;border-radius:10px;overflow:hidden;border:1px solid #e2e8f0;margin:1.5rem 0}
-    @media(max-width:600px){.before-after{grid-template-columns:1fr}}
-    .ba-panel{padding:1rem 1.25rem}
-    .ba-before{background:#fff5f5}
-    .ba-after{background:#f0fdf4}
-    .ba-label{font-size:.65rem;font-weight:700;text-transform:uppercase;letter-spacing:1px;margin-bottom:.6rem;display:flex;align-items:center;gap:.35rem}
-    .ba-before .ba-label{color:#c62828}
-    .ba-after .ba-label{color:#2e7d32}
-    .ba-code{font-family:'Courier New',Courier,monospace;font-size:.78rem;line-height:1.7;color:#374151;background:transparent;margin:0;white-space:pre-wrap;word-break:break-word}
-    .cheat-grid{display:grid;grid-template-columns:1fr 1fr;gap:.85rem;margin:1.25rem 0}
-    @media(max-width:580px){.cheat-grid{grid-template-columns:1fr}}
-    .cheat-card{background:#0d1b2a;border-radius:8px;padding:1rem 1.1rem;border-left:3px solid #5c6bc0}
-    .cheat-key{font-size:.62rem;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:#90caf9;margin-bottom:.35rem}
-    .cheat-cmd{font-family:'Courier New',Courier,monospace;font-size:.8rem;color:#ffd54f;margin-bottom:.4rem}
-    .cheat-desc{font-size:.78rem;color:rgba(255,255,255,.6);line-height:1.55}
-    .prompt-duel{background:#fff;border:1px solid #e2e8f0;border-radius:10px;overflow:hidden;margin:1.25rem 0;box-shadow:0 2px 8px rgba(0,0,0,.06)}
-    .duel-header{display:grid;grid-template-columns:1fr 1fr;font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:1px}
-    .duel-h-bad{background:#fff5f5;color:#c62828;padding:.5rem 1rem;border-bottom:1px solid #fecaca}
-    .duel-h-good{background:#f0fdf4;color:#2e7d32;padding:.5rem 1rem;border-bottom:1px solid #bbf7d0;border-left:1px solid #e2e8f0}
-    .duel-body{display:grid;grid-template-columns:1fr 1fr}
-    .duel-bad,.duel-good{padding:.9rem 1rem;font-family:'Courier New',Courier,monospace;font-size:.79rem;line-height:1.65;white-space:pre-wrap;word-break:break-word}
-    .duel-bad{background:#fff5f5;color:#7f1d1d;border-right:1px solid #e2e8f0}
-    .duel-good{background:#f0fdf4;color:#14532d}
-    .duel-result{background:#f8fafc;padding:.65rem 1rem;font-size:.78rem;color:#64748b;border-top:1px solid #e2e8f0;display:flex;gap:.5rem;align-items:flex-start}
-    .boss-card{background:linear-gradient(135deg,#0d1b2a 0%,#1a237e 100%);border-radius:12px;padding:1.5rem 1.75rem;margin:2rem 0;border:2px solid rgba(255,213,79,.35)}
-    .boss-label{font-size:.65rem;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;color:#ffd54f;margin-bottom:.75rem;display:flex;align-items:center;gap:.5rem}
-    .boss-card h3{color:#fff;font-size:1.05rem;font-weight:700;margin:0 0 .6rem}
-    .boss-card p{color:rgba(255,255,255,.7);font-size:.87rem;line-height:1.7;margin-bottom:.7rem}
-    .boss-card ul{margin:0 0 0 1.1rem;padding:0;color:rgba(255,255,255,.65);font-size:.85rem;line-height:1.8}
-    .boss-card li{margin-bottom:.3rem}
-    .boss-card strong{color:#ffd54f}
-    .risk-table{width:100%;border-collapse:collapse;margin:1rem 0;font-size:.84rem}
-    .risk-table th{background:#0d1b2a;color:#fff;padding:.6rem .9rem;text-align:left;font-weight:600;font-size:.74rem;letter-spacing:.5px}
-    .risk-table td{padding:.6rem .9rem;border-bottom:1px solid #f1f5f9;color:#374151;line-height:1.6;vertical-align:top}
-    .risk-table tr:nth-child(even) td{background:#f8fafc}
-    .risk-pill{display:inline-block;padding:.18rem .55rem;border-radius:50px;font-size:.65rem;font-weight:700;text-transform:uppercase;letter-spacing:.5px}
-    .risk-h{background:#fce4ec;color:#c62828}
-    .risk-m{background:#fff3e0;color:#e65100}
-    .risk-l{background:#e8f5e9;color:#2e7d32}
-    .stat-strip{display:grid;grid-template-columns:repeat(3,1fr);gap:.75rem;margin:1.25rem 0}
-    @media(max-width:540px){.stat-strip{grid-template-columns:1fr 1fr}}
-    .stat-card{background:#fff;border:1px solid #e2e8f0;border-radius:8px;padding:1rem;text-align:center;box-shadow:0 1px 4px rgba(0,0,0,.05)}
-    .stat-num{font-size:1.6rem;font-weight:800;color:#1a237e;line-height:1}
-    .stat-label{font-size:.72rem;color:#64748b;margin-top:.25rem;line-height:1.4}
+
+    /* section headers */
+    .section-head{display:flex;align-items:center;gap:.85rem;margin:3rem 0 1.25rem;padding-top:2.5rem;border-top:2px solid #e2e8f0}
+    .section-head:first-of-type{border-top:none;padding-top:0;margin-top:.5rem}
+    .sh-badge{width:44px;height:44px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:1.1rem;flex-shrink:0}
+    .sh-b1{background:linear-gradient(135deg,#e3f2fd,#bbdefb)}
+    .sh-b2{background:linear-gradient(135deg,#e8f5e9,#c8e6c9)}
+    .sh-b3{background:linear-gradient(135deg,#fff3e0,#ffe0b2)}
+    .sh-b4{background:linear-gradient(135deg,#fce4ec,#f8bbd0)}
+    .sh-b5{background:linear-gradient(135deg,#ede7f6,#d1c4e9)}
+    .sh-b6{background:linear-gradient(135deg,#e0f7fa,#b2ebf2)}
+    .sh-b7{background:linear-gradient(135deg,#f3e5f5,#e1bee7)}
+    .sh-text h2{font-size:1.22rem;font-weight:800;color:#0d1b2a;margin:0 0 .1rem;letter-spacing:-.3px}
+    .sh-text p{font-size:.77rem;color:#64748b;margin:0}
+
+    /* step cards */
+    .step-list{counter-reset:steps;display:flex;flex-direction:column;gap:.75rem;margin:1.25rem 0}
+    .step{display:flex;gap:1rem;align-items:flex-start;background:#fff;border:1px solid #e2e8f0;border-radius:10px;padding:1rem 1.25rem;box-shadow:0 1px 4px rgba(0,0,0,.05)}
+    .step-num{counter-increment:steps;width:28px;height:28px;border-radius:50%;background:#1a237e;color:#fff;font-size:.75rem;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:.05rem}
+    .step-num::before{content:counter(steps)}
+    .step-body{flex:1}
+    .step-title{font-size:.9rem;font-weight:700;color:#0d1b2a;margin-bottom:.25rem}
+    .step-desc{font-size:.84rem;color:#64748b;line-height:1.65;margin:0}
+
+    /* code blocks */
+    .code-block{background:#0d1b2a;border-radius:8px;padding:1.1rem 1.4rem;margin:1.1rem 0;overflow-x:auto}
+    .code-block pre{margin:0;color:#e2e8f0;font-family:'Courier New',Courier,monospace;font-size:.8rem;line-height:1.7;white-space:pre}
+    .code-label{font-size:.62rem;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:#90caf9;margin-bottom:.45rem;display:block}
+    .inline-code{background:#f1f5f9;border:1px solid #e2e8f0;border-radius:4px;padding:.1rem .4rem;font-family:'Courier New',Courier,monospace;font-size:.82rem;color:#1a237e}
+
+    /* before/after */
+    .ba-wrap{border-radius:10px;overflow:hidden;border:1px solid #e2e8f0;margin:1.25rem 0}
+    .ba-grid{display:grid;grid-template-columns:1fr 1fr}
+    @media(max-width:580px){.ba-grid{grid-template-columns:1fr}}
+    .ba-head{padding:.5rem 1rem;font-size:.67rem;font-weight:700;text-transform:uppercase;letter-spacing:1px}
+    .ba-head-b{background:#fff5f5;color:#c62828;border-bottom:1px solid #fecaca}
+    .ba-head-a{background:#f0fdf4;color:#2e7d32;border-bottom:1px solid #bbf7d0;border-left:1px solid #e2e8f0}
+    .ba-body-b{background:#fff5f5;padding:.9rem 1rem;font-family:'Courier New',Courier,monospace;font-size:.78rem;line-height:1.7;color:#7f1d1d;white-space:pre-wrap;word-break:break-word;border-right:1px solid #e2e8f0}
+    .ba-body-a{background:#f0fdf4;padding:.9rem 1rem;font-family:'Courier New',Courier,monospace;font-size:.78rem;line-height:1.7;color:#14532d;white-space:pre-wrap;word-break:break-word}
+    .ba-foot{background:#f8fafc;padding:.65rem 1rem;font-size:.78rem;color:#64748b;border-top:1px solid #e2e8f0}
+
+    /* tool cards */
+    .tool-grid{display:grid;grid-template-columns:1fr 1fr;gap:.85rem;margin:1.25rem 0}
+    @media(max-width:560px){.tool-grid{grid-template-columns:1fr}}
+    .tool-card{background:#fff;border:1px solid #e2e8f0;border-radius:10px;padding:1.1rem 1.25rem;box-shadow:0 1px 4px rgba(0,0,0,.05)}
+    .tool-card-top{display:flex;align-items:center;gap:.65rem;margin-bottom:.6rem}
+    .tool-logo{width:34px;height:34px;border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:.85rem;font-weight:800;color:#fff;flex-shrink:0}
+    .tl-cop{background:linear-gradient(135deg,#1a237e,#283593)}
+    .tl-cla{background:linear-gradient(135deg,#6d3a00,#c17f24)}
+    .tl-cur{background:linear-gradient(135deg,#1b5e20,#388e3c)}
+    .tl-gem{background:linear-gradient(135deg,#004d40,#00897b)}
+    .tl-ctn{background:linear-gradient(135deg,#4a148c,#7b1fa2)}
+    .tl-mcp{background:linear-gradient(135deg,#0d1b2a,#1a3a5c)}
+    .tool-name{font-size:.9rem;font-weight:700;color:#0d1b2a}
+    .tool-badge{font-size:.62rem;font-weight:700;text-transform:uppercase;letter-spacing:.6px;padding:.15rem .5rem;border-radius:50px;margin-left:.4rem}
+    .tb-free{background:#e8f5e9;color:#2e7d32}
+    .tb-paid{background:#e3f2fd;color:#1565c0}
+    .tb-ent{background:#ede7f6;color:#6a1b9a}
+    .tool-desc{font-size:.82rem;color:#64748b;line-height:1.65}
+    .tool-best{font-size:.72rem;font-weight:600;color:#1a237e;margin-top:.4rem}
+
+    /* callouts */
     .callout{border-radius:8px;padding:1rem 1.25rem;margin:1.5rem 0;border-left:3px solid}
-    .callout-tip{background:rgba(30,136,229,.06);border-color:#1e88e5}
-    .callout-warn{background:rgba(245,124,0,.06);border-color:#f57c00}
-    .callout-title{font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:1px;margin-bottom:.35rem}
-    .callout-tip .callout-title{color:#1e88e5}
-    .callout-warn .callout-title{color:#f57c00}
+    .c-tip{background:rgba(30,136,229,.06);border-color:#1e88e5}
+    .c-do{background:rgba(46,125,50,.07);border-color:#388e3c}
+    .c-warn{background:rgba(245,124,0,.06);border-color:#f57c00}
+    .c-real{background:rgba(26,35,126,.05);border-color:#1a237e}
+    .callout-title{font-size:.67rem;font-weight:700;text-transform:uppercase;letter-spacing:1px;margin-bottom:.35rem}
+    .c-tip .callout-title{color:#1e88e5}
+    .c-do .callout-title{color:#388e3c}
+    .c-warn .callout-title{color:#f57c00}
+    .c-real .callout-title{color:#1a237e}
     .callout p{margin:0;font-size:.88rem;color:#374151;line-height:1.7}
-    .code-block{background:#0d1b2a;border-radius:8px;padding:1.1rem 1.25rem;margin:1.25rem 0;overflow-x:auto}
-    .code-block pre{margin:0;color:#e2e8f0;font-family:'Courier New',Courier,monospace;font-size:.8rem;line-height:1.65;white-space:pre}
-    .code-label{font-size:.63rem;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:#90caf9;margin-bottom:.5rem;display:block}
-    .loadout-grid{display:grid;grid-template-columns:1fr 1fr;gap:.85rem;margin:1.25rem 0}
-    @media(max-width:560px){.loadout-grid{grid-template-columns:1fr}}
-    .loadout-card{background:#fff;border:1px solid #e2e8f0;border-radius:8px;padding:1.1rem;box-shadow:0 1px 4px rgba(0,0,0,.05)}
-    .loadout-icon{font-size:1.2rem;margin-bottom:.35rem}
-    .loadout-title{font-size:.88rem;font-weight:700;color:#0d1b2a;margin-bottom:.25rem}
-    .loadout-desc{font-size:.78rem;color:#64748b;line-height:1.6}
-    .author-card{background:#fff;border:1px solid #e2e8f0;border-radius:12px;padding:1.75rem;display:flex;gap:1.25rem;align-items:flex-start;box-shadow:0 2px 8px rgba(0,0,0,.06);margin:3rem auto 0;max-width:720px}
+    .callout ul{margin:.4rem 0 0 1.1rem;font-size:.87rem;color:#374151;line-height:1.75}
+    .callout li{margin-bottom:.25rem}
+
+    /* workflow strip */
+    .workflow{display:flex;align-items:stretch;gap:0;margin:1.5rem 0;overflow-x:auto}
+    .wf-step{background:#fff;border:1px solid #e2e8f0;border-right:none;padding:.85rem 1rem;flex:1;min-width:110px;text-align:center}
+    .wf-step:first-child{border-radius:8px 0 0 8px}
+    .wf-step:last-child{border-right:1px solid #e2e8f0;border-radius:0 8px 8px 0}
+    .wf-icon{font-size:1.2rem;margin-bottom:.3rem}
+    .wf-label{font-size:.7rem;font-weight:700;color:#0d1b2a;line-height:1.3}
+    .wf-sub{font-size:.65rem;color:#64748b;margin-top:.15rem}
+    .wf-arrow{display:flex;align-items:center;color:#94a3b8;font-size:1rem;padding:0 .1rem;flex-shrink:0}
+
+    /* scenario cards */
+    .scenario{background:#fff;border:1px solid #e2e8f0;border-radius:10px;overflow:hidden;margin:1.1rem 0;box-shadow:0 2px 8px rgba(0,0,0,.05)}
+    .scenario-head{padding:.7rem 1.1rem;font-size:.72rem;font-weight:700;display:flex;align-items:center;gap:.5rem}
+    .sc-you{background:linear-gradient(90deg,#e8f5e9,#f0fdf4);color:#1b5e20;border-bottom:1px solid #c8e6c9}
+    .sc-ai{background:linear-gradient(90deg,#e3f2fd,#eff6ff);color:#0d47a1;border-bottom:1px solid #bbdefb}
+    .sc-result{background:#f8fafc;border-bottom:1px solid #e2e8f0;color:#374151}
+    .scenario-body{padding:.8rem 1.1rem;font-family:'Courier New',Courier,monospace;font-size:.8rem;line-height:1.7;color:#374151;white-space:pre-wrap;word-break:break-word}
+    .scenario-result{padding:.8rem 1.1rem;font-size:.83rem;color:#374151;line-height:1.65}
+
+    /* mcp table */
+    .mcp-table{width:100%;border-collapse:collapse;margin:1rem 0;font-size:.83rem}
+    .mcp-table th{background:#0d1b2a;color:#fff;padding:.6rem .9rem;text-align:left;font-weight:600;font-size:.73rem;letter-spacing:.4px}
+    .mcp-table td{padding:.6rem .9rem;border-bottom:1px solid #f1f5f9;color:#374151;line-height:1.6;vertical-align:top}
+    .mcp-table tr:nth-child(even) td{background:#f8fafc}
+    .mcp-pill{display:inline-block;padding:.16rem .5rem;border-radius:50px;font-size:.63rem;font-weight:700;text-transform:uppercase}
+    .mp-blue{background:#e3f2fd;color:#1565c0}
+    .mp-green{background:#e8f5e9;color:#2e7d32}
+    .mp-purple{background:#ede7f6;color:#6a1b9a}
+    .mp-orange{background:#fff3e0;color:#e65100}
+
+    /* stat strip */
+    .stat-strip{display:grid;grid-template-columns:repeat(3,1fr);gap:.75rem;margin:1.5rem 0}
+    @media(max-width:520px){.stat-strip{grid-template-columns:1fr 1fr}}
+    .stat-card{background:#fff;border:1px solid #e2e8f0;border-radius:8px;padding:1rem;text-align:center;box-shadow:0 1px 4px rgba(0,0,0,.05)}
+    .stat-num{font-size:1.55rem;font-weight:800;color:#1a237e;line-height:1}
+    .stat-label{font-size:.7rem;color:#64748b;margin-top:.2rem;line-height:1.4}
+
+    /* author */
+    .author-card{background:#fff;border:1px solid #e2e8f0;border-radius:12px;padding:1.75rem;display:flex;gap:1.25rem;align-items:flex-start;box-shadow:0 2px 8px rgba(0,0,0,.06);margin:3rem auto 0;max-width:740px}
     .author-avatar{width:52px;height:52px;border-radius:50%;background:linear-gradient(135deg,#1a237e,#0f1c3f);display:flex;align-items:center;justify-content:center;color:#fff;font-size:1.1rem;font-weight:700;flex-shrink:0}
     .author-name{font-size:.97rem;font-weight:700;color:#0d1b2a;margin-bottom:.15rem}
-    .author-role{font-size:.78rem;color:#64748b;margin-bottom:.5rem}
-    .author-bio{font-size:.85rem;color:#64748b;line-height:1.6;margin-bottom:.5rem}
+    .author-role{font-size:.78rem;color:#64748b;margin-bottom:.45rem}
+    .author-bio{font-size:.84rem;color:#64748b;line-height:1.6;margin-bottom:.5rem}
   </style>
 </head>
 <body>
@@ -135,477 +171,588 @@
     <div class="post-breadcrumb">
       <a href="blog.html">&#8592; Blog</a> &nbsp;&middot;&nbsp; Developer Experience
     </div>
-    <h1 class="post-title">AI Coding Assistants: Your Cheat Code as a Cloud Architect &#x1F3AE;</h1>
+    <h1 class="post-title">AI Agents in Your IDE: From First Install to Agentic Build &amp; Deploy Workflows</h1>
     <div class="post-meta">
-      <span>&#9203; 14 min read</span>
-      <span>&#127919; 6 Levels &middot; 4 Boss Challenges &middot; 3 Achievements</span>
+      <span>&#9203; 16 min read</span>
+      <span>&#128295; Hands-on &mdash; VS Code &middot; JetBrains &middot; Claude &middot; Copilot &middot; MCP</span>
       <span>&#9998;&#65039; Srinivas Yenuganti</span>
     </div>
     <div class="post-tags">
-      <span class="post-tag">GitHub Copilot</span>
       <span class="post-tag">VS Code</span>
+      <span class="post-tag">GitHub Copilot</span>
+      <span class="post-tag">Claude</span>
+      <span class="post-tag">MCP</span>
+      <span class="post-tag">Cursor</span>
+      <span class="post-tag">Agentic Workflows</span>
       <span class="post-tag">IaC</span>
-      <span class="post-tag">Prompt Engineering</span>
-      <span class="post-tag">Enterprise Governance</span>
     </div>
   </header>
 
   <section class="article-section">
     <div class="article-body">
 
+      <!-- SPEED RUN -->
       <div class="speedrun">
-        <div class="speedrun-label">&#9889; Speed Run &mdash; TL;DR for the time-poor architect</div>
-        <h3>6 things that will change your week immediately:</h3>
+        <div class="speedrun-label">&#9889; What you will be able to do after reading this</div>
+        <h3>By the end of this guide you will have:</h3>
         <ul>
-          <li>Drop a <code>.github/copilot-instructions.md</code> in every IaC repo &mdash; your naming conventions become automatic</li>
-          <li>Always give the model a <strong>role + version + constraint</strong> &mdash; vague prompts get vague Terraform</li>
-          <li>After every generation, ask <strong>&ldquo;What assumptions did you make?&rdquo;</strong> &mdash; surfaces hidden gotchas instantly</li>
-          <li>Use Copilot to <em>review</em> your existing infra for CIS misconfigs &mdash; faster than any manual checklist</li>
-          <li>Never paste secrets into the prompt window. Not even test ones. Ever.</li>
-          <li>Run <code>terraform plan</code> / <code>bicep what-if</code> before trusting any AI-generated diff</li>
+          <li>GitHub Copilot and Claude both wired into VS Code and talking to your codebase</li>
+          <li>MCP (Model Context Protocol) servers connected so your AI agent can read files, run terminals, query Azure, and call APIs</li>
+          <li>A working agentic workflow that writes Terraform &rarr; validates &rarr; plans &rarr; commits &rarr; triggers a pipeline &mdash; all inside the IDE</li>
+          <li>Concrete prompts for each stage: scaffold, review, fix, document, deploy</li>
+          <li>A clear understanding of what each tool does well and where the boundaries are</li>
         </ul>
       </div>
+
+      <!-- CONTEXT -->
+      <p>There is a difference between having an AI assistant installed and actually using it as an agent. Most developers install GitHub Copilot, accept inline completions for a week, and conclude it saves maybe 20 minutes a day. Architects who wire up the full stack &mdash; multiple models, MCP tool servers, agent mode, workspace context &mdash; are running multi-step autonomous workflows inside the same IDE window. This guide shows you exactly how to get there.</p>
 
       <div class="stat-strip">
         <div class="stat-card">
-          <div class="stat-num">55%</div>
-          <div class="stat-label">avg IaC time saved with effective prompting</div>
+          <div class="stat-num">4</div>
+          <div class="stat-label">AI models you can run side-by-side in one VS Code window</div>
         </div>
         <div class="stat-card">
-          <div class="stat-num">40%</div>
-          <div class="stat-label">LLM cost reduction via model routing</div>
+          <div class="stat-num">MCP</div>
+          <div class="stat-label">open protocol letting agents call any tool: Azure CLI, Git, browser, DBs</div>
         </div>
         <div class="stat-card">
-          <div class="stat-num">#1</div>
-          <div class="stat-label">misconfiguration source in 2026: AI-generated IaC defaults</div>
+          <div class="stat-num">0</div>
+          <div class="stat-label">context-switching needed &mdash; write, build, deploy without leaving the editor</div>
         </div>
       </div>
 
-      <div class="xp-tracker">
-        <span class="xp-label">Your XP</span>
-        <div class="xp-bar-bg"><div class="xp-bar" style="width:0%"></div></div>
-        <span class="xp-val">0 / 600 XP &mdash; Level 0</span>
-      </div>
-      <p style="font-size:.82rem;color:#94a3b8;text-align:center;margin-top:-.5rem;margin-bottom:2rem">Each level you complete earns XP. Unlock achievements as you go.</p>
-
-      <!-- LEVEL 1 -->
-      <div class="level-header">
-        <div class="level-badge lv1">&#128506;&#65039;</div>
-        <div class="level-text">
-          <h2>Level 1 &mdash; Pick Your Weapon &nbsp;<small style="font-weight:400;font-size:.75rem;color:#64748b">+50 XP</small></h2>
-          <p>Choosing the right AI assistant for enterprise cloud work</p>
+      <!-- ═══════════════════════════════════ -->
+      <!-- SECTION 1 — THE TOOLS MAP -->
+      <!-- ═══════════════════════════════════ -->
+      <div class="section-head">
+        <div class="sh-badge sh-b1">&#128506;&#65039;</div>
+        <div class="sh-text">
+          <h2>Section 1 &mdash; The Full Tool Map</h2>
+          <p>What every AI tool actually does inside your IDE</p>
         </div>
       </div>
 
-      <p>Not all AI assistants are equal for cloud architecture work. Here&rsquo;s the honest breakdown before you commit licensing budget:</p>
+      <p>Before wiring anything up, it helps to know what role each tool plays. These are not interchangeable &mdash; they solve different problems and complement each other.</p>
 
-      <div style="border:1px solid #e2e8f0;border-radius:10px;overflow:hidden;margin:1.25rem 0">
-        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;background:#0d1b2a">
-          <div style="padding:.6rem .9rem;font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:#90caf9">Tool</div>
-          <div style="padding:.6rem .9rem;font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:#90caf9">Best For</div>
-          <div style="padding:.6rem .9rem;font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:#90caf9">Enterprise Fit</div>
+      <div class="tool-grid">
+        <div class="tool-card">
+          <div class="tool-card-top">
+            <div class="tool-logo tl-cop">GH</div>
+            <div><div class="tool-name">GitHub Copilot <span class="tool-badge tb-ent">Enterprise</span></div></div>
+          </div>
+          <div class="tool-desc">Native VS Code &amp; JetBrains integration. Inline completions, Copilot Chat panel, agent mode, workspace-wide context (<span class="inline-code">@workspace</span>), and slash commands (<span class="inline-code">/fix</span>, <span class="inline-code">/explain</span>, <span class="inline-code">/tests</span>). The workhorse for day-to-day coding assistance.</div>
+          <div class="tool-best">Best for: inline completions, multi-file edits, PR summaries, test generation</div>
         </div>
-        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;border-bottom:1px solid #f1f5f9">
-          <div style="padding:.7rem .9rem;font-size:.83rem;font-weight:700;color:#0d1b2a">GitHub Copilot Enterprise</div>
-          <div style="padding:.7rem .9rem;font-size:.83rem;color:#374151">IaC, pipelines, reviews, ADRs</div>
-          <div style="padding:.7rem .9rem"><span style="background:#e8f5e9;color:#2e7d32;padding:.18rem .55rem;border-radius:50px;font-size:.68rem;font-weight:700">&#10003; Best</span></div>
+        <div class="tool-card">
+          <div class="tool-card-top">
+            <div class="tool-logo tl-cla">CL</div>
+            <div><div class="tool-name">Claude (via Copilot or Cursor) <span class="tool-badge tb-paid">Paid</span></div></div>
+          </div>
+          <div class="tool-desc">Anthropic&rsquo;s Claude Sonnet/Opus models, accessible through GitHub Copilot&rsquo;s model picker or Cursor&rsquo;s native integration. Excels at long-context reasoning &mdash; paste an entire Terraform module or architecture document and ask deep analytical questions.</div>
+          <div class="tool-best">Best for: architecture reviews, ADRs, complex multi-file reasoning, long docs</div>
         </div>
-        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;border-bottom:1px solid #f1f5f9;background:#f8fafc">
-          <div style="padding:.7rem .9rem;font-size:.83rem;font-weight:700;color:#0d1b2a">Cursor</div>
-          <div style="padding:.7rem .9rem;font-size:.83rem;color:#374151">Greenfield builds, prototyping</div>
-          <div style="padding:.7rem .9rem"><span style="background:#fff3e0;color:#e65100;padding:.18rem .55rem;border-radius:50px;font-size:.68rem;font-weight:700">&#9888; Limited audit</span></div>
+        <div class="tool-card">
+          <div class="tool-card-top">
+            <div class="tool-logo tl-cur">CR</div>
+            <div><div class="tool-name">Cursor <span class="tool-badge tb-paid">Paid</span></div></div>
+          </div>
+          <div class="tool-desc">A VS Code fork with AI baked into the editor at a deeper level than any plugin. Model selector (GPT-4o, Claude, Gemini), <span class="inline-code">@codebase</span> semantic search, Composer for multi-file edits, and native MCP support. Best for greenfield work where you want maximum AI surface area.</div>
+          <div class="tool-best">Best for: new projects, multi-file refactors, prototype-speed delivery</div>
         </div>
-        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;border-bottom:1px solid #f1f5f9">
-          <div style="padding:.7rem .9rem;font-size:.83rem;font-weight:700;color:#0d1b2a">Azure AI Foundry + VS Code</div>
-          <div style="padding:.7rem .9rem;font-size:.83rem;color:#374151">Regulated / air-gapped workloads</div>
-          <div style="padding:.7rem .9rem"><span style="background:#e3f2fd;color:#1565c0;padding:.18rem .55rem;border-radius:50px;font-size:.68rem;font-weight:700">&#128274; Private</span></div>
+        <div class="tool-card">
+          <div class="tool-card-top">
+            <div class="tool-logo tl-gem">GM</div>
+            <div><div class="tool-name">Gemini Code Assist <span class="tool-badge tb-paid">Paid</span></div></div>
+          </div>
+          <div class="tool-desc">Google&rsquo;s VS Code extension. Strong on Google Cloud Platform resources (GKE, BigQuery, Cloud Run). Useful if your stack spans multi-cloud and you need GCP-specific Terraform or deployment YAML generated accurately.</div>
+          <div class="tool-best">Best for: GCP-specific IaC, multi-cloud teams</div>
         </div>
-        <div style="display:grid;grid-template-columns:1fr 1fr 1fr">
-          <div style="padding:.7rem .9rem;font-size:.83rem;font-weight:700;color:#0d1b2a;background:#f8fafc">Claude via Copilot</div>
-          <div style="padding:.7rem .9rem;font-size:.83rem;color:#374151;background:#f8fafc">Long-context architecture docs</div>
-          <div style="padding:.7rem .9rem;background:#f8fafc"><span style="background:#ede7f6;color:#7b1fa2;padding:.18rem .55rem;border-radius:50px;font-size:.68rem;font-weight:700">&#129504; Reasoning</span></div>
+        <div class="tool-card">
+          <div class="tool-card-top">
+            <div class="tool-logo tl-ctn">CF</div>
+            <div><div class="tool-name">Amazon Q Developer <span class="tool-badge tb-free">Free Tier</span></div></div>
+          </div>
+          <div class="tool-desc">AWS&rsquo;s IDE extension for VS Code and JetBrains. Free tier for individuals, paid Pro tier adds security scanning and multi-repo context. Best AWS CloudFormation and CDK generation quality of any tool tested.</div>
+          <div class="tool-best">Best for: AWS CDK, CloudFormation, Lambda-heavy stacks</div>
+        </div>
+        <div class="tool-card">
+          <div class="tool-card-top">
+            <div class="tool-logo tl-mcp">MC</div>
+            <div><div class="tool-name">MCP Tool Servers <span class="tool-badge tb-free">Open Source</span></div></div>
+          </div>
+          <div class="tool-desc">Model Context Protocol servers that give your AI agent real tools: read/write files, execute terminal commands, call REST APIs, query databases, browse the web, call Azure CLI. The bridge between &ldquo;AI suggests code&rdquo; and &ldquo;AI actually does the work.&rdquo;</div>
+          <div class="tool-best">Best for: agentic workflows, build &amp; deploy automation, tool orchestration</div>
         </div>
       </div>
 
-      <p><strong>Verdict:</strong> For most enterprise teams on Azure / Microsoft 365 &mdash; GitHub Copilot Enterprise. It lives inside the Microsoft trust boundary, has org-level policy controls, and integrates with Defender for DevOps audit logs. Switch to Foundry private deployment only when data residency compliance prohibits shared inference.</p>
+      <div class="callout c-real">
+        <div class="callout-title">&#128187; How I use these together in VS Code</div>
+        <p>My daily setup: GitHub Copilot for inline completions and quick fixes; Claude (via Copilot model picker) for architecture discussions and long-context reviews; MCP servers for the Azure CLI, filesystem, and Git tools so Copilot agent mode can actually <em>run</em> commands, not just suggest them. Cursor gets used for new module greenfield builds where I want Composer&rsquo;s multi-file edit capability.</p>
+      </div>
 
-      <div class="achievement">
-        <div class="achievement-icon">&#127942;</div>
-        <div>
-          <div class="achievement-label">Achievement Unlocked</div>
-          <div class="achievement-title">Tool Selector &mdash; +50 XP</div>
-          <div class="achievement-desc">You chose the right tool instead of the popular one. That&rsquo;s already better than 60% of teams.</div>
+      <!-- ═══════════════════════════════════ -->
+      <!-- SECTION 2 — INSTALL & WIRE UP -->
+      <!-- ═══════════════════════════════════ -->
+      <div class="section-head">
+        <div class="sh-badge sh-b2">&#9881;&#65039;</div>
+        <div class="sh-text">
+          <h2>Section 2 &mdash; Install &amp; Wire Up: VS Code</h2>
+          <p>Complete setup from scratch &mdash; Copilot, Claude, and MCP in one window</p>
         </div>
       </div>
 
-      <!-- LEVEL 2 -->
-      <div class="level-header">
-        <div class="level-badge lv2">&#9881;&#65039;</div>
-        <div class="level-text">
-          <h2>Level 2 &mdash; Configure Your Base Camp &nbsp;<small style="font-weight:400;font-size:.75rem;color:#64748b">+100 XP</small></h2>
-          <p>The one-time VS Code setup that makes every future prompt smarter</p>
-        </div>
+      <h3 style="font-size:1rem;font-weight:700;color:#1a237e;margin:1.5rem 0 .75rem">2.1 &mdash; GitHub Copilot</h3>
+
+      <div class="step-list">
+        <div class="step"><div class="step-num"></div><div class="step-body"><div class="step-title">Install the extension</div><div class="step-desc">Open VS Code Extensions panel (<span class="inline-code">Ctrl/Cmd + Shift + X</span>), search <strong>GitHub Copilot</strong>, install both <em>GitHub Copilot</em> and <em>GitHub Copilot Chat</em>. Sign in with your GitHub account when prompted.</div></div></div>
+        <div class="step"><div class="step-num"></div><div class="step-body"><div class="step-title">Verify inline completions are active</div><div class="step-desc">Open any file, start typing &mdash; grey ghost text should appear. <span class="inline-code">Tab</span> to accept, <span class="inline-code">Alt+]</span> to cycle alternatives. If nothing appears: <span class="inline-code">Ctrl/Cmd + Shift + P</span> &rarr; <em>GitHub Copilot: Enable</em>.</div></div></div>
+        <div class="step"><div class="step-num"></div><div class="step-body"><div class="step-title">Open Copilot Chat panel</div><div class="step-desc">Click the chat bubble icon in the Activity Bar (left sidebar) or press <span class="inline-code">Ctrl/Cmd + Alt + I</span>. This is where you interact with the agent &mdash; ask questions, run slash commands, trigger multi-file edits.</div></div></div>
+        <div class="step"><div class="step-num"></div><div class="step-body"><div class="step-title">Switch to Agent Mode</div><div class="step-desc">In the Copilot Chat input, click the dropdown next to the send button and select <strong>Agent</strong>. In agent mode, Copilot can iterate: run commands, read error output, fix the code, re-run. It does multi-step work without you prompting each step.</div></div></div>
+        <div class="step"><div class="step-num"></div><div class="step-body"><div class="step-title">Select Claude as your model</div><div class="step-desc">In the Copilot Chat panel, click the model name at the bottom of the input box. Select <strong>Claude Sonnet 4.5</strong> or <strong>Claude Opus</strong> (available on Copilot Pro/Enterprise). The model switch is per-conversation &mdash; you can use GPT-4o for quick edits and Claude for architecture discussions in the same session.</div></div></div>
       </div>
 
-      <p>Most people skip this step and wonder why Copilot keeps generating <code>prod-storage-account-01</code> instead of their naming convention. The fix is a single file that pays back every day.</p>
-
-      <p><strong>The power move:</strong> Create <code>.github/copilot-instructions.md</code> in every IaC repository. This file is injected into every Copilot prompt automatically &mdash; you never have to repeat yourself.</p>
-
-      <div class="before-after">
-        <div class="ba-panel ba-before">
-          <div class="ba-label">&#10060; Without instructions file</div>
-          <code class="ba-code">resource "azurerm_key_vault" "main" {
-  name     = "my-keyvault"
-  sku_name = "standard"
-  # purge protection? missing
-  # soft delete? not set
-  # public network? open
-  # access policy model
-}</code>
-        </div>
-        <div class="ba-panel ba-after">
-          <div class="ba-label">&#9989; With instructions file</div>
-          <code class="ba-code">resource "azurerm_key_vault" "prod-eus2-kv-01" {
-  name     = "prod-eus2-kv-01"
-  sku_name = "standard"
-  purge_protection_enabled    = true
-  soft_delete_retention_days  = 90
-  public_network_access_enabled = false
-  enable_rbac_authorization   = true
-}</code>
-        </div>
+      <div class="callout c-tip">
+        <div class="callout-title">&#128161; Copilot Chat Context Commands</div>
+        <ul>
+          <li><span class="inline-code">@workspace</span> &mdash; gives the model context of your entire open repo, not just the current file</li>
+          <li><span class="inline-code">@vscode</span> &mdash; asks about VS Code settings, keybindings, extensions</li>
+          <li><span class="inline-code">#file:path/to/file.tf</span> &mdash; explicitly attaches a specific file to the context</li>
+          <li><span class="inline-code">/fix</span>, <span class="inline-code">/explain</span>, <span class="inline-code">/tests</span>, <span class="inline-code">/doc</span> &mdash; slash commands for targeted tasks</li>
+        </ul>
       </div>
+
+      <h3 style="font-size:1rem;font-weight:700;color:#1a237e;margin:1.75rem 0 .75rem">2.2 &mdash; Connect MCP Servers (the agentic power-up)</h3>
+
+      <p>MCP (Model Context Protocol) is the open standard that lets AI agents call external tools. Without it, Copilot can only <em>suggest</em> commands. With MCP, it can <em>run</em> them. Here is how to wire up the most useful MCP servers for cloud architecture work:</p>
 
       <div class="code-block">
-        <span class="code-label">&#128196; .github/copilot-instructions.md</span>
-        <pre>## Project Context
-Terraform repo for [Company] Azure landing zone.
+        <span class="code-label">&#128196; .vscode/mcp.json &mdash; add to your project root</span>
+        <pre>{
+  "servers": {
+    "filesystem": {
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-filesystem",
+               "/path/to/your/project"]
+    },
+    "github": {
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-github"],
+      "env": { "GITHUB_PERSONAL_ACCESS_TOKEN": "${env:GITHUB_TOKEN}" }
+    },
+    "azure-cli": {
+      "command": "npx",
+      "args": ["-y", "mcp-server-azure-cli"]
+    },
+    "terminal": {
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-shell"],
+      "env": { "SHELL_ALLOW_LIST": "terraform,az,git,kubectl" }
+    }
+  }
+}</pre>
+      </div>
+
+      <p>Once this file is in place and VS Code reloads, Copilot Agent mode gains four new tools: <strong>read/write files</strong>, <strong>call GitHub APIs</strong>, <strong>run Azure CLI commands</strong>, and <strong>execute approved terminal commands</strong>. The agent can now do things like: check the current Azure subscription, list existing resource groups, scaffold Terraform, validate it, and commit &mdash; all from a single chat prompt.</p>
+
+      <div class="callout c-warn">
+        <div class="callout-title">&#9888; Security: Shell MCP server</div>
+        <p>Always use <span class="inline-code">SHELL_ALLOW_LIST</span> to restrict which commands the MCP shell server can execute. Never configure it with unrestricted shell access. The agent will only call commands on the allow list &mdash; this is your blast-radius control.</p>
+      </div>
+
+      <h3 style="font-size:1rem;font-weight:700;color:#1a237e;margin:1.75rem 0 .75rem">2.3 &mdash; Add the workspace instructions file</h3>
+
+      <p>This is the single highest-leverage setup step for IaC and cloud work. Create <span class="inline-code">.github/copilot-instructions.md</span> at the repo root. Every Copilot prompt in that workspace automatically includes this context &mdash; your naming conventions, standards, and constraints become the model&rsquo;s defaults without repeating them in every prompt.</p>
+
+      <div class="code-block">
+        <span class="code-label">&#128196; .github/copilot-instructions.md &mdash; template for IaC repos</span>
+        <pre>## Project
+Azure landing zone Terraform repo for [Organisation].
 
 ## Naming Convention
-{env}-{region-short}-{service}-{instance}
+Pattern: {env}-{region-short}-{service}-{instance}
 Example: prod-eus2-kv-01
-Regions: eastus2=eus2, westus2=wus2
+Regions: eastus2=eus2, westus2=wus2, centralus=cus
+
+## Technology Stack
+- IaC: Terraform, azurerm provider >= 3.90.0
+- CI/CD: GitHub Actions with OIDC (no client secrets)
+- Secrets: Azure Key Vault (never hardcode)
+- Container platform: AKS 1.30+
 
 ## Non-negotiable Defaults
-- Provider: azurerm >= 3.90.0
-- Tags: Environment, Owner, CostCenter, Project (always)
-- Key Vault: purge_protection=true, soft_delete=90, RBAC model
-- Storage: min TLS 1.2, public_blob_access=false
-- No hardcoded secrets
+- All resources tagged: Environment, Owner, CostCenter, Project
+- Key Vault: purge_protection=true, soft_delete_retention=90, RBAC model
+- Storage: minimumTlsVersion=TLS1_2, allowBlobPublicAccess=false
+- Networking: deny-by-default NSGs, no 0.0.0.0/0 inbound rules
 
-## Repo Structure
-modules/  environments/prod/  environments/nonprod/</pre>
+## Repo Layout
+modules/  environments/prod/  environments/nonprod/  .github/workflows/</pre>
       </div>
 
-      <div class="callout callout-tip">
-        <div class="callout-title">&#128161; Pro Tip</div>
-        <p>Install these 4 extensions alongside Copilot: <strong>HashiCorp Terraform</strong>, <strong>Azure Bicep</strong>, <strong>YAML (Red Hat)</strong>, <strong>Azure Tools</strong>. They give Copilot schema awareness &mdash; completions become syntactically correct, not just plausible.</p>
-      </div>
-
-      <!-- LEVEL 3 -->
-      <div class="level-header">
-        <div class="level-badge lv3">&#127919;</div>
-        <div class="level-text">
-          <h2>Level 3 &mdash; Master the Prompt Duel &nbsp;<small style="font-weight:400;font-size:.75rem;color:#64748b">+100 XP</small></h2>
-          <p>Side-by-side: weak vs. expert prompts for IaC</p>
+      <!-- ═══════════════════════════════════ -->
+      <!-- SECTION 3 — JETBRAINS -->
+      <!-- ═══════════════════════════════════ -->
+      <div class="section-head">
+        <div class="sh-badge sh-b3">&#129095;</div>
+        <div class="sh-text">
+          <h2>Section 3 &mdash; JetBrains Setup (IntelliJ, GoLand, PyCharm)</h2>
+          <p>Same models, different IDE &mdash; what changes and what doesn&rsquo;t</p>
         </div>
       </div>
 
-      <p>The difference between a useless AI output and a production-ready module is almost entirely in the prompt. The formula: <strong>Role &rarr; Context &rarr; Task &rarr; Constraints</strong>. Four fields. That&rsquo;s it.</p>
+      <div class="step-list">
+        <div class="step"><div class="step-num"></div><div class="step-body"><div class="step-title">Install GitHub Copilot plugin</div><div class="step-desc">File &rarr; Settings &rarr; Plugins &rarr; Marketplace &rarr; search <strong>GitHub Copilot</strong>. Install and restart. The same Copilot Chat panel, agent mode, and model picker work identically to VS Code.</div></div></div>
+        <div class="step"><div class="step-num"></div><div class="step-body"><div class="step-title">MCP in JetBrains</div><div class="step-desc">JetBrains AI Assistant (separate product) supports MCP server configuration via Settings &rarr; Tools &rarr; AI Assistant &rarr; Model Context Protocol. GitHub Copilot&rsquo;s JetBrains plugin is adding MCP support in 2026 &mdash; check the plugin settings for an MCP tab after the latest update.</div></div></div>
+        <div class="step"><div class="step-num"></div><div class="step-body"><div class="step-title">copilot-instructions.md works the same</div><div class="step-desc">The <span class="inline-code">.github/copilot-instructions.md</span> file is read by the Copilot plugin regardless of IDE. Your workspace conventions are carried over automatically &mdash; no duplicate configuration needed.</div></div></div>
+        <div class="step"><div class="step-num"></div><div class="step-body"><div class="step-title">For Go / Python / Java workloads</div><div class="step-desc">JetBrains IDEs provide the richest language server support for these languages. Copilot completions in IntelliJ/GoLand will be significantly more accurate for Go microservices or Python ML code than VS Code because the IDE&rsquo;s type inference provides better context to the model.</div></div></div>
+      </div>
 
-      <div class="prompt-duel">
-        <div class="duel-header">
-          <div class="duel-h-bad">&#10060; Weak Prompt</div>
-          <div class="duel-h-good">&#9989; Expert Prompt</div>
-        </div>
-        <div class="duel-body">
-          <div class="duel-bad">write terraform for
-azure key vault</div>
-          <div class="duel-good">You are a senior Azure Terraform engineer.
-Create a reusable module for Azure Key Vault.
-- azurerm >= 3.90.0
-- Inputs: name, rg, location, tenant_id
-- Purge protection on, soft-delete 90d
-- Public network access disabled
-- RBAC authorization (not access policies)
-- Diagnostics to var logAnalyticsWorkspaceId
-- Standard tag map merged with locals
-Outputs: key_vault_id, key_vault_uri
-Explain each security choice inline.</div>
-        </div>
-        <div class="duel-result">
-          <span>&#128161;</span>
-          <span>The weak prompt generates a skeleton you&rsquo;ll rewrite. The expert prompt generates a production module you&rsquo;ll spend 10 minutes reviewing.</span>
+      <!-- ═══════════════════════════════════ -->
+      <!-- SECTION 4 — PRACTICAL SCENARIOS -->
+      <!-- ═══════════════════════════════════ -->
+      <div class="section-head">
+        <div class="sh-badge sh-b4">&#127919;</div>
+        <div class="sh-text">
+          <h2>Section 4 &mdash; Real Scenarios: What I Actually Ask the Agent</h2>
+          <p>Exact prompts and what the agent does &mdash; from IaC to deploy</p>
         </div>
       </div>
 
-      <div class="prompt-duel">
-        <div class="duel-header">
-          <div class="duel-h-bad">&#10060; Weak Prompt</div>
-          <div class="duel-h-good">&#9989; Expert Prompt</div>
-        </div>
-        <div class="duel-body">
-          <div class="duel-bad">check this bicep for
-security issues</div>
-          <div class="duel-good">Review the following Bicep against
-Azure Security Benchmark v3.
-Focus: network exposure, identity,
-encryption at rest, logging, secrets.
-For each issue: state the control ID
-(e.g. NS-1, DP-3), describe the risk,
-provide the corrected Bicep snippet.
+      <p>These are real prompt patterns I use in VS Code Copilot Agent mode for cloud architecture work. Each shows the prompt, the tools the agent invokes, and the outcome.</p>
 
-[paste your Bicep here]</div>
-        </div>
-        <div class="duel-result">
-          <span>&#128161;</span>
-          <span>Asking for control IDs maps directly to your compliance docs. Review AND audit evidence in one shot.</span>
+      <!-- SCENARIO 1 -->
+      <div class="scenario">
+        <div class="scenario-head sc-you">&#128104;&#8205;&#128187; You (Copilot Agent mode, @workspace active)</div>
+        <div class="scenario-body">Create a Terraform module for an Azure Storage Account.
+Use my naming convention, azurerm >= 3.90.0.
+- Standard_LRS, StorageV2, TLS 1.2, no public blob access
+- Network: deny by default, allow AzureServices
+- System-assigned managed identity
+- Diagnostic settings to the Log Analytics workspace in my variables
+Validate it, fix any errors, then show me what terraform plan would do.</div>
+        <div class="scenario-head sc-ai">&#129302; Agent (tools used: filesystem write, terminal: terraform validate)</div>
+        <div class="scenario-body">Creating modules/storage-account/main.tf ...
+Creating modules/storage-account/variables.tf ...
+Creating modules/storage-account/outputs.tf ...
+Running: terraform validate
+[output: Success! The configuration is valid.]
+Terraform plan summary:
+  + azurerm_storage_account.this (create)
+  + azurerm_monitor_diagnostic_setting.storage (create)
+No resources will be destroyed.</div>
+        <div class="scenario-head sc-result">&#9989; What happened</div>
+        <div class="scenario-result">The agent wrote three files, ran <span class="inline-code">terraform validate</span> autonomously, read the output, confirmed success, then described what a plan would show &mdash; all in one prompt. No copy-pasting, no terminal-switching.</div>
+      </div>
+
+      <!-- SCENARIO 2 -->
+      <div class="scenario">
+        <div class="scenario-head sc-you">&#128104;&#8205;&#128187; You</div>
+        <div class="scenario-body">@workspace Review all Terraform files in environments/prod/
+for CIS Azure Benchmark v2 violations.
+List each finding as: file, line, control ID, risk, fix.</div>
+        <div class="scenario-head sc-ai">&#129302; Agent (tools used: filesystem read, @workspace index)</div>
+        <div class="scenario-body">Scanned 14 files. Found 3 issues:
+
+1. environments/prod/storage.tf:23
+   Control: DP-3 (Encryption in Transit)
+   Risk: supportsHttpsTrafficOnly not explicitly set (defaults to true
+   but should be explicit for audit evidence)
+   Fix: add supportsHttpsTrafficOnly = true
+
+2. environments/prod/network.tf:41
+   Control: NS-1 (Network Segmentation)
+   Risk: NSG rule allows inbound 3389 from 0.0.0.0/0 (RDP open to internet)
+   Fix: restrict source to your corporate IP range or remove entirely
+
+3. environments/prod/aks.tf:88
+   Control: PA-7 (Privileged Access)
+   Risk: local_account_disabled not set to true
+   Fix: add local_account_disabled = true to azurerm_kubernetes_cluster</div>
+        <div class="scenario-head sc-result">&#9989; What happened</div>
+        <div class="scenario-result">One prompt replaced a manual security review that typically takes 30&ndash;60 minutes. The agent read every file in the directory, cross-referenced against a known benchmark, and returned structured findings you can copy directly into a security review report.</div>
+      </div>
+
+      <!-- SCENARIO 3 — BUILD TO DEPLOY -->
+      <div class="scenario">
+        <div class="scenario-head sc-you">&#128104;&#8205;&#128187; You (with GitHub MCP server connected)</div>
+        <div class="scenario-body">Write a GitHub Actions workflow that:
+1. Runs on PR to main
+2. Authenticates to Azure using OIDC (no client secrets)
+3. Runs terraform fmt, validate, and plan
+4. Posts the plan output as a PR comment
+5. On merge to main, runs terraform apply
+
+Use my subscription ID from the repo secrets.
+After creating the file, create a feature branch and open a draft PR.</div>
+        <div class="scenario-head sc-ai">&#129302; Agent (tools used: filesystem write, GitHub MCP: create branch, create PR)</div>
+        <div class="scenario-body">Created: .github/workflows/terraform-cicd.yml
+Running: git checkout -b feat/add-terraform-cicd
+Running: git add . && git commit -m "Add Terraform CI/CD pipeline with OIDC auth"
+GitHub API: Created branch feat/add-terraform-cicd
+GitHub API: Opened draft PR #47 "Add Terraform CI/CD pipeline with OIDC auth"
+PR URL: https://github.com/your-org/your-repo/pull/47</div>
+        <div class="scenario-head sc-result">&#9989; What happened</div>
+        <div class="scenario-result">The agent wrote the pipeline YAML, created a Git branch, committed, and opened a draft PR in GitHub &mdash; all from one prompt, without leaving VS Code. The GitHub MCP server handled the API calls. You review the PR in your browser, the code is already there.</div>
+      </div>
+
+      <!-- ═══════════════════════════════════ -->
+      <!-- SECTION 5 — MCP ECOSYSTEM -->
+      <!-- ═══════════════════════════════════ -->
+      <div class="section-head">
+        <div class="sh-badge sh-b5">&#128279;</div>
+        <div class="sh-text">
+          <h2>Section 5 &mdash; MCP Ecosystem: Tools Worth Connecting</h2>
+          <p>The servers that turn your AI from advisor to operator</p>
         </div>
       </div>
 
-      <div class="prompt-duel">
-        <div class="duel-header">
-          <div class="duel-h-bad">&#10060; Weak Prompt</div>
-          <div class="duel-h-good">&#9989; Expert Prompt</div>
-        </div>
-        <div class="duel-body">
-          <div class="duel-bad">write an ADR for
-using API Management</div>
-          <div class="duel-good">Write an ADR in MADR format.
-Decision: Azure APIM as API gateway
-for all Azure OpenAI deployments.
-Context: 12 teams, need token quota
-per team, PII detection, centralised
-logs, failover across 2 PTU slots.
-Alternatives: Front Door only,
-direct endpoints, NGINX custom GW.
-Include: pros/cons table, decision
-outcome, consequences.</div>
-        </div>
-        <div class="duel-result">
-          <span>&#128161;</span>
-          <span>ADRs are high-value and tedious. Giving actual context produces a first draft that is 80% done.</span>
-        </div>
-      </div>
+      <p>MCP servers are the reason agentic workflows are real in 2026. Each server is an npm package that the IDE starts on demand. Here are the most useful ones for cloud and architecture teams:</p>
 
-      <div class="achievement">
-        <div class="achievement-icon">&#9876;&#65039;</div>
-        <div>
-          <div class="achievement-label">Achievement Unlocked</div>
-          <div class="achievement-title">Prompt Duelist &mdash; +100 XP</div>
-          <div class="achievement-desc">You can now out-prompt 90% of your team. Role + Context + Task + Constraints. Four fields. Always.</div>
-        </div>
-      </div>
-
-      <!-- LEVEL 4 -->
-      <div class="level-header">
-        <div class="level-badge lv4">&#127377;&#65039;</div>
-        <div class="level-text">
-          <h2>Level 4 &mdash; Cheat Codes &nbsp;<small style="font-weight:400;font-size:.75rem;color:#64748b">+100 XP</small></h2>
-          <p>Append these to any prompt for instant quality upgrades</p>
-        </div>
-      </div>
-
-      <p>These are prompt suffixes that take 3 seconds to type and transform output quality. Save them in your prompt library today.</p>
-
-      <div class="cheat-grid">
-        <div class="cheat-card">
-          <div class="cheat-key">Explain Reasoning</div>
-          <div class="cheat-cmd">&ldquo;...explain each security choice inline.&rdquo;</div>
-          <div class="cheat-desc">Adds inline comments justifying every non-obvious decision. Makes review 5x faster.</div>
-        </div>
-        <div class="cheat-card">
-          <div class="cheat-key">Surface Hidden Assumptions</div>
-          <div class="cheat-cmd">&ldquo;What assumptions did you make?&rdquo;</div>
-          <div class="cheat-desc">Ask after any response. Catches silent choices like &ldquo;I assumed azurerm 4.x&rdquo; before they break your pipeline.</div>
-        </div>
-        <div class="cheat-card">
-          <div class="cheat-key">Failure Mode Scan</div>
-          <div class="cheat-cmd">&ldquo;What are the failure modes of this design?&rdquo;</div>
-          <div class="cheat-desc">Forces the model to surface edge cases it was aware of but didn&rsquo;t mention. Gold for architecture reviews.</div>
-        </div>
-        <div class="cheat-card">
-          <div class="cheat-key">Dry-Run Summary</div>
-          <div class="cheat-cmd">&ldquo;Summarise what terraform plan would show: created, destroyed, updated.&rdquo;</div>
-          <div class="cheat-desc">Sanity check before running actual plan. Catches accidental resource replacements early.</div>
-        </div>
-        <div class="cheat-card">
-          <div class="cheat-key">CIS Audit Pass</div>
-          <div class="cheat-cmd">&ldquo;Review against CIS Azure Benchmark 2.0. List non-compliant settings.&rdquo;</div>
-          <div class="cheat-desc">Instant security posture check on generated AND inherited code.</div>
-        </div>
-        <div class="cheat-card">
-          <div class="cheat-key">Test Generator</div>
-          <div class="cheat-cmd">&ldquo;Generate a Terraform native test that validates [specific property].&rdquo;</div>
-          <div class="cheat-desc">High-leverage, low-risk. Gets your module test coverage from zero to something in minutes.</div>
-        </div>
-      </div>
-
-      <!-- LEVEL 5 -->
-      <div class="level-header">
-        <div class="level-badge lv5">&#9888;&#65039;</div>
-        <div class="level-text">
-          <h2>Level 5 &mdash; Boss Challenges &nbsp;<small style="font-weight:400;font-size:.75rem;color:#64748b">+100 XP</small></h2>
-          <p>The four scenarios where AI will confidently lead you off a cliff</p>
-        </div>
-      </div>
-
-      <p>These are not theoretical risks. They show up in real enterprise PRs every week. Know them before you hit them.</p>
-
-      <div class="boss-card">
-        <div class="boss-label">&#128293; Boss 1 &mdash; The Open Door</div>
-        <h3>AI-generated IAM and firewall rules</h3>
-        <p>AI models are trained on public GitHub code, full of <code>*</code> wildcards, <code>0.0.0.0/0</code> CIDR blocks, and <code>Contributor</code> roles at subscription scope. The model produces what it has seen most often.</p>
-        <ul>
-          <li><strong>Never merge AI-generated IAM or firewall rules without a dedicated security review</strong></li>
-          <li>State least-privilege in your prompt: &ldquo;Use minimum necessary permissions. No wildcard actions or overly broad scopes.&rdquo;</li>
-          <li>Run Checkov or tfsec as a PR gate &mdash; catches the most common patterns automatically</li>
-        </ul>
-      </div>
-
-      <div class="boss-card" style="margin-top:1rem">
-        <div class="boss-label">&#128293; Boss 2 &mdash; The Secret Leak</div>
-        <h3>Pasting credentials into the prompt window</h3>
-        <p>A developer is debugging at 6pm, pastes a full config block including the password into Copilot Chat. Even on enterprise plans with data handling agreements, this is a security violation and a habit that spreads.</p>
-        <ul>
-          <li><strong>Never paste secrets, connection strings, or API keys into any AI assistant</strong></li>
-          <li>Replace sensitive values with <code>[REDACTED]</code> or variable placeholders before pasting</li>
-          <li>Add <code>*.env</code>, <code>*secrets*</code>, <code>*credentials*</code> to Copilot Enterprise content exclusion patterns</li>
-        </ul>
-      </div>
-
-      <div class="boss-card" style="margin-top:1rem">
-        <div class="boss-label">&#128293; Boss 3 &mdash; The Stale API</div>
-        <h3>Provider API version drift</h3>
-        <p>AI training data has a cutoff. The azurerm provider releases minor versions every 2&ndash;3 weeks. The model may generate deprecated arguments or miss new required properties.</p>
-        <ul>
-          <li>Always specify the exact provider version: <strong>&ldquo;using azurerm provider 3.90.0&rdquo;</strong></li>
-          <li>Run <code>terraform validate</code> immediately &mdash; schema errors appear before you waste time on a plan</li>
-          <li>Pin provider versions in <code>versions.tf</code> and upgrade deliberately, not automatically</li>
-        </ul>
-      </div>
-
-      <div class="boss-card" style="margin-top:1rem">
-        <div class="boss-label">&#128293; Boss 4 &mdash; The Confident Hallucination</div>
-        <h3>Plausible-but-wrong resource properties</h3>
-        <p>The model will invent property names that look exactly right &mdash; <code>enable_encryption</code>, <code>private_access_enabled</code> &mdash; that do not exist in the provider schema. The code fails <code>terraform validate</code>, but only if you run it.</p>
-        <ul>
-          <li>For any resource type you haven&rsquo;t personally used: cross-check against the Terraform registry docs</li>
-          <li><strong>Always run <code>terraform validate</code> before <code>terraform plan</code> &mdash; always.</strong> This is the minimum bar.</li>
-          <li>Use <code>/explain</code> on unfamiliar provider resources before generating code that uses them</li>
-        </ul>
-      </div>
-
-      <!-- LEVEL 6 -->
-      <div class="level-header">
-        <div class="level-badge lv6">&#127963;&#65039;</div>
-        <div class="level-text">
-          <h2>Level 6 &mdash; Enterprise Governance Mode &nbsp;<small style="font-weight:400;font-size:.75rem;color:#64748b">+150 XP</small></h2>
-          <p>Controls you need before scaling AI across your organisation</p>
-        </div>
-      </div>
-
-      <p>Individual productivity is easy. Governing AI usage across 20 teams, mixed compliance requirements, and varied skill levels &mdash; that&rsquo;s where most enterprises stumble.</p>
-
-      <table class="risk-table">
+      <table class="mcp-table">
         <thead>
-          <tr><th>Risk</th><th>Severity</th><th>Mitigation</th></tr>
+          <tr><th>MCP Server</th><th>What the agent can do</th><th>Category</th><th>Install</th></tr>
         </thead>
         <tbody>
           <tr>
-            <td><strong>Secrets in prompts</strong><br><span style="color:#94a3b8;font-size:.8rem">Devs paste prod creds into Copilot Chat</span></td>
-            <td><span class="risk-pill risk-h">High</span></td>
-            <td>Content exclusions in Copilot Enterprise + developer training + DLP on IDE traffic</td>
+            <td><strong>@modelcontextprotocol/server-filesystem</strong></td>
+            <td>Read, write, list, search files in your project. The agent edits real files, not just suggests changes.</td>
+            <td><span class="mcp-pill mp-blue">Core</span></td>
+            <td><span class="inline-code">npx -y ...</span></td>
           </tr>
           <tr>
-            <td><strong>AI-generated misconfigurations</strong><br><span style="color:#94a3b8;font-size:.8rem">Open ports, permissive IAM, disabled encryption</span></td>
-            <td><span class="risk-pill risk-h">High</span></td>
-            <td>Checkov / tfsec / Defender IaC scanning as mandatory PR gates &mdash; AI code is not exempt</td>
+            <td><strong>@modelcontextprotocol/server-github</strong></td>
+            <td>Create branches, open PRs, post comments, search code, manage issues &mdash; full GitHub API access</td>
+            <td><span class="mcp-pill mp-green">DevOps</span></td>
+            <td><span class="inline-code">npx -y ...</span></td>
           </tr>
           <tr>
-            <td><strong>Blind trust</strong><br><span style="color:#94a3b8;font-size:.8rem">Team skips review because &ldquo;AI wrote it&rdquo;</span></td>
-            <td><span class="risk-pill risk-h">High</span></td>
-            <td>PR label &ldquo;AI-assisted&rdquo; triggers security review for IAM, network, encryption files</td>
+            <td><strong>mcp-server-azure-cli</strong></td>
+            <td>Run <span class="inline-code">az</span> commands: list resources, check policy compliance, get resource configs, compare against Terraform state</td>
+            <td><span class="mcp-pill mp-blue">Cloud</span></td>
+            <td><span class="inline-code">npx -y ...</span></td>
           </tr>
           <tr>
-            <td><strong>IP / license contamination</strong><br><span style="color:#94a3b8;font-size:.8rem">Copilot reproduces GPL&rsquo;d public code</span></td>
-            <td><span class="risk-pill risk-m">Medium</span></td>
-            <td>Enable Copilot code-referencing filter (Enterprise) &mdash; blocks suggestions matching restrictive licenses</td>
+            <td><strong>@modelcontextprotocol/server-shell</strong></td>
+            <td>Run allowed terminal commands: <span class="inline-code">terraform</span>, <span class="inline-code">git</span>, <span class="inline-code">kubectl</span>, <span class="inline-code">az</span>, <span class="inline-code">docker</span>. The agent actually executes, reads output, and iterates.</td>
+            <td><span class="mcp-pill mp-orange">Execution</span></td>
+            <td><span class="inline-code">npx -y ...</span></td>
           </tr>
           <tr>
-            <td><strong>Data residency</strong><br><span style="color:#94a3b8;font-size:.8rem">Prompts sent to shared inference infrastructure</span></td>
-            <td><span class="risk-pill risk-m">Medium</span></td>
-            <td>Azure AI Foundry private deployment for regulated workloads. Confirm Copilot DPA covers your jurisdiction.</td>
+            <td><strong>@modelcontextprotocol/server-postgres</strong></td>
+            <td>Query databases: read schema, run SELECT queries, explain query plans. The agent can read your actual data to write accurate migration scripts.</td>
+            <td><span class="mcp-pill mp-purple">Data</span></td>
+            <td><span class="inline-code">npx -y ...</span></td>
           </tr>
           <tr>
-            <td><strong>Skill atrophy</strong><br><span style="color:#94a3b8;font-size:.8rem">Engineers stop understanding what they ship</span></td>
-            <td><span class="risk-pill risk-m">Medium</span></td>
-            <td>Require engineers to explain AI-generated code during PR review. Accelerate, don&rsquo;t replace understanding.</td>
+            <td><strong>@modelcontextprotocol/server-fetch</strong></td>
+            <td>Fetch URLs: read Terraform registry docs, check Azure REST API specs, pull in OpenAPI definitions to generate correct SDK calls</td>
+            <td><span class="mcp-pill mp-green">Research</span></td>
+            <td><span class="inline-code">npx -y ...</span></td>
+          </tr>
+          <tr>
+            <td><strong>mcp-server-kubernetes</strong></td>
+            <td>List pods, get logs, describe resources, check deployment status. The agent can read your live cluster state and generate fixes based on actual conditions.</td>
+            <td><span class="mcp-pill mp-blue">Cloud</span></td>
+            <td><span class="inline-code">npx -y ...</span></td>
           </tr>
         </tbody>
       </table>
 
-      <p><strong>The 3-control starter pack for any organisation:</strong></p>
-      <ol>
-        <li><strong>Checkov in every IaC PR gate</strong> &mdash; catches the top 20 AI-generated misconfiguration patterns before a human reviews</li>
-        <li><strong>One-page &ldquo;What not to do&rdquo; guide</strong> &mdash; what not to paste, how to review security-critical outputs, when to escalate. In onboarding, not buried in a wiki.</li>
-        <li><strong>Shared prompt library</strong> &mdash; a versioned repo of proven prompts. New team members start effective on day one.</li>
-      </ol>
-
-      <div class="achievement">
-        <div class="achievement-icon">&#128737;&#65039;</div>
-        <div>
-          <div class="achievement-label">Achievement Unlocked</div>
-          <div class="achievement-title">Governance Architect &mdash; +150 XP</div>
-          <div class="achievement-desc">You&rsquo;re thinking about scale, not just personal productivity. This is the difference between a useful tool and an organisational capability.</div>
+      <!-- ═══════════════════════════════════ -->
+      <!-- SECTION 6 — END-TO-END WORKFLOW -->
+      <!-- ═══════════════════════════════════ -->
+      <div class="section-head">
+        <div class="sh-badge sh-b6">&#9881;&#65039;</div>
+        <div class="sh-text">
+          <h2>Section 6 &mdash; The End-to-End Agentic Build &amp; Deploy Workflow</h2>
+          <p>One prompt chain that takes you from idea to deployed infrastructure</p>
         </div>
       </div>
 
-      <!-- FINAL LOADOUT -->
-      <div class="level-header">
-        <div class="level-badge lv-boss" style="font-size:.8rem;color:#ffd54f">&#127894;&#65039;</div>
-        <div class="level-text">
-          <h2>Final Loadout &mdash; Your Equipped Build</h2>
-          <p>Everything you need, packaged for your first week</p>
+      <p>Here is the full workflow I walk through for a new Azure service deployment, using Copilot Agent mode with filesystem, shell, and GitHub MCP servers connected:</p>
+
+      <div class="workflow">
+        <div class="wf-step">
+          <div class="wf-icon">&#128196;</div>
+          <div class="wf-label">Scaffold</div>
+          <div class="wf-sub">Terraform module generated from prompt</div>
+        </div>
+        <div class="wf-arrow">&#8250;</div>
+        <div class="wf-step">
+          <div class="wf-icon">&#9989;</div>
+          <div class="wf-label">Validate</div>
+          <div class="wf-sub">Agent runs terraform validate, fixes errors</div>
+        </div>
+        <div class="wf-arrow">&#8250;</div>
+        <div class="wf-step">
+          <div class="wf-icon">&#128269;</div>
+          <div class="wf-label">Security Review</div>
+          <div class="wf-sub">CIS scan prompt, agent reads all files</div>
+        </div>
+        <div class="wf-arrow">&#8250;</div>
+        <div class="wf-step">
+          <div class="wf-icon">&#128196;</div>
+          <div class="wf-label">Document</div>
+          <div class="wf-sub">README + variable docs generated</div>
+        </div>
+        <div class="wf-arrow">&#8250;</div>
+        <div class="wf-step">
+          <div class="wf-icon">&#128640;</div>
+          <div class="wf-label">PR</div>
+          <div class="wf-sub">Agent branches, commits, opens draft PR</div>
+        </div>
+        <div class="wf-arrow">&#8250;</div>
+        <div class="wf-step">
+          <div class="wf-icon">&#128736;&#65039;</div>
+          <div class="wf-label">Pipeline</div>
+          <div class="wf-sub">Plan runs on PR, apply on merge</div>
         </div>
       </div>
 
-      <div class="loadout-grid">
-        <div class="loadout-card">
-          <div class="loadout-icon">&#128196;</div>
-          <div class="loadout-title">copilot-instructions.md</div>
-          <div class="loadout-desc">One file per IaC repo. Naming conventions, provider version, security defaults. Never repeat yourself in prompts again.</div>
+      <p>Each step is a separate prompt, but they are issued in sequence in the same Copilot Chat conversation. The agent maintains context across the conversation &mdash; it knows what it created in step 1 when it is reviewing in step 3.</p>
+
+      <!-- SCAFFOLD PROMPT -->
+      <div class="ba-wrap">
+        <div class="ba-grid">
+          <div>
+            <div class="ba-head ba-head-b">Step 1: Scaffold</div>
+            <div class="ba-body-b">Create a Terraform module for Azure
+Container Registry. Use my naming
+convention, standard tier, geo-
+replication to westus2, admin user
+disabled, CMK encryption using the
+Key Vault in my variables.
+Validate after creating.</div>
+          </div>
+          <div>
+            <div class="ba-head ba-head-a">What agent does</div>
+            <div class="ba-body-a">Writes main.tf, variables.tf, outputs.tf
+to modules/container-registry/
+
+Runs: terraform validate
+Output: Success
+
+Reports: 3 resources will be created
+(azurerm_container_registry,
+azurerm_container_registry_replication,
+azurerm_container_registry_encryption)</div>
+          </div>
         </div>
-        <div class="loadout-card">
-          <div class="loadout-icon">&#127919;</div>
-          <div class="loadout-title">Role + Context + Task + Constraints</div>
-          <div class="loadout-desc">The four-field prompt formula. Takes 30 extra seconds. Saves 30 minutes of rewriting garbage output.</div>
+        <div class="ba-foot">Agent wrote + validated in ~45 seconds. You get working Terraform with your actual naming convention, not a generic skeleton.</div>
+      </div>
+
+      <!-- REVIEW PROMPT -->
+      <div class="ba-wrap">
+        <div class="ba-grid">
+          <div>
+            <div class="ba-head ba-head-b">Step 3: Security Review</div>
+            <div class="ba-body-b">Review the module we just created
+against CIS Azure Benchmark v2.
+List any non-compliant settings
+with control IDs and fixes.</div>
+          </div>
+          <div>
+            <div class="ba-head ba-head-a">What agent does</div>
+            <div class="ba-body-a">Reads modules/container-registry/main.tf
+
+Finding: NS-2 — quarantine_policy_enabled
+not set to true (recommended for
+untrusted image isolation)
+Fix: add quarantine_policy_enabled = true
+
+No other issues found.
+2 resources fully CIS-compliant.</div>
+          </div>
         </div>
-        <div class="loadout-card">
-          <div class="loadout-icon">&#127377;&#65039;</div>
-          <div class="loadout-title">6 Cheat Codes</div>
-          <div class="loadout-desc">&ldquo;Explain reasoning&rdquo;, &ldquo;What assumptions?&rdquo;, &ldquo;Failure modes&rdquo;, &ldquo;Dry-run summary&rdquo;, &ldquo;CIS audit&rdquo;, &ldquo;Generate tests&rdquo;. Append liberally.</div>
+        <div class="ba-foot">One finding &mdash; caught before the PR is even opened. Control ID is ready to paste into your security review documentation.</div>
+      </div>
+
+      <!-- DOC PROMPT -->
+      <div class="ba-wrap">
+        <div class="ba-grid">
+          <div>
+            <div class="ba-head ba-head-b">Step 4: Document</div>
+            <div class="ba-body-b">Generate a README.md for this module.
+Include: purpose, inputs table,
+outputs table, usage example,
+security notes, and compliance
+controls this module satisfies.</div>
+          </div>
+          <div>
+            <div class="ba-head ba-head-a">What agent does</div>
+            <div class="ba-body-a">Reads all .tf files in the module.
+Writes modules/container-registry/README.md
+
+Includes:
+- Auto-generated inputs/outputs tables
+- Terraform usage example block
+- Security notes: CMK, no admin user,
+  geo-replication
+- Compliance: CIS 7.4, 7.5, MS-1</div>
+          </div>
         </div>
-        <div class="loadout-card">
-          <div class="loadout-icon">&#128269;</div>
-          <div class="loadout-title">terraform validate &rarr; plan</div>
-          <div class="loadout-desc">The minimum bar for any AI-generated IaC. Validate catches hallucinated properties. Plan shows blast radius. Both before apply.</div>
-        </div>
-        <div class="loadout-card">
-          <div class="loadout-icon">&#128737;&#65039;</div>
-          <div class="loadout-title">Checkov in PR gate</div>
-          <div class="loadout-desc">The automated safety net. Catches open ports, permissive IAM, and disabled encryption before code review.</div>
-        </div>
-        <div class="loadout-card">
-          <div class="loadout-icon">&#128218;</div>
-          <div class="loadout-title">Shared Prompt Library</div>
-          <div class="loadout-desc">A repo of proven prompts for common tasks. The gift that keeps giving every time a new engineer joins.</div>
+        <div class="ba-foot">Documentation that would normally be skipped entirely gets generated in seconds from the code that already exists.</div>
+      </div>
+
+      <!-- ═══════════════════════════════════ -->
+      <!-- SECTION 7 — DOS AND DONTS -->
+      <!-- ═══════════════════════════════════ -->
+      <div class="section-head">
+        <div class="sh-badge sh-b7">&#128737;&#65039;</div>
+        <div class="sh-text">
+          <h2>Section 7 &mdash; Dos, Don&rsquo;ts &amp; Common Mistakes</h2>
+          <p>What separates architects who trust AI from those who get burned by it</p>
         </div>
       </div>
 
-      <div class="callout callout-warn" style="margin-top:2rem">
-        <div class="callout-title">&#127937; The One Mindset Shift</div>
-        <p>Treat AI output like a capable junior engineer&rsquo;s first draft &mdash; technically strong, occasionally wrong in important ways, and completely unaware of your organisation&rsquo;s context unless you tell it. Your job hasn&rsquo;t changed: you&rsquo;re still the architect who owns the decision. AI just got you to a first draft in 5 minutes instead of 45.</p>
+      <div class="callout c-do">
+        <div class="callout-title">&#9989; Do These</div>
+        <ul>
+          <li><strong>Always use agent mode for multi-step tasks</strong> &mdash; regular chat suggests, agent mode executes, validates, and iterates</li>
+          <li><strong>Keep the copilot-instructions.md up to date</strong> &mdash; treat it like a configuration file, not a one-time setup. Review it when standards change.</li>
+          <li><strong>Switch models for different tasks</strong> &mdash; GPT-4o for quick completions, Claude for long architecture discussions. Use the model picker actively.</li>
+          <li><strong>Let the agent run <span class="inline-code">terraform validate</span> first</strong> &mdash; before reviewing logic, catch schema errors automatically</li>
+          <li><strong>Use <span class="inline-code">@workspace</span> for review tasks</strong> &mdash; reviewing a single file misses cross-file dependencies; workspace context catches them</li>
+          <li><strong>Review IAM and network rules by hand</strong> even when the agent generates them &mdash; these are the highest blast-radius outputs</li>
+          <li><strong>Use the GitHub MCP server to open PRs from the IDE</strong> &mdash; eliminates the context-switch to the browser mid-flow</li>
+        </ul>
+      </div>
+
+      <div class="callout c-warn">
+        <div class="callout-title">&#10060; Don&rsquo;t Do These</div>
+        <ul>
+          <li><strong>Never paste secrets, connection strings, or API keys into the chat window</strong> &mdash; replace with <span class="inline-code">[REDACTED]</span> or variable names</li>
+          <li><strong>Don&rsquo;t configure the shell MCP server without an allow list</strong> &mdash; unrestricted shell access to an AI agent is a serious security risk</li>
+          <li><strong>Don&rsquo;t run <span class="inline-code">terraform apply</span> from agent mode on production</strong> &mdash; plan is fine; apply requires human review of the plan output first</li>
+          <li><strong>Don&rsquo;t skip <span class="inline-code">terraform validate</span></strong> &mdash; the model invents property names that look right but don&rsquo;t exist. Validate catches them in seconds.</li>
+          <li><strong>Don&rsquo;t use vague prompts on complex tasks</strong> &mdash; &ldquo;create a Kubernetes deployment&rdquo; generates a demo. &ldquo;Create an AKS Deployment for my payment-service container at image:tag, 3 replicas, resource limits 500m/512Mi, liveness probe on /health:8080&rdquo; generates production-ready YAML.</li>
+          <li><strong>Don&rsquo;t assume the agent has current provider knowledge</strong> &mdash; always specify the azurerm/provider version in your prompt and run validate</li>
+        </ul>
+      </div>
+
+      <div class="callout c-real">
+        <div class="callout-title">&#128295; Real-World Mistake I Made</div>
+        <p>I asked Copilot Agent to &ldquo;connect the Key Vault module to the storage account module.&rdquo; It wired up the dependency correctly but generated an <span class="inline-code">azurerm_key_vault_key</span> resource with a <span class="inline-code">rotation_policy</span> block using a property that was deprecated two provider versions ago. The code looked right, passed my eye-scan, and failed <span class="inline-code">terraform validate</span> immediately. The lesson: always run validate before any visual review, because schema errors are invisible to the eye.</p>
+      </div>
+
+      <!-- FINAL SUMMARY -->
+      <div class="section-head">
+        <div class="sh-badge sh-b1">&#127894;&#65039;</div>
+        <div class="sh-text">
+          <h2>Your Starter Checklist</h2>
+          <p>Everything to do this week, in order</p>
+        </div>
+      </div>
+
+      <div class="step-list">
+        <div class="step"><div class="step-num"></div><div class="step-body"><div class="step-title">Install GitHub Copilot + Copilot Chat in VS Code</div><div class="step-desc">Sign in, verify inline completions work, open the Chat panel and confirm Agent mode is available.</div></div></div>
+        <div class="step"><div class="step-num"></div><div class="step-body"><div class="step-title">Create .github/copilot-instructions.md in your main IaC repo</div><div class="step-desc">Add naming convention, provider version, security defaults. This is the highest-leverage 10 minutes you will spend on AI tooling.</div></div></div>
+        <div class="step"><div class="step-num"></div><div class="step-body"><div class="step-title">Add mcp.json with filesystem + shell servers</div><div class="step-desc">Start with just these two. Restrict the shell allow list to <span class="inline-code">terraform,git,az</span>. Reload VS Code and confirm the MCP tools appear in the agent tool list.</div></div></div>
+        <div class="step"><div class="step-num"></div><div class="step-body"><div class="step-title">Run your first agentic task</div><div class="step-desc">In Copilot Chat (Agent mode), ask it to create a Terraform module for any Azure resource you use regularly. Watch it write the files and run validate autonomously.</div></div></div>
+        <div class="step"><div class="step-num"></div><div class="step-body"><div class="step-title">Try the security review prompt</div><div class="step-desc">On any existing IaC code: &ldquo;Review @workspace against CIS Azure Benchmark v2. List issues with control IDs and fixes.&rdquo; Use the output in your next security review.</div></div></div>
+        <div class="step"><div class="step-num"></div><div class="step-body"><div class="step-title">Add the GitHub MCP server</div><div class="step-desc">Connect it with a personal access token. Try: &ldquo;Create a feature branch, commit these changes, and open a draft PR.&rdquo; End-to-end without leaving VS Code.</div></div></div>
+        <div class="step"><div class="step-num"></div><div class="step-body"><div class="step-title">Try Claude for your next architecture decision</div><div class="step-desc">Switch the model to Claude in the Copilot Chat picker. Paste in your proposed architecture or ADR draft and ask: &ldquo;What are the failure modes? What did I miss?&rdquo;</div></div></div>
       </div>
 
     </div>
@@ -617,7 +764,7 @@ outcome, consequences.</div>
       <div>
         <div class="author-name">Srinivas Yenuganti</div>
         <div class="author-role">Cloud Engineer &middot; IT Infrastructure &amp; Security Architect</div>
-        <div class="author-bio">19+ years building and securing enterprise cloud platforms. Currently at iSpace Inc., Los Angeles &mdash; working with AI-integrated development tooling, Azure landing zones, and security architecture for complex, regulated environments.</div>
+        <div class="author-bio">19+ years building and securing enterprise cloud platforms. Currently at iSpace Inc., Los Angeles &mdash; daily using Copilot Agent, Claude, and MCP-connected workflows for Azure IaC, AKS operations, and security architecture.</div>
         <a href="https://www.linkedin.com/in/syenuganti-bb767744/" target="_blank" style="color:#1e88e5;font-size:.85rem;text-decoration:none;font-weight:600;">Connect on LinkedIn &rarr;</a>
       </div>
     </div>
