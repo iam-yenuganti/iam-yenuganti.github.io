@@ -3,48 +3,39 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="description" content="About Srinivas Yenuganti – Cloud Engineer and IT Infrastructure Architect with nearly two decades of experience in Azure, cybersecurity, and enterprise infrastructure." />
+  <meta name="description" content="Srinivas Yenuganti – Principal Cloud &amp; Security Architect with 20 years of experience. AZ-305, AZ-400, AZ-500, CEH certified. Azure, DevSecOps, CloudOps, Zero Trust, HIPAA, HITRUST." />
   <title>About | Srinivas Yenuganti</title>
   <link rel="stylesheet" href="style.css" />
   <style>
-    .bio-card {
-      background: var(--bg-white);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      padding: 2rem 2.25rem;
-      box-shadow: var(--shadow-sm);
-      margin-bottom: 3.5rem;
-      border-left: 4px solid var(--accent);
-    }
-    .bio-card p { color: var(--text-muted); line-height: 1.8; font-size: 0.95rem; margin-bottom: 0.75rem; }
-    .bio-card p:last-child { margin-bottom: 0; }
-    .skills-section { margin-top: 3rem; }
-    .skills-grid {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 0.5rem;
-      margin-top: 1rem;
-    }
-    .skill-tag {
-      background: rgba(30,136,229,0.08);
-      border: 1px solid rgba(30,136,229,0.2);
-      color: #1565c0;
-      padding: 0.35rem 0.85rem;
-      border-radius: 50px;
-      font-size: 0.8rem;
-      font-weight: 600;
-    }
-    .connect-row {
-      display: flex;
-      gap: 1rem;
-      flex-wrap: wrap;
-      margin-top: 1.5rem;
-    }
+    .bio-card{background:var(--bg-white);border:1px solid var(--border);border-radius:var(--radius);padding:2rem 2.25rem;box-shadow:var(--shadow-sm);margin-bottom:3rem;border-left:4px solid var(--accent)}
+    .bio-card p{color:var(--text-muted);line-height:1.85;font-size:.97rem;margin-bottom:.75rem}
+    .bio-card p:last-child{margin-bottom:0}
+    .cert-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:1rem;margin-top:1.25rem}
+    .cert-card{background:var(--bg-white);border:1px solid var(--border);border-radius:10px;padding:1rem 1.25rem;display:flex;align-items:flex-start;gap:.75rem;box-shadow:var(--shadow-sm)}
+    .cert-icon{width:36px;height:36px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:.75rem;font-weight:800;flex-shrink:0;letter-spacing:-.5px}
+    .cert-icon.azure{background:linear-gradient(135deg,#0078d4,#00b4ef);color:#fff}
+    .cert-icon.security{background:linear-gradient(135deg,#b71c1c,#e53935);color:#fff}
+    .cert-icon.aws{background:linear-gradient(135deg,#FF9900,#FFB300);color:#000}
+    .cert-name{font-size:.85rem;font-weight:700;color:#0d1b2a;line-height:1.35;margin-bottom:.18rem}
+    .cert-code{font-size:.72rem;color:#64748b;font-weight:600}
+    .skills-section{margin-top:3rem}
+    .skills-category{margin-bottom:1.75rem}
+    .skills-category-label{font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--accent);margin-bottom:.6rem;display:block}
+    .skills-grid{display:flex;flex-wrap:wrap;gap:.5rem}
+    .skill-tag{background:rgba(30,136,229,.08);border:1px solid rgba(30,136,229,.2);color:#1565c0;padding:.35rem .85rem;border-radius:50px;font-size:.8rem;font-weight:600}
+    .skill-tag.devsecops{background:rgba(46,125,50,.08);border-color:rgba(46,125,50,.25);color:#2e7d32}
+    .skill-tag.cloudops{background:rgba(123,31,162,.08);border-color:rgba(123,31,162,.25);color:#6a1b9a}
+    .skill-tag.security{background:rgba(183,28,28,.08);border-color:rgba(183,28,28,.2);color:#b71c1c}
+    .skill-tag.compliance{background:rgba(230,81,0,.08);border-color:rgba(230,81,0,.2);color:#e65100}
+    .connect-row{display:flex;gap:1rem;flex-wrap:wrap;margin-top:2rem}
+    .stat-bar{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:1rem;margin:2rem 0 2.5rem;background:var(--primary);border-radius:var(--radius);padding:1.75rem}
+    .stat-item{text-align:center}
+    .stat-num{font-size:1.9rem;font-weight:800;color:#fff;line-height:1}
+    .stat-lbl{font-size:.72rem;color:rgba(255,255,255,.6);font-weight:600;text-transform:uppercase;letter-spacing:.5px;margin-top:.3rem}
   </style>
 </head>
 <body>
 
-  <!-- NAV -->
   <nav class="main-nav">
     <a href="index.html" class="nav-logo">Srinivas <span>Y.</span></a>
     <button class="hamburger" onclick="document.getElementById('navlinks').classList.toggle('open')" aria-label="Toggle menu">
@@ -58,24 +49,70 @@
     </ul>
   </nav>
 
-  <!-- PAGE HERO -->
   <div class="page-hero">
     <h1>About Me</h1>
-    <p>Cloud Engineer · IT Infrastructure &amp; Security Architect · 19+ Years</p>
+    <p>Principal Cloud &amp; Security Architect &nbsp;&middot;&nbsp; 20 Years &nbsp;&middot;&nbsp; AZ-305 · AZ-400 · AZ-500 · CEH</p>
   </div>
 
-  <!-- CONTENT -->
   <section class="section">
     <div class="section-inner">
 
-      <!-- BIO -->
-      <div class="bio-card">
-        <p>Enterprising and visionary IT Infrastructure, Cloud, and Security Architect with nearly two decades of international experience in defining and executing transformative IT strategies that drive business growth, operational excellence, and digital innovation.</p>
-        <p>Proven expertise in Azure Cloud Architecture, Infrastructure Modernization, Cybersecurity Governance, and DevSecOps transformation for healthcare enterprise platforms. Adept at designing, deploying, and securing mission-critical systems across hybrid and multi-cloud environments with full alignment to HIPAA, HITRUST, ISO 27001, and SOC 2 frameworks.</p>
+      <!-- STATS BAR -->
+      <div class="stat-bar">
+        <div class="stat-item"><div class="stat-num">20</div><div class="stat-lbl">Years Experience</div></div>
+        <div class="stat-item"><div class="stat-num">30+</div><div class="stat-lbl">Azure Subscriptions</div></div>
+        <div class="stat-item"><div class="stat-num">500+</div><div class="stat-lbl">VMs Managed</div></div>
+        <div class="stat-item"><div class="stat-num">10+</div><div class="stat-lbl">Engineers Led</div></div>
+        <div class="stat-item"><div class="stat-num">9</div><div class="stat-lbl">Certifications</div></div>
       </div>
 
-      <!-- EXPERIENCE TIMELINE -->
-      <span class="section-label">Career History</span>
+      <!-- BIO -->
+      <div class="bio-card">
+        <p>Principal Cloud &amp; Security Architect with 20 years of international experience architecting and securing enterprise-scale cloud platforms across healthcare, financial services, and global industries. Holds AZ-305 (Solutions Architect Expert), AZ-400 (DevOps Engineer Expert), AZ-500 (Security Engineer), AZ-104 (Administrator), CEH, and AWS SysOps certifications.</p>
+        <p>Deep expertise across the full cloud stack: solution architecture on Azure and AWS, DevSecOps pipeline engineering, CloudOps platform operations, Zero Trust identity and network security, SIEM/SOC operations, and IaC-driven governance at scale. Proven delivery against HIPAA, HITRUST, ISO 27001, SOC 2, and PCI DSS compliance frameworks, including leading organisations through certification audits.</p>
+        <p>Currently architecting a large-scale healthcare cloud platform at iSpace Inc. (Los Angeles), managing 30+ Azure subscriptions and 500+ VMs across multi-region, hybrid environments — with full ownership of security posture, DevSecOps pipelines, FinOps governance, and AI-native operations.</p>
+      </div>
+
+      <!-- CERTIFICATIONS -->
+      <span class="section-label">Credentials</span>
+      <h2 class="section-title" style="margin-bottom:1.25rem;">Certifications</h2>
+      <div class="cert-grid">
+        <div class="cert-card">
+          <div class="cert-icon azure">AZ</div>
+          <div><div class="cert-name">Azure Solutions Architect Expert</div><div class="cert-code">AZ-305 &nbsp;·&nbsp; Microsoft</div></div>
+        </div>
+        <div class="cert-card">
+          <div class="cert-icon azure">AZ</div>
+          <div><div class="cert-name">Azure DevOps Engineer Expert</div><div class="cert-code">AZ-400 &nbsp;·&nbsp; Microsoft</div></div>
+        </div>
+        <div class="cert-card">
+          <div class="cert-icon azure">AZ</div>
+          <div><div class="cert-name">Azure Security Engineer Associate</div><div class="cert-code">AZ-500 &nbsp;·&nbsp; Microsoft</div></div>
+        </div>
+        <div class="cert-card">
+          <div class="cert-icon azure">AZ</div>
+          <div><div class="cert-name">Azure Administrator Associate</div><div class="cert-code">AZ-104 &nbsp;·&nbsp; Microsoft</div></div>
+        </div>
+        <div class="cert-card">
+          <div class="cert-icon azure">AI</div>
+          <div><div class="cert-name">Azure AI Engineer Associate</div><div class="cert-code">Microsoft</div></div>
+        </div>
+        <div class="cert-card">
+          <div class="cert-icon security">CEH</div>
+          <div><div class="cert-name">Certified Ethical Hacker</div><div class="cert-code">CEH &nbsp;·&nbsp; EC-Council</div></div>
+        </div>
+        <div class="cert-card">
+          <div class="cert-icon security">FG</div>
+          <div><div class="cert-name">FortiGate Certified Network Security Engineer</div><div class="cert-code">Fortinet</div></div>
+        </div>
+        <div class="cert-card">
+          <div class="cert-icon aws">AWS</div>
+          <div><div class="cert-name">AWS Certified SysOps Administrator</div><div class="cert-code">Associate &nbsp;·&nbsp; Amazon Web Services</div></div>
+        </div>
+      </div>
+
+      <!-- EXPERIENCE -->
+      <span class="section-label" style="margin-top:3rem;display:block;">Career History</span>
       <h2 class="section-title" style="margin-bottom:2.5rem;">Professional Experience</h2>
 
       <div class="timeline">
@@ -83,15 +120,18 @@
         <div class="timeline-item">
           <div class="timeline-dot"></div>
           <div class="timeline-meta">June 2025 – Present</div>
-          <div class="timeline-title">Cloud Engineer</div>
+          <div class="timeline-title">Cloud Architect – Healthcare Platform</div>
           <div class="timeline-company">iSpace Inc. &middot; Los Angeles, California</div>
           <ul class="timeline-list">
-            <li>Building and optimizing Azure-based enterprise environments for a large-scale healthcare platform, focused on HIPAA, HITRUST, SOC 2, and ISO 27001 compliance.</li>
-            <li>Designing secure multi-region architectures with Application Gateway WAF v2, Private Endpoints, Azure Firewall, and Key Vault.</li>
-            <li>Developing data pipelines with Azure Data Factory, Data Lake, and Databricks for real-time ingestion and analytics.</li>
-            <li>Integrating Azure OpenAI and Cognitive APIs for predictive monitoring, anomaly detection, and intelligent operations.</li>
-            <li>Enforcing Zero Trust and identity governance through Microsoft Entra ID and Azure AD B2C.</li>
-            <li>Driving FinOps optimization through usage analytics, cost alerts, and governance dashboards.</li>
+            <li>Architecting and operating a large-scale Azure healthcare cloud platform across 30+ subscriptions and 500+ VMs, ensuring full compliance with HIPAA, HITRUST, SOC 2, and ISO 27001.</li>
+            <li>Designed multi-region hub-spoke network topology with Azure Firewall, Application Gateway WAF v2, Private Endpoints, and DDoS Protection — achieving zero public-surface attack exposure.</li>
+            <li>Built end-to-end DevSecOps pipelines using Azure DevOps and GitHub Actions with SAST, DAST, secret scanning, and policy-as-code gates enforced at every stage.</li>
+            <li>Deployed Infrastructure-as-Code (Terraform + Bicep) across all environments, reducing provisioning time from days to under 30 minutes and eliminating configuration drift.</li>
+            <li>Implemented Zero Trust architecture using Microsoft Entra ID, Conditional Access, PIM, and Azure AD B2C — governing identity across 10+ engineering teams.</li>
+            <li>Engineered CloudOps observability stack: Azure Monitor, Log Analytics, Application Insights, Prometheus, and Grafana — delivering real-time SLO dashboards and automated alerting.</li>
+            <li>Integrated Azure OpenAI and Cognitive Services for predictive anomaly detection, intelligent incident triage, and AI-assisted operations.</li>
+            <li>Led FinOps governance programme, implementing cost allocation tagging, Azure Cost Management alerts, and Reserved Instance optimisation across all workloads.</li>
+            <li>Containerised microservices workloads on AKS with Helm, Docker, and Kubernetes-native autoscaling — supporting zero-downtime deployments via blue-green and canary strategies.</li>
           </ul>
         </div>
 
@@ -101,23 +141,26 @@
           <div class="timeline-title">Senior Technical Manager – IT Infra, Cloud &amp; InfoSec Operations</div>
           <div class="timeline-company">iSpace Software Solutions</div>
           <ul class="timeline-list">
-            <li>Directed infrastructure, cloud, and security operations, leading large-scale Azure modernization and hybrid environment optimization.</li>
-            <li>Established SOC and NOC frameworks with SentinelOne, CyberArk, and Splunk for real-time monitoring and incident response.</li>
-            <li>Implemented Zero Trust, IAM, and PIM models to strengthen identity governance and reduce privilege risk.</li>
-            <li>Deployed Forcepoint DLP, Fortinet Firewalls, and Proofpoint Email Security to safeguard data and meet regulatory standards.</li>
+            <li>Led a team of 10+ engineers across infrastructure, cloud operations, and information security, driving large-scale Azure modernisation and hybrid environment transformation.</li>
+            <li>Established SOC and NOC frameworks with Microsoft Sentinel, SentinelOne, CyberArk PAM, and Splunk SIEM — reducing mean time to detect (MTTD) and respond (MTTR) across all incidents.</li>
+            <li>Implemented Zero Trust, IAM, and PIM models using Microsoft Entra ID, reducing over-privileged access exposure and achieving least-privilege governance at scale.</li>
+            <li>Embedded DevSecOps practices into CI/CD pipelines with automated compliance checks, vulnerability scanning, and drift detection — cutting security remediation cycle time significantly.</li>
+            <li>Deployed Forcepoint DLP, Fortinet Next-Gen Firewalls, and Proofpoint Email Security to enforce data loss prevention and perimeter security standards.</li>
+            <li>Led ISO 27001, HITRUST, and SOC 2 certification programmes, coordinating with auditors, remediating findings, and maintaining continuous compliance posture.</li>
           </ul>
         </div>
 
         <div class="timeline-item">
           <div class="timeline-dot"></div>
           <div class="timeline-meta">December 2014 – November 2021</div>
-          <div class="timeline-title">Head – IT Infra, Cloud &amp; Security Operations</div>
+          <div class="timeline-title">Head – IT Infrastructure, Cloud &amp; Security Operations</div>
           <div class="timeline-company">GGK Technologies</div>
           <ul class="timeline-list">
-            <li>Led cloud, infrastructure, and security transformation across Azure and GCP environments.</li>
-            <li>Oversaw data center modernization and migration to Microsoft 365, driving collaboration and business continuity.</li>
-            <li>Achieved ISO 27001, HITRUST, and SOC 2 certifications through governance, audit readiness, and risk management.</li>
-            <li>Developed automation frameworks for monitoring, configuration management, and compliance tracking.</li>
+            <li>Owned end-to-end cloud, infrastructure, and security strategy across Azure and GCP environments, leading organisation-wide digital transformation programmes.</li>
+            <li>Oversaw full data centre modernisation and migration to Microsoft 365 and Azure, decommissioning on-premise workloads and driving business continuity at scale.</li>
+            <li>Achieved ISO 27001, HITRUST, and SOC 2 certifications through governance framework design, risk management, and audit readiness programmes.</li>
+            <li>Implemented Fortinet NGFW, Endpoint Detection &amp; Response (EDR), and DLP solutions to strengthen perimeter security and data protection posture.</li>
+            <li>Developed automation frameworks using PowerShell, Ansible, and Azure Policy for monitoring, configuration management, and compliance tracking.</li>
           </ul>
         </div>
 
@@ -127,8 +170,9 @@
           <div class="timeline-title">Senior System Administrator – Lead</div>
           <div class="timeline-company">GensourceRx</div>
           <ul class="timeline-list">
-            <li>Managed enterprise servers, VMware clusters, and Exchange environments across global offices.</li>
-            <li>Designed secure VPN connectivity and implemented backup strategies for data protection.</li>
+            <li>Managed enterprise servers, VMware vSphere clusters, and Exchange environments across global offices.</li>
+            <li>Designed secure VPN connectivity and implemented tiered backup strategies for data protection and business continuity.</li>
+            <li>Improved infrastructure efficiency through proactive monitoring, capacity planning, and performance optimisation.</li>
           </ul>
         </div>
 
@@ -138,8 +182,8 @@
           <div class="timeline-title">Senior System Administrator – Datacenter Operations</div>
           <div class="timeline-company">Ramky Group</div>
           <ul class="timeline-list">
-            <li>Oversaw complete datacenter operations including Exchange, SAN, network security, and application hosting.</li>
-            <li>Led mail migration from Linux to Exchange 2010 and implemented MPLS connectivity for branch offices.</li>
+            <li>Oversaw complete datacenter operations including Exchange, SAN storage, network security, and enterprise application hosting.</li>
+            <li>Led mail platform migration from Linux to Exchange 2010 and implemented MPLS WAN connectivity across branch offices.</li>
           </ul>
         </div>
 
@@ -149,7 +193,8 @@
           <div class="timeline-title">System Administrator</div>
           <div class="timeline-company">GCET</div>
           <ul class="timeline-list">
-            <li>Administered Windows and Linux systems, Group Policies, and network configurations.</li>
+            <li>Administered Windows and Linux systems, Group Policy, and network infrastructure configurations.</li>
+            <li>Enhanced LAN/WAN performance and implemented security access controls.</li>
           </ul>
         </div>
 
@@ -160,6 +205,7 @@
           <div class="timeline-company">JB Group of Companies</div>
           <ul class="timeline-list">
             <li>Managed Windows/Linux infrastructure, Active Directory, and file services across multi-office environments.</li>
+            <li>Implemented antivirus, backup, and patch management programmes to maintain system security and availability.</li>
           </ul>
         </div>
 
@@ -169,40 +215,106 @@
           <div class="timeline-title">SQL Database Administrator</div>
           <div class="timeline-company">IDenizen Smartware Pvt Ltd</div>
           <ul class="timeline-list">
-            <li>Administered SQL Server databases — installation, configuration, backup, recovery, and performance tuning.</li>
+            <li>Administered SQL Server databases — installation, configuration, backup, recovery, and query performance optimisation.</li>
           </ul>
         </div>
 
-      </div><!-- /timeline -->
+      </div>
 
       <!-- SKILLS -->
       <div class="skills-section">
-        <span class="section-label">Technical Skills</span>
-        <h2 class="section-title" style="font-size:1.5rem;margin-bottom:1rem;">Core Technologies</h2>
-        <div class="skills-grid">
-          <span class="skill-tag">Microsoft Azure</span>
-          <span class="skill-tag">Azure DevOps</span>
-          <span class="skill-tag">Terraform / IaC</span>
-          <span class="skill-tag">Microsoft Entra ID</span>
-          <span class="skill-tag">Azure Sentinel</span>
-          <span class="skill-tag">SentinelOne</span>
-          <span class="skill-tag">CyberArk</span>
-          <span class="skill-tag">Splunk</span>
-          <span class="skill-tag">Fortinet Firewalls</span>
-          <span class="skill-tag">Azure OpenAI</span>
-          <span class="skill-tag">Azure Data Factory</span>
-          <span class="skill-tag">Databricks</span>
-          <span class="skill-tag">Kubernetes (AKS)</span>
-          <span class="skill-tag">CI/CD Pipelines</span>
-          <span class="skill-tag">VMware vSphere</span>
-          <span class="skill-tag">Microsoft 365</span>
-          <span class="skill-tag">GCP</span>
-          <span class="skill-tag">Zero Trust</span>
-          <span class="skill-tag">HIPAA · HITRUST</span>
-          <span class="skill-tag">ISO 27001</span>
-          <span class="skill-tag">SOC 2</span>
-          <span class="skill-tag">PCI DSS · GDPR</span>
+        <span class="section-label">Technical Expertise</span>
+        <h2 class="section-title" style="font-size:1.5rem;margin-bottom:1.5rem;">Skills &amp; Technologies</h2>
+
+        <div class="skills-category">
+          <span class="skills-category-label">Cloud Architecture &amp; IaC</span>
+          <div class="skills-grid">
+            <span class="skill-tag">Microsoft Azure</span>
+            <span class="skill-tag">AWS</span>
+            <span class="skill-tag">GCP</span>
+            <span class="skill-tag">Terraform</span>
+            <span class="skill-tag">Bicep / ARM Templates</span>
+            <span class="skill-tag">Azure Landing Zones</span>
+            <span class="skill-tag">Hub-Spoke Networking</span>
+            <span class="skill-tag">Azure API Management</span>
+            <span class="skill-tag">Multi-Region Architecture</span>
+          </div>
         </div>
+
+        <div class="skills-category">
+          <span class="skills-category-label">DevSecOps &amp; CI/CD</span>
+          <div class="skills-grid">
+            <span class="skill-tag devsecops">Azure DevOps</span>
+            <span class="skill-tag devsecops">GitHub Actions</span>
+            <span class="skill-tag devsecops">Docker</span>
+            <span class="skill-tag devsecops">Kubernetes (AKS)</span>
+            <span class="skill-tag devsecops">Helm</span>
+            <span class="skill-tag devsecops">Ansible</span>
+            <span class="skill-tag devsecops">PowerShell DSC</span>
+            <span class="skill-tag devsecops">Policy as Code</span>
+            <span class="skill-tag devsecops">SAST / DAST</span>
+            <span class="skill-tag devsecops">GitOps</span>
+          </div>
+        </div>
+
+        <div class="skills-category">
+          <span class="skills-category-label">CloudOps &amp; Observability</span>
+          <div class="skills-grid">
+            <span class="skill-tag cloudops">Azure Monitor</span>
+            <span class="skill-tag cloudops">Log Analytics</span>
+            <span class="skill-tag cloudops">Application Insights</span>
+            <span class="skill-tag cloudops">Prometheus</span>
+            <span class="skill-tag cloudops">Grafana</span>
+            <span class="skill-tag cloudops">Splunk</span>
+            <span class="skill-tag cloudops">SentinelOne</span>
+            <span class="skill-tag cloudops">FinOps / Cost Governance</span>
+            <span class="skill-tag cloudops">Azure Data Factory</span>
+            <span class="skill-tag cloudops">Databricks</span>
+          </div>
+        </div>
+
+        <div class="skills-category">
+          <span class="skills-category-label">Security &amp; Identity</span>
+          <div class="skills-grid">
+            <span class="skill-tag security">Zero Trust</span>
+            <span class="skill-tag security">Microsoft Entra ID</span>
+            <span class="skill-tag security">CyberArk PAM</span>
+            <span class="skill-tag security">Microsoft Sentinel</span>
+            <span class="skill-tag security">Fortinet NGFW</span>
+            <span class="skill-tag security">Forcepoint DLP</span>
+            <span class="skill-tag security">Azure Firewall</span>
+            <span class="skill-tag security">Conditional Access / PIM</span>
+            <span class="skill-tag security">SIEM / SOC Operations</span>
+            <span class="skill-tag security">Penetration Testing (CEH)</span>
+          </div>
+        </div>
+
+        <div class="skills-category">
+          <span class="skills-category-label">Compliance &amp; Governance</span>
+          <div class="skills-grid">
+            <span class="skill-tag compliance">HIPAA</span>
+            <span class="skill-tag compliance">HITRUST</span>
+            <span class="skill-tag compliance">ISO 27001</span>
+            <span class="skill-tag compliance">SOC 2</span>
+            <span class="skill-tag compliance">PCI DSS</span>
+            <span class="skill-tag compliance">GDPR</span>
+            <span class="skill-tag compliance">Azure Policy</span>
+            <span class="skill-tag compliance">Audit Readiness</span>
+          </div>
+        </div>
+
+        <div class="skills-category">
+          <span class="skills-category-label">AI &amp; Data</span>
+          <div class="skills-grid">
+            <span class="skill-tag">Azure OpenAI</span>
+            <span class="skill-tag">GitHub Copilot</span>
+            <span class="skill-tag">Azure AI Foundry</span>
+            <span class="skill-tag">Azure Data Lake</span>
+            <span class="skill-tag">Databricks</span>
+            <span class="skill-tag">MCP Agents</span>
+          </div>
+        </div>
+
       </div>
 
       <!-- CONNECT -->
@@ -219,199 +331,6 @@
       <a href="https://www.linkedin.com/in/syenuganti-bb767744/" target="_blank">LinkedIn</a> &nbsp;&middot;&nbsp;
       <a href="contact.html">Contact</a>
     </p>
-  </footer>
-
-</body>
-</html>
-    body {
-      font-family: "Segoe UI", Arial, sans-serif;
-      background: #f9fafc;
-      color: #333;
-      margin: 0;
-      padding: 0;
-    }
-    header {
-      background: #001f3f;
-      color: white;
-      text-align: center;
-      padding: 2rem 1rem;
-    }
-    header h1 {
-      margin: 0;
-      font-size: 2rem;
-    }
-    .container {
-      max-width: 1000px;
-      margin: 3rem auto;
-      padding: 0 1rem;
-      line-height: 1.8;
-    }
-    h2 {
-      color: #001f3f;
-      border-bottom: 3px solid #0074d9;
-      display: inline-block;
-      padding-bottom: 0.3rem;
-      margin-top: 2rem;
-    }
-    h3 {
-      color: #0074d9;
-      margin-bottom: 0.3rem;
-    }
-    ul {
-      margin-left: 1.2rem;
-    }
-    a {
-      color: #0074d9;
-      text-decoration: none;
-    }
-    a:hover {
-      text-decoration: underline;
-    }
-    footer {
-      text-align: center;
-      background: #001f3f;
-      color: white;
-      padding: 1rem 0;
-      margin-top: 3rem;
-    }
-    nav {
-      background: #0074d9;
-      display: flex;
-      justify-content: center;
-      flex-wrap: wrap;
-    }
-    nav a {
-      color: white;
-      text-decoration: none;
-      padding: 1rem 1.5rem;
-      display: block;
-    }
-    nav a:hover {
-      background: #005fa3;
-    }
-    .dropdown {
-      position: relative;
-    }
-    .dropdown-content {
-      display: none;
-      position: absolute;
-      background: #0074d9;
-      min-width: 150px;
-      z-index: 1;
-    }
-    .dropdown-content a {
-      padding: 0.8rem 1rem;
-    }
-    .dropdown:hover .dropdown-content {
-      display: block;
-    }
-  </style>
-</head>
-<body>
-
-  <header>
-    <h1>About Me</h1>
-  </header>
-
-  <nav>
-    <a href="index.html">Home</a>
-    <a href="about.html">About</a>
-    <a href="contact.html">Contact</a>
-    <div class="dropdown">
-      <a href="blog.html">Blog ▾</a>
-      <div class="dropdown-content">
-        <a href="blog.html">Cloud</a>
-        <a href="blog.html">Security</a>
-      </div>
-    </div>
-  </nav>
-
-  <div class="container">
-    <p>
-      Enterprising and visionary IT Infrastructure, Cloud, and Security Architect with nearly two decades of international experience in defining and executing transformative IT strategies that drive business growth, operational excellence, and digital innovation.
-    </p>
-
-    <p>
-      Proven expertise in Azure Cloud Architecture, Infrastructure Modernization, Cybersecurity Governance, and DevSecOps transformation for healthcare enterprise platforms. Adept at designing, deploying, and securing mission-critical systems across hybrid and multi-cloud environments with full alignment to HIPAA, HITRUST, ISO 27001, and SOC 2 frameworks.
-    </p>
-
-    <h2>Professional Experience</h2>
-
-    <h3>Cloud Engineer | iSpace Inc. | Los Angeles, California | June 2025 – Present</h3>
-    <ul>
-      <li>Building and optimizing Azure-based enterprise environments for a large-scale Healthcare Product platform, focusing on automation, performance, and compliance with HIPAA, HITRUST, SOC 2, and ISO 27001 standards.</li>
-      <li>Designing secure, multi-region cloud architectures integrating compute, networking, and storage with Application Gateway (WAF v2), Private Endpoints, Azure Firewall, and Key Vaults for complete isolation and controlled access.</li>
-      <li>Developing and managing data pipelines using Azure Data Factory, Data Lake, and Databricks to enable real-time ingestion, transformation, and analytics with governance and monitoring.</li>
-      <li>Implementing containerized and serverless workloads to support scalability, resilience, and zero-downtime deployments across environments.</li>
-      <li>Automating infrastructure provisioning and compliance validation using Azure-native frameworks integrated into CI/CD pipelines.</li>
-      <li>Integrating AI and machine learning services (Azure OpenAI, Cognitive APIs) for predictive monitoring, anomaly detection, and intelligent operations.</li>
-      <li>Enforcing Zero Trust and identity governance through Microsoft Entra ID and Azure AD B2C for adaptive, least-privilege access control.</li>
-      <li>Collaborating with security, DevOps, and data teams to enhance observability, backup automation, and DR strategies with Splunk and native telemetry.</li>
-      <li>Driving FinOps optimization through usage analytics, cost alerts, and dashboard insights to improve performance, scalability, and efficiency.</li>
-    </ul>
-
-    <h3>Senior Technical Manager – IT Infra, Cloud & InfoSec Operations | iSpace Software Solutions | March 2022 – May 2025</h3>
-    <ul>
-      <li>Directed infrastructure, cloud, and security operations, leading large-scale Azure modernization and hybrid environment optimization.</li>
-      <li>Established SOC and NOC frameworks with SentinelOne, CyberArk, and Splunk for real-time monitoring and incident response.</li>
-      <li>Implemented Zero Trust, IAM, and PIM models to strengthen identity governance and reduce privilege risk.</li>
-      <li>Enabled DevSecOps integration by embedding automated security testing and compliance validation in CI/CD pipelines.</li>
-      <li>Deployed Forcepoint DLP, Fortinet Firewalls, and Proofpoint Email Security to safeguard data and meet regulatory standards.</li>
-      <li>Delivered a resilient and compliant cloud foundation accelerating iSpace’s shift toward automated and secure operations.</li>
-    </ul>
-
-    <h3>Head – IT Infra, Cloud & Security Operations | GGK Technologies | December 2014 – November 2021</h3>
-    <ul>
-      <li>Led cloud, infrastructure, and security transformation across Azure and GCP environments.</li>
-      <li>Oversaw data center modernization and migration to Microsoft 365, driving collaboration and business continuity.</li>
-      <li>Achieved ISO 27001, HITRUST, and SOC 2 certifications through governance, audit readiness, and risk management.</li>
-      <li>Implemented Fortinet Firewalls, Endpoint Security, and DLP solutions to strengthen perimeter and data protection.</li>
-      <li>Developed automation frameworks for monitoring, configuration management, and compliance tracking.</li>
-    </ul>
-
-    <h3>Senior System Administrator – Lead | GensourceRx | March 2014 – November 2014</h3>
-    <ul>
-      <li>Managed enterprise servers, VMware clusters, and Exchange environments across global offices.</li>
-      <li>Designed secure VPN connectivity and implemented backup strategies for data protection.</li>
-      <li>Improved infrastructure efficiency through proactive monitoring and performance optimization.</li>
-    </ul>
-
-    <h3>Senior System Administrator – Datacenter Operations | Ramky Group | April 2011 – February 2014</h3>
-    <ul>
-      <li>Oversaw complete datacenter operations including Exchange, SAN, network security, and application hosting.</li>
-      <li>Led mail migration from Linux to Exchange 2010 and implemented MPLS connectivity for branch offices.</li>
-      <li>Ensured 24/7 uptime through redundancy planning, monitoring, and preventive maintenance.</li>
-    </ul>
-
-    <h3>System Administrator | GCET | March 2010 – March 2011</h3>
-    <ul>
-      <li>Administered Windows and Linux systems, Group Policies, and network configurations.</li>
-      <li>Enhanced LAN/WAN performance and implemented security access controls.</li>
-    </ul>
-
-    <h3>System Administrator | JB Group of Companies | August 2006 – February 2010</h3>
-    <ul>
-      <li>Managed Windows/Linux infrastructure, Active Directory, and file services.</li>
-      <li>Implemented antivirus, backup, and patching to maintain system security and availability.</li>
-      <li>Provided user and hardware support across multi-office environments.</li>
-    </ul>
-
-    <h3>SQL Database Administrator | IDenizen Smartware Pvt Ltd | June 2005 – July 2006</h3>
-    <ul>
-      <li>Administered SQL Server databases, overseeing installation, configuration, and performance tuning.</li>
-      <li>Managed backup, recovery, and security to ensure data integrity and high availability.</li>
-      <li>Collaborated with development teams to optimize database performance and query efficiency.</li>
-    </ul>
-
-    <h2>Connect</h2>
-    <p>
-      <a href="https://www.linkedin.com/in/syenuganti-bb767744/" target="_blank">LinkedIn Profile</a> |
-      <a href="index.html">Back to Home</a>
-    </p>
-  </div>
-
-  <footer>
-    © 2026 Srinivas Yenuganti | All Rights Reserved
   </footer>
 
 </body>
