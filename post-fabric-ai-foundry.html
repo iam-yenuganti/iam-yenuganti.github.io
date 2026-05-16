@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="How to architect a HIPAA-compliant healthcare analytics platform using Microsoft Fabric and Azure AI Foundry — medallion architecture, Power BI, and AI-driven clinical insights." />
+  <title>Microsoft Fabric &amp; Azure AI Foundry for Healthcare Analytics | Srinivas Yenuganti</title>
+  <meta property="og:type" content="article" />
+  <meta property="og:title" content="Microsoft Fabric &amp; Azure AI Foundry for Healthcare Analytics" />
+  <meta property="og:description" content="Architect a HIPAA-compliant analytics platform using Microsoft Fabric OneLake, Azure AI Foundry, and Power BI — from medallion data layers to AI-driven clinical insights." />
+  <meta property="og:url" content="https://iam-yenuganti.github.io/post-fabric-ai-foundry.html" />
+  <meta property="article:published_time" content="2026-05-16" />
+  <meta name="twitter:card" content="summary" />
+  <link rel="canonical" href="https://iam-yenuganti.github.io/post-fabric-ai-foundry.html" />
+  <link rel="stylesheet" href="style.css" />
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "BlogPosting",
+    "headline": "Microsoft Fabric & Azure AI Foundry for Healthcare Analytics",
+    "datePublished": "2026-05-16",
+    "author": { "@type": "Person", "name": "Srinivas Yenuganti" },
+    "url": "https://iam-yenuganti.github.io/post-fabric-ai-foundry.html",
+    "description": "How to architect a HIPAA-compliant healthcare analytics platform using Microsoft Fabric and Azure AI Foundry."
+  }
+  </script>
+  <style>
+    .post-header{background:linear-gradient(135deg,#003c5e 0%,#006494 55%,#0077b6 100%);padding:3.5rem 1.5rem 3rem}
+    .post-breadcrumb{font-size:.78rem;color:rgba(255,255,255,.5);margin-bottom:1rem}
+    .post-breadcrumb a{color:rgba(255,255,255,.65);text-decoration:none}
+    .post-breadcrumb a:hover{color:#fff}
+    .post-title{font-size:clamp(1.7rem,4vw,2.5rem);font-weight:800;color:#fff;letter-spacing:-.75px;line-height:1.2;margin-bottom:1.25rem;max-width:800px}
+    .post-meta{display:flex;flex-wrap:wrap;gap:1rem;font-size:.78rem;color:rgba(255,255,255,.55);margin-bottom:1rem}
+    .post-tags{display:flex;flex-wrap:wrap;gap:.5rem}
+    .post-tag{background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.25);color:rgba(255,255,255,.85);padding:.22rem .7rem;border-radius:50px;font-size:.7rem;font-weight:600}
+    .article-section{padding:3.5rem 1.5rem 4rem}
+    .article-body{max-width:720px;margin:0 auto;line-height:1.8}
+    .article-body p{color:#374151;font-size:.97rem;margin-bottom:1.2rem}
+    .article-body h2{font-size:1.4rem;font-weight:700;color:#0d1b2a;letter-spacing:-.3px;margin:2.5rem 0 .9rem;padding-top:2rem;border-top:1px solid #e2e8f0}
+    .article-body h2:first-of-type{border-top:none;padding-top:0;margin-top:0}
+    .article-body h3{font-size:1.05rem;font-weight:700;color:#1a3a5c;margin:1.75rem 0 .5rem}
+    .article-body ul,.article-body ol{margin-left:1.4rem;margin-bottom:1.2rem;color:#374151;font-size:.95rem}
+    .article-body li{margin-bottom:.4rem;line-height:1.75}
+    .article-body strong{color:#0d1b2a}
+    .callout{border-radius:8px;padding:1rem 1.25rem;margin:1.5rem 0;border-left:3px solid}
+    .callout-tip{background:rgba(30,136,229,.06);border-color:#1e88e5}
+    .callout-arch{background:rgba(46,125,50,.06);border-color:#388e3c}
+    .callout-warn{background:rgba(245,124,0,.06);border-color:#f57c00}
+    .callout-hipaa{background:rgba(0,100,148,.06);border-color:#006494}
+    .callout-title{font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:1px;margin-bottom:.35rem}
+    .callout-tip .callout-title{color:#1e88e5}
+    .callout-arch .callout-title{color:#388e3c}
+    .callout-warn .callout-title{color:#f57c00}
+    .callout-hipaa .callout-title{color:#006494}
+    .callout p{margin:0;font-size:.88rem;color:#374151;line-height:1.7}
+    .arch-table{width:100%;border-collapse:collapse;font-size:.85rem;margin:1.5rem 0;overflow:hidden;box-shadow:0 1px 6px rgba(0,0,0,.07)}
+    .arch-table th{background:#003c5e;color:#fff;padding:.7rem 1rem;text-align:left;font-size:.78rem;font-weight:600}
+    .arch-table td{padding:.6rem 1rem;border-bottom:1px solid #e2e8f0;color:#374151;vertical-align:top;line-height:1.6}
+    .arch-table tr:last-child td{border-bottom:none}
+    .arch-table tr:nth-child(even) td{background:#f8fafc}
+    .layer-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:1rem;margin:1.5rem 0}
+    @media(max-width:700px){.layer-grid{grid-template-columns:1fr}}
+    .layer-card{background:#fff;border:1px solid #e2e8f0;border-radius:8px;padding:1.25rem;box-shadow:0 1px 4px rgba(0,0,0,.05)}
+    .layer-label{font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:1px;margin-bottom:.4rem}
+    .layer-label.raw{color:#9e3a0a}
+    .layer-label.silver{color:#546e7a}
+    .layer-label.gold{color:#b8860b}
+    .layer-card h4{font-size:.95rem;font-weight:700;color:#0d1b2a;margin-bottom:.5rem}
+    .layer-card ul{margin-left:1rem;font-size:.83rem;color:#64748b;margin-bottom:0}
+    .layer-card li{margin-bottom:.25rem}
+    .author-card{background:#fff;border:1px solid #e2e8f0;border-radius:12px;padding:1.75rem;display:flex;gap:1.25rem;align-items:flex-start;box-shadow:0 2px 8px rgba(0,0,0,.06);margin:3rem auto 0;max-width:720px}
+    .author-avatar{width:52px;height:52px;border-radius:50%;background:linear-gradient(135deg,#003c5e,#0077b6);display:flex;align-items:center;justify-content:center;color:#fff;font-size:1.1rem;font-weight:700;flex-shrink:0}
+    .author-name{font-size:.97rem;font-weight:700;color:#0d1b2a;margin-bottom:.15rem}
+    .author-role{font-size:.78rem;color:#64748b;margin-bottom:.5rem}
+    .author-bio{font-size:.85rem;color:#64748b;line-height:1.6;margin-bottom:.5rem}
+  </style>
+</head>
+<body>
+
+  <nav class="main-nav">
+    <a href="index.html" class="nav-logo">Srinivas <span>Y.</span></a>
+    <button class="hamburger" onclick="document.getElementById('navlinks').classList.toggle('open')" aria-label="Toggle menu">
+      <span></span><span></span><span></span>
+    </button>
+    <ul class="nav-links" id="navlinks">
+      <li><a href="index.html">Home</a></li>
+      <li><a href="about.html">About</a></li>
+      <li><a href="blog.html" class="active">Blog</a></li>
+      <li><a href="contact.html" class="nav-cta">Contact</a></li>
+    </ul>
+  </nav>
+
+  <header class="post-header">
+    <div class="post-breadcrumb">
+      <a href="blog.html">← Blog</a> &nbsp;·&nbsp; Data & AI Architecture
+    </div>
+    <h1 class="post-title">Microsoft Fabric &amp; Azure AI Foundry for Healthcare Analytics: An Architect's Blueprint</h1>
+    <div class="post-meta">
+      <span>⏱ 14 min read</span>
+      <span>📅 May 16, 2026</span>
+      <span>✍️ Srinivas Yenuganti</span>
+    </div>
+    <div class="post-tags">
+      <span class="post-tag">Microsoft Fabric</span>
+      <span class="post-tag">Azure AI Foundry</span>
+      <span class="post-tag">Healthcare Analytics</span>
+      <span class="post-tag">HIPAA</span>
+      <span class="post-tag">Medallion Architecture</span>
+      <span class="post-tag">Power BI</span>
+    </div>
+  </header>
+
+  <section class="article-section">
+    <div class="article-body">
+
+      <p>Healthcare organisations are sitting on vast reserves of operational data — claims records, clinical workflows, patient outcomes, and financial transactions — yet most of it lives in siloed systems that were never designed to talk to each other. Microsoft Fabric and Azure AI Foundry, used together, give architects a path to unify that data, enforce HIPAA-grade compliance controls, and deliver AI-driven insights without bolting together a dozen separate services.</p>
+
+      <p>This guide walks through the architecture decisions, data flow design, security controls, and AI integration patterns I've used when building healthcare analytics platforms on Azure — including the tradeoffs you'll hit and how to navigate them.</p>
+
+      <div class="callout callout-hipaa">
+        <div class="callout-title">HIPAA Context</div>
+        <p>Any platform ingesting Protected Health Information (PHI) must enforce encryption at rest and in transit, audit all data access, restrict PHI to authorised identities, and maintain a complete audit trail. Microsoft Fabric's OneLake and Azure AI Foundry both support these requirements natively — but architecture choices determine whether you actually meet them in practice.</p>
+      </div>
+
+      <h2>Why Microsoft Fabric for Healthcare?</h2>
+
+      <p>Microsoft Fabric consolidates what previously required Azure Data Factory, Azure Synapse Analytics, Power BI Premium, and Azure Data Lake Storage into a single SaaS platform built on OneLake. For healthcare teams, this matters for three reasons:</p>
+
+      <ul>
+        <li><strong>Single security perimeter.</strong> OneLake is a single logical data lake. You define access controls once — workspace-level permissions, sensitivity labels, and column-level security — and they propagate across all Fabric workloads. No need to replicate policies across five different services.</li>
+        <li><strong>Unified audit logging.</strong> Every read, write, transform, and query generates a log entry in Microsoft Purview. For HIPAA audit trail requirements, this is a significant operational win over stitching together diagnostic logs from multiple services.</li>
+        <li><strong>Fabric-native shortcuts.</strong> You can mount external data sources (Azure Data Lake Storage Gen2, Amazon S3, Google Cloud Storage) into OneLake as shortcuts without physically copying data. This lets you federate claims data from partner systems without creating additional PHI copies.</li>
+      </ul>
+
+      <div class="callout callout-tip">
+        <div class="callout-title">Architecture Tip</div>
+        <p>Use Fabric workspaces to model your compliance boundaries, not just your team structure. A workspace per environment (Dev / UAT / Prod) with workspace-level Managed Identities gives you clean blast-radius isolation for PHI data.</p>
+      </div>
+
+      <h2>Medallion Architecture for Healthcare Data</h2>
+
+      <p>The medallion architecture — Raw, Silver, Gold layers — is the right foundation for healthcare analytics. In a healthcare context each layer has distinct compliance and operational responsibilities:</p>
+
+      <div class="layer-grid">
+        <div class="layer-card">
+          <div class="layer-label raw">Raw Layer</div>
+          <h4>Bronze / Raw</h4>
+          <ul>
+            <li>Ingest verbatim from source systems</li>
+            <li>HL7 FHIR, EDI X12, flat files, REST APIs</li>
+            <li>No transformation — immutable audit record</li>
+            <li>Restricted access — only pipeline identities</li>
+            <li>Encryption with customer-managed keys (CMK)</li>
+            <li>Purview auto-classification for PHI detection</li>
+          </ul>
+        </div>
+        <div class="layer-card">
+          <div class="layer-label silver">Silver Layer</div>
+          <h4>Conformed / Silver</h4>
+          <ul>
+            <li>Validated, deduplicated, type-cast records</li>
+            <li>PHI tokenisation applied (replace SSN, DOB, MRN)</li>
+            <li>Reference data joined (ICD-10, CPT, NDC codes)</li>
+            <li>Data quality rules enforced and logged</li>
+            <li>Column-level security on PHI columns</li>
+            <li>Delta Lake format for ACID compliance</li>
+          </ul>
+        </div>
+        <div class="layer-card">
+          <div class="layer-label gold">Gold Layer</div>
+          <h4>Analytical / Gold</h4>
+          <ul>
+            <li>Business-ready aggregates and metrics</li>
+            <li>Claims adjudication rates, denial trends</li>
+            <li>Patient outcome cohorts (de-identified)</li>
+            <li>Power BI semantic models on top</li>
+            <li>Row-level security by department / region</li>
+            <li>AI Foundry model outputs written here</li>
+          </ul>
+        </div>
+      </div>
+
+      <p>Fabric Pipelines (the successor to ADF) handle ingestion into the Raw layer. Fabric Notebooks with Apache Spark perform the Silver transformations. Fabric Warehouses (T-SQL) serve the Gold layer for BI queries — keeping compute costs low for the high-frequency analytical workloads that Power BI generates.</p>
+
+      <h2>Ingestion Architecture</h2>
+
+      <p>Healthcare data arrives through several channels simultaneously. The ingestion layer needs to handle each format reliably while maintaining lineage back to the source system.</p>
+
+      <table class="arch-table">
+        <thead>
+          <tr>
+            <th>Source Type</th>
+            <th>Format</th>
+            <th>Ingestion Pattern</th>
+            <th>Landing Zone</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Claims Processing System</td>
+            <td>EDI X12 835/837</td>
+            <td>SFTP pull via Fabric Pipeline</td>
+            <td>OneLake Raw / claims/</td>
+          </tr>
+          <tr>
+            <td>EHR / EMR System</td>
+            <td>HL7 FHIR R4</td>
+            <td>REST API polling / webhooks</td>
+            <td>OneLake Raw / fhir/</td>
+          </tr>
+          <tr>
+            <td>Insurance Partner APIs</td>
+            <td>JSON / REST</td>
+            <td>Fabric Data Pipeline with OAuth</td>
+            <td>OneLake Raw / partner/</td>
+          </tr>
+          <tr>
+            <td>Legacy Flat Files</td>
+            <td>CSV / fixed-width</td>
+            <td>Azure Blob → Fabric shortcut</td>
+            <td>OneLake Raw / legacy/</td>
+          </tr>
+          <tr>
+            <td>Real-time Kafka Streams</td>
+            <td>Avro / JSON</td>
+            <td>Fabric Eventstream</td>
+            <td>OneLake Raw / stream/</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <p>For real-time use cases — such as eligibility verification responses or prior authorisation status updates — Fabric Eventstream connects directly to Azure Event Hubs or Kafka topics and writes to OneLake with sub-second latency. This replaces the previous pattern of ADF + Stream Analytics + ADLS Gen2, with a single managed surface.</p>
+
+      <h2>Azure AI Foundry Integration</h2>
+
+      <p>Azure AI Foundry (formerly Azure AI Studio) is the platform for deploying, evaluating, and governing AI models in the enterprise. For healthcare analytics, the use cases that deliver the clearest ROI are:</p>
+
+      <h3>1. Claims Denial Prediction</h3>
+      <p>Train a classification model on historical claims data (adjudication outcomes, denial reason codes, payer behaviour patterns) from the Gold layer. Deploy via AI Foundry as a managed endpoint. Fabric Notebook calls the endpoint during the Silver-to-Gold transformation, appending a <code>denial_risk_score</code> column before the record reaches the Power BI semantic model. Clinical teams see the score in their dashboards before claims are submitted.</p>
+
+      <h3>2. Clinical Document Summarisation</h3>
+      <p>Use Azure OpenAI GPT-4o via AI Foundry to generate structured summaries of unstructured clinical notes stored in the FHIR documents layer. The AI Foundry prompt flow applies a system prompt that enforces a consistent output schema (complaint, diagnosis, treatment plan, follow-up). Outputs are written to the Gold layer as structured records — PHI is not sent to the model; notes are pre-processed to replace PHI with tokens before inference.</p>
+
+      <h3>3. Anomaly Detection for Fraud Identification</h3>
+      <p>Deploy an isolation forest or autoencoder model trained on billing pattern data. AI Foundry's managed compute runs batch inference against each day's processed claims. Flagged records flow into a dedicated Power BI report for the fraud investigation team, with full lineage back to the original EDI source file.</p>
+
+      <div class="callout callout-warn">
+        <div class="callout-title">PHI & AI Models — Critical Control</div>
+        <p>Never send raw PHI directly to a language model endpoint, even a private Azure OpenAI deployment. Implement a tokenisation service (e.g., Azure API Management policy + Azure Key Vault-backed token store) that replaces PHI before inference and re-injects it into the response post-processing. This keeps your HIPAA BAA boundary clean and protects against prompt injection attacks.</p>
+      </div>
+
+      <h2>HIPAA Compliance Controls</h2>
+
+      <p>Architecture patterns alone don't achieve HIPAA compliance — specific technical controls need to be embedded at each layer. These are the controls I implement as baseline on every healthcare data platform:</p>
+
+      <table class="arch-table">
+        <thead>
+          <tr>
+            <th>HIPAA Safeguard</th>
+            <th>Control</th>
+            <th>Azure Implementation</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Access Controls (§164.312(a)(1))</td>
+            <td>Unique user identification, role-based access</td>
+            <td>Microsoft Entra ID + Fabric workspace roles + column-level security</td>
+          </tr>
+          <tr>
+            <td>Audit Controls (§164.312(b))</td>
+            <td>Activity logging for all PHI access</td>
+            <td>Microsoft Purview Data Map + Fabric audit logs → Log Analytics workspace</td>
+          </tr>
+          <tr>
+            <td>Integrity (§164.312(c)(1))</td>
+            <td>Prevent unauthorised PHI alteration</td>
+            <td>OneLake immutable storage + Delta Lake transaction logs</td>
+          </tr>
+          <tr>
+            <td>Transmission Security (§164.312(e)(1))</td>
+            <td>Encryption in transit for all PHI</td>
+            <td>TLS 1.3 enforced on all Fabric endpoints; Private Link for OneLake</td>
+          </tr>
+          <tr>
+            <td>Encryption at Rest (§164.312(a)(2)(iv))</td>
+            <td>PHI encrypted at storage layer</td>
+            <td>OneLake CMK encryption via Azure Key Vault (HSM-backed)</td>
+          </tr>
+          <tr>
+            <td>Minimum Necessary (§164.502(b))</td>
+            <td>Limit PHI exposure to what is needed</td>
+            <td>Gold layer de-identification + row-level security in Power BI semantic models</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <h2>Power BI Semantic Model Design</h2>
+
+      <p>Power BI in Fabric (Direct Lake mode) queries OneLake Delta tables directly without importing data into a separate model cache. For healthcare BI, this means your reports always reflect the latest processed data without scheduled refreshes.</p>
+
+      <p>Key design decisions for healthcare Power BI models:</p>
+      <ul>
+        <li><strong>Row-level security (RLS)</strong> — Define RLS roles aligned to your organisational hierarchy: region → facility → department. A case manager in Chicago should only see their patients; an executive sees aggregate metrics without PHI.</li>
+        <li><strong>Sensitivity labels</strong> — Apply Microsoft Purview sensitivity labels (Confidential, Highly Confidential – PHI) to datasets and reports. This drives DLP policies that prevent PHI from being exported to unmanaged devices or shared via email.</li>
+        <li><strong>Certified datasets</strong> — Mark Gold layer datasets as Certified in the Fabric portal. This signals to the organisation that a dataset is the authoritative, compliance-reviewed source of truth and prevents proliferation of unofficial copies.</li>
+        <li><strong>Usage metrics + audit</strong> — Enable Power BI activity log to track who accessed which reports and when. This feeds directly into your HIPAA audit log evidence for §164.312(b).</li>
+      </ul>
+
+      <div class="callout callout-arch">
+        <div class="callout-title">Architecture Pattern</div>
+        <p>Use a dedicated Fabric capacity (F64 or above) for production healthcare workloads. Shared capacity means shared compute — and in a regulated environment, you need predictable performance SLAs and the ability to demonstrate resource isolation to auditors.</p>
+      </div>
+
+      <h2>Network Security &amp; Private Connectivity</h2>
+
+      <p>Microsoft Fabric supports managed virtual network (managed VNet) injection for Fabric Spark compute, and Private Link for OneLake access. For healthcare platforms handling PHI, both controls should be enabled:</p>
+
+      <ul>
+        <li><strong>Fabric managed VNet</strong> — Spark workloads execute in a Microsoft-managed VNet with no public internet egress. All outbound connectivity from Spark notebooks (to Azure SQL, Key Vault, Event Hubs) routes through private endpoints.</li>
+        <li><strong>OneLake Private Link</strong> — Enables access to OneLake from your Azure virtual network over a private IP address. Disable public network access on the Fabric workspace to enforce this.</li>
+        <li><strong>Conditional Access for Fabric</strong> — Require compliant device + MFA for all Fabric portal access. Block access from unmanaged devices to prevent PHI exfiltration through browser-based report views.</li>
+        <li><strong>Tenant isolation</strong> — Enable the Fabric tenant setting "Block public internet access" and "Restrict OneLake access to workspace identities" for all production healthcare workspaces.</li>
+      </ul>
+
+      <h2>Monitoring &amp; Operational Readiness</h2>
+
+      <p>A Fabric-native healthcare platform needs observability across three dimensions: pipeline health, data quality, and security posture.</p>
+
+      <h3>Pipeline Health</h3>
+      <p>Fabric Pipeline monitoring in the Fabric portal surfaces run history, failure reasons, and duration trends. For critical ingestion jobs (claims batch files, FHIR API pulls), configure alert rules to fire to a Logic App → notify the on-call team via Teams or PagerDuty when a pipeline fails or exceeds its SLA window.</p>
+
+      <h3>Data Quality</h3>
+      <p>Embed data quality checks directly in the Silver transformation notebooks using the Great Expectations framework (Python) or native Fabric Data Activator rules. Quality metrics — completeness rates, referential integrity checks, PHI detection rates — should write to a dedicated <code>dq_metrics</code> Gold table and surface in a dedicated Power BI data quality dashboard.</p>
+
+      <h3>Security Posture</h3>
+      <p>Stream Fabric audit logs to a centralised Log Analytics workspace alongside your Azure Defender for Cloud alerts. Create a Microsoft Sentinel analytic rule that fires when a user accesses a PHI-tagged dataset outside their normal working hours or from an unusual location — this is a critical HIPAA breach detection control.</p>
+
+      <h2>Implementation Roadmap</h2>
+
+      <p>For an organisation migrating from a traditional ADF + Synapse + Power BI architecture to Fabric, a phased approach reduces risk:</p>
+
+      <ol>
+        <li><strong>Phase 1 (Weeks 1–3):</strong> Provision Fabric capacity and workspaces. Migrate OneLake data from ADLS Gen2. Validate existing Power BI reports in Direct Lake mode. Configure network controls and Purview sensitivity labels.</li>
+        <li><strong>Phase 2 (Weeks 4–7):</strong> Re-platform ingestion pipelines to Fabric Pipelines. Migrate Silver transformation logic to Fabric Notebooks. Validate data quality parity with the legacy pipeline.</li>
+        <li><strong>Phase 3 (Weeks 8–10):</strong> Deploy AI Foundry endpoints for claims prediction and document summarisation. Integrate model outputs into the Gold layer. Add model performance monitoring via AI Foundry evaluations.</li>
+        <li><strong>Phase 4 (Weeks 11–12):</strong> Complete audit log centralisation in Sentinel. Run a HIPAA technical safeguard review against the new architecture. Decommission legacy ADF and Synapse resources.</li>
+      </ol>
+
+      <div class="callout callout-tip">
+        <div class="callout-title">Final Thought</div>
+        <p>Microsoft Fabric and Azure AI Foundry represent a genuine architectural simplification for healthcare data teams — fewer services to manage, a single governance surface, and AI capabilities that are native rather than bolted on. The compliance work is still real, but you're doing it once against a unified platform rather than replaying the same configuration across five separate services. That alone is worth the migration effort for any organisation handling PHI at scale.</p>
+      </div>
+
+    </div>
+
+    <div class="author-card">
+      <div class="author-avatar">SY</div>
+      <div>
+        <div class="author-name">Srinivas Yenuganti</div>
+        <div class="author-role">Principal Cloud &amp; Security Architect &nbsp;·&nbsp; iSpace Inc., Los Angeles</div>
+        <div class="author-bio">20+ years architecting enterprise cloud platforms with a focus on healthcare data, compliance, and AI. AZ-305 · AZ-400 · AZ-500 · Azure AI Engineer · CEH.</div>
+        <a href="https://www.linkedin.com/in/syenuganti-bb767744/" target="_blank" style="font-size:.82rem;color:#1e88e5;font-weight:600;">LinkedIn →</a>
+        &nbsp;&nbsp;
+        <a href="blog.html" style="font-size:.82rem;color:#1e88e5;font-weight:600;">More Articles →</a>
+      </div>
+    </div>
+  </section>
+
+  <footer class="main-footer">
+    <p>&copy; 2026 Srinivas Yenuganti &nbsp;&middot;&nbsp;
+      <a href="https://www.linkedin.com/in/syenuganti-bb767744/" target="_blank">LinkedIn</a> &nbsp;&middot;&nbsp;
+      <a href="contact.html">Contact</a>
+    </p>
+  </footer>
+
+</body>
+</html>
