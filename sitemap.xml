@@ -29,6 +29,12 @@
 
   <!-- Blog posts -->
   <url>
+    <loc>https://yenuganti.in/post-claude-for-developers.html</loc>
+    <lastmod>2026-05-17</lastmod>
+    <changefreq>yearly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
     <loc>https://yenuganti.in/post-fabric-ai-foundry.html</loc>
     <lastmod>2026-05-17</lastmod>
     <changefreq>yearly</changefreq>
