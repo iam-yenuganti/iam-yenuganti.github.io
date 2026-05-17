@@ -3,25 +3,25 @@
 
   <!-- Core pages -->
   <url>
-    <loc>https://iam-yenuganti.github.io/</loc>
+    <loc>https://yenuganti.in/</loc>
     <lastmod>2026-05-17</lastmod>
     <changefreq>monthly</changefreq>
     <priority>1.0</priority>
   </url>
   <url>
-    <loc>https://iam-yenuganti.github.io/about.html</loc>
+    <loc>https://yenuganti.in/about.html</loc>
     <lastmod>2026-05-17</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.9</priority>
   </url>
   <url>
-    <loc>https://iam-yenuganti.github.io/blog.html</loc>
+    <loc>https://yenuganti.in/blog.html</loc>
     <lastmod>2026-05-17</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.9</priority>
   </url>
   <url>
-    <loc>https://iam-yenuganti.github.io/contact.html</loc>
+    <loc>https://yenuganti.in/contact.html</loc>
     <lastmod>2026-05-17</lastmod>
     <changefreq>yearly</changefreq>
     <priority>0.6</priority>
@@ -29,55 +29,55 @@
 
   <!-- Blog posts -->
   <url>
-    <loc>https://iam-yenuganti.github.io/post-fabric-ai-foundry.html</loc>
+    <loc>https://yenuganti.in/post-fabric-ai-foundry.html</loc>
     <lastmod>2026-05-17</lastmod>
     <changefreq>yearly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://iam-yenuganti.github.io/post-ai-agents-mcp.html</loc>
+    <loc>https://yenuganti.in/post-ai-agents-mcp.html</loc>
     <lastmod>2026-05-10</lastmod>
     <changefreq>yearly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://iam-yenuganti.github.io/post-devops-ai-agents.html</loc>
+    <loc>https://yenuganti.in/post-devops-ai-agents.html</loc>
     <lastmod>2026-04-28</lastmod>
     <changefreq>yearly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://iam-yenuganti.github.io/post-genai-enterprise.html</loc>
+    <loc>https://yenuganti.in/post-genai-enterprise.html</loc>
     <lastmod>2026-04-15</lastmod>
     <changefreq>yearly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://iam-yenuganti.github.io/post-ai-assistant-ide.html</loc>
+    <loc>https://yenuganti.in/post-ai-assistant-ide.html</loc>
     <lastmod>2026-03-22</lastmod>
     <changefreq>yearly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://iam-yenuganti.github.io/post-zero-trust.html</loc>
+    <loc>https://yenuganti.in/post-zero-trust.html</loc>
     <lastmod>2026-03-10</lastmod>
     <changefreq>yearly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://iam-yenuganti.github.io/post-landing-zone.html</loc>
+    <loc>https://yenuganti.in/post-landing-zone.html</loc>
     <lastmod>2026-02-20</lastmod>
     <changefreq>yearly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://iam-yenuganti.github.io/post-healthcare-cloud.html</loc>
+    <loc>https://yenuganti.in/post-healthcare-cloud.html</loc>
     <lastmod>2026-02-05</lastmod>
     <changefreq>yearly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://iam-yenuganti.github.io/post-cloud-trends.html</loc>
+    <loc>https://yenuganti.in/post-cloud-trends.html</loc>
     <lastmod>2026-01-18</lastmod>
     <changefreq>yearly</changefreq>
     <priority>0.8</priority>

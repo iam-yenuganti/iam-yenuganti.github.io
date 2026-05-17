@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://iam-yenuganti.github.io/sitemap.xml
+Sitemap: https://yenuganti.in/sitemap.xml
