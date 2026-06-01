@@ -15,19 +15,22 @@
   <style>
     .blog-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1.5rem; }
     .blog-card { background: var(--bg-white); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; box-shadow: var(--shadow-sm); transition: all 0.25s; display: flex; flex-direction: column; text-decoration: none; color: inherit; }
-    .blog-card:hover { box-shadow: var(--shadow-lg); transform: translateY(-5px); }
-    .blog-card-header { padding: 2rem 1.75rem; }
+    .blog-card:hover { box-shadow: var(--shadow-lg); transform: translateY(-5px); border-color: rgba(30,136,229,0.25); }
+    .blog-card-header { padding: 2rem 1.75rem; position: relative; overflow: hidden; }
+    .blog-card-header::after { content: ''; position: absolute; inset: 0; background: radial-gradient(circle at 120% -20%, rgba(255,255,255,0.08) 0%, transparent 60%); pointer-events: none; }
     .blog-card-header.blue   { background: linear-gradient(135deg, #0d1b2a 0%, #1a3a5c 100%); }
     .blog-card-header.teal   { background: linear-gradient(135deg, #004d40 0%, #00695c 100%); }
     .blog-card-header.purple { background: linear-gradient(135deg, #311b92 0%, #4a148c 100%); }
     .blog-category { display: block; background: rgba(255,255,255,0.18); color: rgba(255,255,255,0.9); border: 1px solid rgba(255,255,255,0.25); padding: 0.22rem 0.7rem; border-radius: 50px; font-size: 0.68rem; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; margin-bottom: 0.85rem; width: fit-content; }
-    .blog-card-header h2 { color: white; font-size: 1.1rem; font-weight: 700; line-height: 1.4; margin: 0; }
+    .blog-card-header h2 { color: white; font-size: 1.1rem; font-weight: 700; line-height: 1.4; margin: 0; position: relative; z-index: 2; }
     .blog-card-body { padding: 1.5rem; flex: 1; display: flex; flex-direction: column; }
-    .blog-meta { display: flex; gap: 0.85rem; font-size: 0.75rem; color: var(--text-muted); margin-bottom: 0.85rem; }
-    .blog-excerpt { font-size: 0.875rem; color: var(--text-muted); line-height: 1.7; flex: 1; margin-bottom: 1rem; }
+    .blog-meta { display: flex; gap: 0.85rem; font-size: 0.75rem; color: var(--text-muted); margin-bottom: 0.85rem; align-items: center; font-weight: 500; }
+    .blog-excerpt { font-size: 0.875rem; color: var(--text-muted); line-height: 1.7; flex: 1; margin-bottom: 1rem; font-weight: 500; }
     .blog-tags { display: flex; flex-wrap: wrap; gap: 0.35rem; margin-bottom: 1.1rem; }
-    .blog-tag { background: var(--bg); border: 1px solid var(--border); color: var(--text-muted); padding: 0.18rem 0.6rem; border-radius: 50px; font-size: 0.68rem; font-weight: 600; }
-    .read-more { color: var(--accent); font-weight: 600; font-size: 0.85rem; display: inline-flex; align-items: center; gap: 0.25rem; margin-top: auto; }
+    .blog-tag { background: linear-gradient(135deg, rgba(30,136,229,0.08), rgba(30,136,229,0.04)); border: 1px solid rgba(30,136,229,0.15); color: #1565c0; padding: 0.28rem 0.75rem; border-radius: 50px; font-size: 0.7rem; font-weight: 600; transition: all 0.2s; }
+    .blog-tag:hover { background: rgba(30,136,229,0.12); border-color: rgba(30,136,229,0.25); }
+    .read-more { color: var(--accent); font-weight: 600; font-size: 0.85rem; display: inline-flex; align-items: center; gap: 0.35rem; margin-top: auto; transition: all 0.2s; }
+    .read-more:hover { gap: 0.5rem; }
     .newsletter-strip { background: linear-gradient(135deg, #0d1b2a 0%, #1a3a5c 100%); border-radius: var(--radius); padding: 2.5rem; text-align: center; margin-top: 3.5rem; }
     .newsletter-strip h3 { color: white; font-size: 1.35rem; font-weight: 700; margin-bottom: 0.5rem; }
     .newsletter-strip p { color: rgba(255,255,255,0.62); font-size: 0.95rem; margin-bottom: 1.5rem; }
@@ -223,6 +226,7 @@
 
   <footer class="main-footer">
     <p>&copy; 2026 Srinivas Yenuganti &nbsp;&middot;&nbsp;
+      <a href="resume.html">Resume</a> &nbsp;&middot;&nbsp;
       <a href="https://www.linkedin.com/in/syenuganti-bb767744/" target="_blank">LinkedIn</a> &nbsp;&middot;&nbsp;
       <a href="contact.html">Contact</a>
     </p>
