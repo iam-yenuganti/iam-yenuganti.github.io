@@ -74,6 +74,9 @@
     .author-name{font-size:.97rem;font-weight:700;color:#0d1b2a;margin-bottom:.15rem}
     .author-role{font-size:.78rem;color:#64748b;margin-bottom:.5rem}
     .author-bio{font-size:.85rem;color:#64748b;line-height:1.6;margin-bottom:.5rem}
+    .arch-diagram{background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;padding:1.5rem;margin:1.75rem 0;overflow-x:auto}
+    .arch-diagram svg{display:block;margin:0 auto;max-width:100%;height:auto}
+    .diagram-caption{font-size:.78rem;color:#64748b;text-align:center;margin-top:.6rem;font-style:italic}
   </style>
 </head>
 <body>
@@ -116,6 +119,19 @@
       <p>Claude is no longer just a chat assistant you open in a browser tab. In 2026, it is an embedded development partner — available inside VS Code via GitHub Copilot, callable through APIs, composable into multi-step agentic workflows, and capable of reading, writing, and reasoning about your entire codebase. But powerful tools misused create real problems: hallucinated code shipped to production, sensitive data sent to third-party APIs, and developers who stop thinking critically because "the AI said so."</p>
 
       <p>This guide is for engineering teams who want to use Claude deliberately and safely — getting maximum productivity benefit without introducing new risks. It covers every phase of the development lifecycle, with practical do's and don'ts, security controls, and concrete examples of where agentic Claude workflows deliver the most value.</p>
+
+      <div class="arch-diagram">
+        <svg viewBox="0 0 720 130" role="img" aria-label="Claude across the development lifecycle">
+          <rect x="10" y="20" width="700" height="90" rx="10" fill="#fff" stroke="#cbd5e1"/>
+          <rect x="25" y="45" width="120" height="40" rx="8" fill="#ede7f6" stroke="#7b1fa2"/><text x="85" y="70" text-anchor="middle" font-size="10" fill="#0d1b2a">Plan/Design</text>
+          <rect x="160" y="45" width="110" height="40" rx="8" fill="#ede7f6" stroke="#7b1fa2"/><text x="215" y="70" text-anchor="middle" font-size="10" fill="#0d1b2a">Code</text>
+          <rect x="285" y="45" width="110" height="40" rx="8" fill="#ede7f6" stroke="#7b1fa2"/><text x="340" y="70" text-anchor="middle" font-size="10" fill="#0d1b2a">Review</text>
+          <rect x="410" y="45" width="110" height="40" rx="8" fill="#ede7f6" stroke="#7b1fa2"/><text x="465" y="70" text-anchor="middle" font-size="10" fill="#0d1b2a">Test</text>
+          <rect x="535" y="45" width="160" height="40" rx="8" fill="#e8f5e9" stroke="#388e3c"/><text x="615" y="70" text-anchor="middle" font-size="10" fill="#0d1b2a">Deploy + human gate</text>
+          <line x1="145" y1="65" x2="158" y2="65" stroke="#94a3b8" stroke-width="2"/><line x1="270" y1="65" x2="283" y2="65" stroke="#94a3b8" stroke-width="2"/><line x1="395" y1="65" x2="408" y2="65" stroke="#94a3b8" stroke-width="2"/><line x1="520" y1="65" x2="533" y2="65" stroke="#94a3b8" stroke-width="2"/>
+        </svg>
+        <div class="diagram-caption">Claude contributes at every phase — a human always owns the risk-bearing decision</div>
+      </div>
 
       <h2>Where Claude fits in the development lifecycle</h2>
 

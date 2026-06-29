@@ -54,6 +54,9 @@
     .author-name{font-size:.97rem;font-weight:700;color:#0d1b2a;margin-bottom:.15rem}
     .author-role{font-size:.78rem;color:#64748b;margin-bottom:.5rem}
     .author-bio{font-size:.85rem;color:#64748b;line-height:1.6;margin-bottom:.5rem}
+    .arch-diagram{background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;padding:1.5rem;margin:1.75rem 0;overflow-x:auto}
+    .arch-diagram svg{display:block;margin:0 auto;max-width:100%;height:auto}
+    .diagram-caption{font-size:.78rem;color:#64748b;text-align:center;margin-top:.6rem;font-style:italic}
   </style>
 </head>
 <body>
@@ -96,6 +99,22 @@
       <p>The Zero Trust model, formalized in NIST Special Publication 800-207, fundamentally shifts network security from a perimeter-centric approach to an identity and context-driven one. The traditional "castle and moat" assumption — that anything inside the network is trusted — is a liability in the era of cloud, remote work, and sophisticated lateral movement attacks.</p>
 
       <p>Zero Trust replaces that assumption with three non-negotiable principles: <strong>Verify explicitly</strong>, <strong>Use least privilege access</strong>, and <strong>Assume breach</strong>. For Azure architects, this is not a single product to deploy — it is an architectural discipline expressed across six control planes: Identities, Devices, Applications, Data, Infrastructure, and Networks.</p>
+
+      <div class="arch-diagram">
+        <svg viewBox="0 0 720 250" role="img" aria-label="Zero Trust enforcement flow">
+          <rect x="10" y="20" width="700" height="210" rx="10" fill="#fff" stroke="#cbd5e1"/>
+          <rect x="30" y="95" width="120" height="60" rx="8" fill="#e3f2fd" stroke="#1565c0"/><text x="90" y="120" text-anchor="middle" font-size="11" fill="#0d1b2a">User +</text><text x="90" y="136" text-anchor="middle" font-size="11" fill="#0d1b2a">Device</text>
+          <rect x="190" y="85" width="150" height="80" rx="8" fill="#bbdefb" stroke="#1565c0"/><text x="265" y="112" text-anchor="middle" font-size="11" font-weight="700" fill="#0d1b2a">Conditional Access</text><text x="265" y="130" text-anchor="middle" font-size="10" fill="#334155">MFA · risk · device</text><text x="265" y="146" text-anchor="middle" font-size="10" fill="#334155">(policy / PEP)</text>
+          <rect x="380" y="95" width="120" height="60" rx="8" fill="#e8f5e9" stroke="#388e3c"/><text x="440" y="120" text-anchor="middle" font-size="10" fill="#0d1b2a">Verify · Least</text><text x="440" y="136" text-anchor="middle" font-size="10" fill="#0d1b2a">priv · Assume</text>
+          <rect x="540" y="95" width="150" height="60" rx="8" fill="#fff" stroke="#475569"/><text x="615" y="120" text-anchor="middle" font-size="11" fill="#0d1b2a">Resource +</text><text x="615" y="136" text-anchor="middle" font-size="11" fill="#0d1b2a">private endpoint</text>
+          <line x1="150" y1="125" x2="188" y2="125" stroke="#94a3b8" stroke-width="2" marker-end="url(#a)"/>
+          <line x1="340" y1="125" x2="378" y2="125" stroke="#94a3b8" stroke-width="2" marker-end="url(#a)"/>
+          <line x1="500" y1="125" x2="538" y2="125" stroke="#94a3b8" stroke-width="2" marker-end="url(#a)"/>
+          <text x="360" y="50" text-anchor="middle" font-size="11" font-weight="700" fill="#1565c0">6 pillars: Identity · Device · App · Data · Infra · Network</text>
+          <defs><marker id="a" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6" fill="#94a3b8"/></marker></defs>
+        </svg>
+        <div class="diagram-caption">Identity is the perimeter: every request brokered through Conditional Access before reaching a private resource</div>
+      </div>
 
       <h2>The Identity Plane — Your New Perimeter</h2>
 

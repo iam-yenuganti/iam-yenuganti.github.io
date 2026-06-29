@@ -54,6 +54,9 @@
     .author-name{font-size:.97rem;font-weight:700;color:#0d1b2a;margin-bottom:.15rem}
     .author-role{font-size:.78rem;color:#64748b;margin-bottom:.5rem}
     .author-bio{font-size:.85rem;color:#64748b;line-height:1.6;margin-bottom:.5rem}
+    .arch-diagram{background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;padding:1.5rem;margin:1.75rem 0;overflow-x:auto}
+    .arch-diagram svg{display:block;margin:0 auto;max-width:100%;height:auto}
+    .diagram-caption{font-size:.78rem;color:#64748b;text-align:center;margin-top:.6rem;font-style:italic}
   </style>
 </head>
 <body>
@@ -95,6 +98,19 @@
     <div class="article-body">
 
       <p>Enterprise cloud architecture has entered a period of rapid structural change. The foundational decisions made in the next 12–24 months — around AI infrastructure, platform engineering, data sovereignty, and security architecture — will define competitive positioning for the rest of the decade. This article examines the trends that are moving from early adopter territory into mainstream enterprise architecture and what architects must do about each one.</p>
+
+      <div class="arch-diagram">
+        <svg viewBox="0 0 720 200" role="img" aria-label="Six cloud trends to act on">
+          <rect x="10" y="20" width="700" height="160" rx="10" fill="#fff" stroke="#cbd5e1"/>
+          <rect x="30" y="45" width="205" height="50" rx="8" fill="#e8f5e9" stroke="#2e7d32"/><text x="132" y="75" text-anchor="middle" font-size="11" fill="#0d1b2a">AI-Native Infra</text>
+          <rect x="258" y="45" width="205" height="50" rx="8" fill="#e8f5e9" stroke="#2e7d32"/><text x="360" y="75" text-anchor="middle" font-size="11" fill="#0d1b2a">Platform Engineering</text>
+          <rect x="486" y="45" width="204" height="50" rx="8" fill="#e8f5e9" stroke="#2e7d32"/><text x="588" y="75" text-anchor="middle" font-size="11" fill="#0d1b2a">FinOps 3.0</text>
+          <rect x="30" y="105" width="205" height="50" rx="8" fill="#e8f5e9" stroke="#2e7d32"/><text x="132" y="135" text-anchor="middle" font-size="11" fill="#0d1b2a">Confidential Compute</text>
+          <rect x="258" y="105" width="205" height="50" rx="8" fill="#e8f5e9" stroke="#2e7d32"/><text x="360" y="135" text-anchor="middle" font-size="11" fill="#0d1b2a">Sovereign Cloud</text>
+          <rect x="486" y="105" width="204" height="50" rx="8" fill="#e8f5e9" stroke="#2e7d32"/><text x="588" y="135" text-anchor="middle" font-size="11" fill="#0d1b2a">Sustainable Arch</text>
+        </svg>
+        <div class="diagram-caption">Six trends crossing from early-adopter to mainstream — each a board-level architecture decision</div>
+      </div>
 
       <h2>1. AI-Native Infrastructure</h2>
 

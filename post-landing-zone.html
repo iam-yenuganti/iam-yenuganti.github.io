@@ -58,6 +58,9 @@
     .author-name{font-size:.97rem;font-weight:700;color:#0d1b2a;margin-bottom:.15rem}
     .author-role{font-size:.78rem;color:#64748b;margin-bottom:.5rem}
     .author-bio{font-size:.85rem;color:#64748b;line-height:1.6;margin-bottom:.5rem}
+    .arch-diagram{background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;padding:1.5rem;margin:1.75rem 0;overflow-x:auto}
+    .arch-diagram svg{display:block;margin:0 auto;max-width:100%;height:auto}
+    .diagram-caption{font-size:.78rem;color:#64748b;text-align:center;margin-top:.6rem;font-style:italic}
   </style>
 </head>
 <body>
@@ -101,6 +104,19 @@
       <p>The most expensive mistake in enterprise cloud adoption is building workloads before the foundation is ready. You provision a few Azure subscriptions, teams start deploying, and six months later you have security gaps, no governance, inconsistent naming conventions, orphaned resources with unknown ownership, and an operations team drowning in alerts they cannot correlate.</p>
 
       <p>The Azure Landing Zone pattern, defined by Microsoft's Cloud Adoption Framework (CAF), is the antidote. A Landing Zone is an environment — with identity, network, security, management, and governance pre-configured — into which workloads land. Think of it as the building code for your cloud estate: you define the rules before construction begins, not after.</p>
+
+      <div class="arch-diagram">
+        <svg viewBox="0 0 720 240" role="img" aria-label="Hub-spoke landing zone topology">
+          <rect x="10" y="20" width="700" height="200" rx="10" fill="#fff" stroke="#cbd5e1"/>
+          <rect x="290" y="90" width="140" height="60" rx="8" fill="#ede7f6" stroke="#6a1b9a"/><text x="360" y="114" text-anchor="middle" font-size="11" font-weight="700" fill="#4a148c">HUB VNet</text><text x="360" y="132" text-anchor="middle" font-size="9" fill="#334155">Firewall · GW · DNS</text>
+          <rect x="40" y="40" width="140" height="40" rx="6" fill="#f3e5f5" stroke="#6a1b9a"/><text x="110" y="65" text-anchor="middle" font-size="10" fill="#0d1b2a">Corp spoke</text>
+          <rect x="40" y="160" width="140" height="40" rx="6" fill="#f3e5f5" stroke="#6a1b9a"/><text x="110" y="185" text-anchor="middle" font-size="10" fill="#0d1b2a">Online spoke</text>
+          <rect x="540" y="40" width="140" height="40" rx="6" fill="#f3e5f5" stroke="#6a1b9a"/><text x="610" y="65" text-anchor="middle" font-size="10" fill="#0d1b2a">Identity</text>
+          <rect x="540" y="160" width="140" height="40" rx="6" fill="#f3e5f5" stroke="#6a1b9a"/><text x="610" y="185" text-anchor="middle" font-size="10" fill="#0d1b2a">Management</text>
+          <line x1="180" y1="60" x2="290" y2="110" stroke="#9575cd" stroke-width="2"/><line x1="180" y1="180" x2="290" y2="130" stroke="#9575cd" stroke-width="2"/><line x1="430" y1="110" x2="540" y2="60" stroke="#9575cd" stroke-width="2"/><line x1="430" y1="130" x2="540" y2="180" stroke="#9575cd" stroke-width="2"/>
+        </svg>
+        <div class="diagram-caption">Hub-spoke: shared firewall/DNS/gateway in the hub; isolated workload spokes peered for controlled flow</div>
+      </div>
 
       <h2>Management Group Hierarchy — Governance at Scale</h2>
 

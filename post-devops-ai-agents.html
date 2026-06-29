@@ -85,6 +85,9 @@
     .author-name{font-size:.97rem;font-weight:700;color:#0d1b2a;margin-bottom:.15rem}
     .author-role{font-size:.78rem;color:#64748b;margin-bottom:.5rem}
     .author-bio{font-size:.85rem;color:#64748b;line-height:1.6;margin-bottom:.5rem}
+    .arch-diagram{background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;padding:1.5rem;margin:1.75rem 0;overflow-x:auto}
+    .arch-diagram svg{display:block;margin:0 auto;max-width:100%;height:auto}
+    .diagram-caption{font-size:.78rem;color:#64748b;text-align:center;margin-top:.6rem;font-style:italic}
   </style>
 </head>
 <body>
@@ -139,6 +142,21 @@
       <p>That's not a pitch. That's the current state of <strong>Amazon Q Developer</strong> on AWS and <strong>GitHub Copilot + Copilot for Azure</strong> on the Microsoft stack. And it's why the loudest voices in the industry are asking: is DevOps, as we know it, over?</p>
 
       <p>Short answer: no. But the job has irrevocably changed. This article is your map to what these agents actually do, with real scenarios from both platforms — no theory, no vendor marketing.</p>
+
+      <div class="arch-diagram">
+        <svg viewBox="0 0 720 200" role="img" aria-label="Agentic incident response loop">
+          <rect x="10" y="20" width="700" height="160" rx="10" fill="#fff" stroke="#cbd5e1"/>
+          <rect x="30" y="80" width="110" height="50" rx="8" fill="#fbe9e7" stroke="#b71c1c"/><text x="85" y="110" text-anchor="middle" font-size="10" fill="#0d1b2a">Pipeline fails</text>
+          <rect x="175" y="80" width="110" height="50" rx="8" fill="#ffe0b2" stroke="#FF9900"/><text x="230" y="104" text-anchor="middle" font-size="10" fill="#0d1b2a">Agent reads</text><text x="230" y="118" text-anchor="middle" font-size="10" fill="#0d1b2a">logs</text>
+          <rect x="320" y="80" width="110" height="50" rx="8" fill="#e3f2fd" stroke="#0078d4"/><text x="375" y="104" text-anchor="middle" font-size="10" fill="#0d1b2a">Diagnose +</text><text x="375" y="118" text-anchor="middle" font-size="10" fill="#0d1b2a">root cause</text>
+          <rect x="465" y="80" width="110" height="50" rx="8" fill="#e8f5e9" stroke="#388e3c"/><text x="520" y="110" text-anchor="middle" font-size="10" fill="#0d1b2a">Open fix PR</text>
+          <rect x="610" y="80" width="80" height="50" rx="8" fill="#fff" stroke="#475569"/><text x="650" y="110" text-anchor="middle" font-size="10" fill="#0d1b2a">Human OK</text>
+          <line x1="140" y1="105" x2="173" y2="105" stroke="#94a3b8" stroke-width="2" marker-end="url(#d)"/><line x1="285" y1="105" x2="318" y2="105" stroke="#94a3b8" stroke-width="2" marker-end="url(#d)"/><line x1="430" y1="105" x2="463" y2="105" stroke="#94a3b8" stroke-width="2" marker-end="url(#d)"/><line x1="575" y1="105" x2="608" y2="105" stroke="#94a3b8" stroke-width="2" marker-end="url(#d)"/>
+          <text x="360" y="50" text-anchor="middle" font-size="11" font-weight="700" fill="#b71c1c">From page-at-2am to PR in 3 minutes</text>
+          <defs><marker id="d" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6" fill="#94a3b8"/></marker></defs>
+        </svg>
+        <div class="diagram-caption">Amazon Q / Copilot triage loop — agents handle the reactive work, humans approve the change</div>
+      </div>
 
       <h2>What Triggered the "DevOps is Dead" Debate?</h2>
 

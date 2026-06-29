@@ -56,6 +56,9 @@
     .author-name{font-size:.97rem;font-weight:700;color:#0d1b2a;margin-bottom:.15rem}
     .author-role{font-size:.78rem;color:#64748b;margin-bottom:.5rem}
     .author-bio{font-size:.85rem;color:#64748b;line-height:1.6;margin-bottom:.5rem}
+    .arch-diagram{background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;padding:1.5rem;margin:1.75rem 0;overflow-x:auto}
+    .arch-diagram svg{display:block;margin:0 auto;max-width:100%;height:auto}
+    .diagram-caption{font-size:.78rem;color:#64748b;text-align:center;margin-top:.6rem;font-style:italic}
   </style>
 </head>
 <body>
@@ -99,6 +102,21 @@
       <p>Most enterprise generative AI projects fail not because the models are inadequate, but because the architecture is not production-ready. A prototype that works beautifully in a demo environment collapses under real load when it encounters the full diversity of production data, concurrent users, adversarial inputs, and compliance requirements that were never modelled in the proof of concept.</p>
 
       <p>This article covers the architectural patterns, design decisions, and operational disciplines that separate a reliable, cost-efficient enterprise GenAI deployment from an expensive prototype that never made it to production.</p>
+
+      <div class="arch-diagram">
+        <svg viewBox="0 0 720 200" role="img" aria-label="Enterprise RAG pipeline">
+          <rect x="10" y="20" width="700" height="160" rx="10" fill="#fff" stroke="#cbd5e1"/>
+          <rect x="30" y="80" width="100" height="50" rx="8" fill="#e3f2fd" stroke="#1565c0"/><text x="80" y="110" text-anchor="middle" font-size="10" fill="#0d1b2a">User query</text>
+          <rect x="165" y="80" width="110" height="50" rx="8" fill="#bbdefb" stroke="#1565c0"/><text x="220" y="104" text-anchor="middle" font-size="10" fill="#0d1b2a">Embed +</text><text x="220" y="118" text-anchor="middle" font-size="10" fill="#0d1b2a">retrieve</text>
+          <rect x="310" y="80" width="110" height="50" rx="8" fill="#fff" stroke="#475569"/><text x="365" y="104" text-anchor="middle" font-size="10" fill="#0d1b2a">AI Search</text><text x="365" y="118" text-anchor="middle" font-size="10" fill="#0d1b2a">vector store</text>
+          <rect x="455" y="80" width="110" height="50" rx="8" fill="#e8f5e9" stroke="#388e3c"/><text x="510" y="104" text-anchor="middle" font-size="10" fill="#0d1b2a">LLM +</text><text x="510" y="118" text-anchor="middle" font-size="10" fill="#0d1b2a">guardrails</text>
+          <rect x="600" y="80" width="90" height="50" rx="8" fill="#e3f2fd" stroke="#1565c0"/><text x="645" y="110" text-anchor="middle" font-size="10" fill="#0d1b2a">Response</text>
+          <line x1="130" y1="105" x2="163" y2="105" stroke="#94a3b8" stroke-width="2" marker-end="url(#g)"/><line x1="275" y1="105" x2="308" y2="105" stroke="#94a3b8" stroke-width="2" marker-end="url(#g)"/><line x1="420" y1="105" x2="453" y2="105" stroke="#94a3b8" stroke-width="2" marker-end="url(#g)"/><line x1="565" y1="105" x2="598" y2="105" stroke="#94a3b8" stroke-width="2" marker-end="url(#g)"/>
+          <text x="360" y="50" text-anchor="middle" font-size="11" font-weight="700" fill="#1565c0">RAG: ground responses in private data + content safety</text>
+          <defs><marker id="g" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6" fill="#94a3b8"/></marker></defs>
+        </svg>
+        <div class="diagram-caption">Production RAG: retrieval grounds the LLM; guardrails enforce responsible-AI and PII controls</div>
+      </div>
 
       <h2>The Three GenAI Pattern Families</h2>
 

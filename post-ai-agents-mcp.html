@@ -53,6 +53,9 @@
     .author-name{font-size:.97rem;font-weight:700;color:#0d1b2a;margin-bottom:.15rem}
     .author-role{font-size:.78rem;color:#64748b;margin-bottom:.5rem}
     .author-bio{font-size:.85rem;color:#64748b;line-height:1.6;margin-bottom:.5rem}
+    .arch-diagram{background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;padding:1.5rem;margin:1.75rem 0;overflow-x:auto}
+    .arch-diagram svg{display:block;margin:0 auto;max-width:100%;height:auto}
+    .diagram-caption{font-size:.78rem;color:#64748b;text-align:center;margin-top:.6rem;font-style:italic}
   </style>
 </head>
 <body>
@@ -115,6 +118,19 @@
       <p>An MCP Server exposes capabilities — a GitHub server exposes tools like <code>create_pull_request</code> or <code>read_file</code>; a database server exposes <code>run_query</code>; a Kubernetes server exposes <code>get_pod_logs</code>. The AI model consumes these through a standardised client interface. Any model that speaks MCP can use any MCP server — one integration, universal compatibility.</p>
 
       <p>For enterprise architects, MCP solves three critical problems: <strong>composability</strong> (mix and match tools without glue code), <strong>security boundary isolation</strong> (each MCP Server enforces its own auth and permissions), and <strong>observability</strong> (tool calls flow through a structured protocol with clear logging hooks).</p>
+
+      <div class="arch-diagram">
+        <svg viewBox="0 0 720 230" role="img" aria-label="Multi-agent orchestration over MCP">
+          <rect x="10" y="20" width="700" height="190" rx="10" fill="#fff" stroke="#cbd5e1"/>
+          <rect x="285" y="40" width="150" height="50" rx="8" fill="#ede7f6" stroke="#4f46e5"/><text x="360" y="63" text-anchor="middle" font-size="11" font-weight="700" fill="#4f46e5">Orchestrator</text><text x="360" y="79" text-anchor="middle" font-size="9" fill="#334155">plan · route · memory</text>
+          <rect x="40" y="140" width="150" height="45" rx="8" fill="#e3f2fd" stroke="#7c3aed"/><text x="115" y="167" text-anchor="middle" font-size="10" fill="#0d1b2a">Research agent</text>
+          <rect x="285" y="140" width="150" height="45" rx="8" fill="#e3f2fd" stroke="#7c3aed"/><text x="360" y="167" text-anchor="middle" font-size="10" fill="#0d1b2a">Coder agent</text>
+          <rect x="530" y="140" width="150" height="45" rx="8" fill="#e3f2fd" stroke="#7c3aed"/><text x="605" y="167" text-anchor="middle" font-size="10" fill="#0d1b2a">Ops agent</text>
+          <line x1="360" y1="90" x2="115" y2="140" stroke="#9575cd" stroke-width="2"/><line x1="360" y1="90" x2="360" y2="140" stroke="#9575cd" stroke-width="2"/><line x1="360" y1="90" x2="605" y2="140" stroke="#9575cd" stroke-width="2"/>
+          <text x="360" y="205" text-anchor="middle" font-size="9" fill="#64748b">each agent reaches tools/data via MCP servers (auth + audit per server)</text>
+        </svg>
+        <div class="diagram-caption">Orchestrator delegates to specialist agents; MCP standardises every tool and data connection</div>
+      </div>
 
       <h2>The Anatomy of an AI Agent</h2>
 
