@@ -2,7 +2,7 @@
 
 # Srinivas Yenuganti — Cloud & Security Architect
 
-Principal Cloud & Security Architect with 20+ years of international experience in Azure,
+IT Infra, Cloud & Security Architect with 20+ years of international experience in Azure,
 DevSecOps, Zero Trust, and healthcare compliance (HIPAA, HITRUST, ISO 27001, SOC 2).
 
 This repository hosts my personal site and architecture blog: **https://yenuganti.in**
