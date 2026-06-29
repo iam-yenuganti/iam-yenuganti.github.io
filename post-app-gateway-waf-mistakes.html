@@ -1,0 +1,406 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Common mistakes Azure CloudOps teams make with Application Gateway and WAF — and the right rollout: Detection mode, tune for weeks, then Prevention. With architecture, risk register, rule-tuning examples, and Terraform baseline." />
+  <title>Azure Application Gateway: Common Mistakes &amp; The Right WAF Rollout | Srinivas Yenuganti</title>
+  <meta property="og:type" content="article" />
+  <meta property="og:title" content="Azure Application Gateway: Common Mistakes & The Right WAF Rollout" />
+  <meta property="og:description" content="From day-1 Prevention mode blocking real users to silent Detection mode forever — the mistakes I see most often, and the disciplined Detection → tune → Prevention playbook that protects SaaS apps without breaking them." />
+  <meta property="og:url" content="https://yenuganti.in/post-app-gateway-waf-mistakes.html" />
+  <meta property="article:published_time" content="2026-06-28" />
+  <meta name="twitter:card" content="summary" />
+  <link rel="canonical" href="https://yenuganti.in/post-app-gateway-waf-mistakes.html" />
+  <link rel="stylesheet" href="style.css" />
+  <style>
+    .post-header{background:linear-gradient(135deg,#3e1a00 0%,#7b2f00 55%,#b3541e 100%);padding:3.5rem 1.5rem 3rem}
+    .post-breadcrumb{font-size:.78rem;color:rgba(255,255,255,.55);margin-bottom:1rem}
+    .post-breadcrumb a{color:rgba(255,255,255,.7);text-decoration:none}
+    .post-breadcrumb a:hover{color:#fff}
+    .post-title{font-size:clamp(1.7rem,4vw,2.5rem);font-weight:800;color:#fff;letter-spacing:-.75px;line-height:1.2;margin-bottom:1.25rem;max-width:800px}
+    .post-meta{display:flex;flex-wrap:wrap;gap:1rem;font-size:.78rem;color:rgba(255,255,255,.6);margin-bottom:1rem}
+    .post-tags{display:flex;flex-wrap:wrap;gap:.5rem}
+    .post-tag{background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.25);color:rgba(255,255,255,.9);padding:.22rem .7rem;border-radius:50px;font-size:.7rem;font-weight:600}
+    .article-section{padding:3.5rem 1.5rem 4rem}
+    .article-body{max-width:760px;margin:0 auto;line-height:1.8}
+    .article-body p{color:#374151;font-size:.97rem;margin-bottom:1.2rem}
+    .article-body h2{font-size:1.4rem;font-weight:700;color:#0d1b2a;letter-spacing:-.3px;margin:2.5rem 0 .9rem;padding-top:2rem;border-top:1px solid #e2e8f0}
+    .article-body h2:first-of-type{border-top:none;padding-top:0;margin-top:0}
+    .article-body h3{font-size:1.05rem;font-weight:700;color:#7b2f00;margin:1.75rem 0 .5rem}
+    .article-body ul,.article-body ol{margin-left:1.4rem;margin-bottom:1.2rem;color:#374151;font-size:.95rem}
+    .article-body li{margin-bottom:.4rem;line-height:1.75}
+    .article-body strong{color:#0d1b2a}
+    .article-body code{background:#fff3e0;padding:.1rem .35rem;border-radius:4px;font-size:.85em;color:#7b2f00}
+    .callout{border-radius:8px;padding:1rem 1.25rem;margin:1.5rem 0;border-left:3px solid}
+    .callout-tip{background:rgba(30,136,229,.06);border-color:#1e88e5}
+    .callout-arch{background:rgba(46,125,50,.06);border-color:#388e3c}
+    .callout-warn{background:rgba(245,124,0,.07);border-color:#ef6c00}
+    .callout-title{font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:1px;margin-bottom:.35rem}
+    .callout-tip .callout-title{color:#1e88e5}
+    .callout-arch .callout-title{color:#388e3c}
+    .callout-warn .callout-title{color:#ef6c00}
+    .callout p{margin:0;font-size:.88rem;color:#374151;line-height:1.7}
+    .arch-table{width:100%;border-collapse:collapse;font-size:.85rem;margin:1.5rem 0;overflow:hidden;box-shadow:0 1px 6px rgba(0,0,0,.07)}
+    .arch-table th{background:#3e1a00;color:#fff;padding:.7rem 1rem;text-align:left;font-size:.78rem;font-weight:600}
+    .arch-table td{padding:.6rem 1rem;border-bottom:1px solid #e2e8f0;color:#374151;vertical-align:top;line-height:1.6}
+    .arch-table tr:last-child td{border-bottom:none}
+    .arch-table tr:nth-child(even) td{background:#fff8f1}
+    .mistakes-list{list-style:none!important;margin-left:0!important}
+    .mistakes-list li{padding:.6rem 0 .6rem 2rem;position:relative;border-bottom:1px solid #e2e8f0;font-size:.9rem;margin:0;color:#374151}
+    .mistakes-list li:last-child{border-bottom:none}
+    .mistakes-list li::before{content:'⚠️';position:absolute;left:0;font-size:.85rem}
+    .kpi-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:.85rem;margin:1.5rem 0}
+    .kpi-card{background:linear-gradient(135deg,#7b2f00,#b3541e);color:#fff;border-radius:10px;padding:1.1rem 1.15rem;box-shadow:0 2px 8px rgba(123,47,0,.18)}
+    .kpi-value{font-size:1.55rem;font-weight:800;letter-spacing:-.5px;line-height:1.1}
+    .kpi-label{font-size:.7rem;opacity:.88;text-transform:uppercase;letter-spacing:1px;margin-top:.25rem}
+    .toc{background:#fff8f1;border:1px solid #f0d9c4;border-radius:8px;padding:1.25rem 1.5rem;margin:1.75rem 0}
+    .toc-title{font-size:.72rem;font-weight:700;color:#7b2f00;text-transform:uppercase;letter-spacing:1.2px;margin-bottom:.6rem}
+    .toc ol{margin:0;padding-left:1.25rem;font-size:.85rem;color:#374151}
+    .toc li{margin-bottom:.25rem}
+    .toc a{color:#7b2f00;text-decoration:none}
+    .toc a:hover{text-decoration:underline}
+    .arch-diagram{background:#fff8f1;border:1px solid #f0d9c4;border-radius:10px;padding:1.5rem;margin:1.75rem 0;overflow-x:auto}
+    .arch-diagram svg{display:block;margin:0 auto;max-width:100%;height:auto}
+    .diagram-caption{font-size:.78rem;color:#64748b;text-align:center;margin-top:.6rem;font-style:italic}
+    pre.code{background:#0d1b2a;color:#e2e8f0;border-radius:8px;padding:1.1rem 1.25rem;overflow-x:auto;font-size:.78rem;line-height:1.6;margin:1.25rem 0;font-family:ui-monospace,SFMono-Regular,Menlo,monospace}
+    pre.code .c{color:#94a3b8}
+    .phase-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:1rem;margin:1.5rem 0}
+    .phase-card{background:#fff;border:1px solid #f0d9c4;border-left:4px solid #b3541e;border-radius:8px;padding:1rem 1.1rem;box-shadow:0 1px 4px rgba(0,0,0,.04)}
+    .phase-num{font-size:.65rem;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:#b3541e;margin-bottom:.3rem}
+    .phase-title{font-size:.92rem;font-weight:700;color:#0d1b2a;margin-bottom:.35rem}
+    .phase-desc{font-size:.8rem;color:#64748b;line-height:1.55}
+    .author-card{background:#fff;border:1px solid #e2e8f0;border-radius:12px;padding:1.75rem;display:flex;gap:1.25rem;align-items:flex-start;box-shadow:0 2px 8px rgba(0,0,0,.06);margin:3rem auto 0;max-width:760px}
+    .author-avatar{width:52px;height:52px;border-radius:50%;background:linear-gradient(135deg,#7b2f00,#b3541e);display:flex;align-items:center;justify-content:center;color:#fff;font-size:1.1rem;font-weight:700;flex-shrink:0}
+    .author-name{font-size:.97rem;font-weight:700;color:#0d1b2a;margin-bottom:.15rem}
+    .author-role{font-size:.78rem;color:#64748b;margin-bottom:.5rem}
+    .author-bio{font-size:.85rem;color:#64748b;line-height:1.6;margin-bottom:.5rem}
+  </style>
+</head>
+<body>
+
+  <nav class="main-nav">
+    <a href="index.html" class="nav-logo">Srinivas <span>Y.</span></a>
+    <button class="hamburger" onclick="document.getElementById('navlinks').classList.toggle('open')" aria-label="Toggle menu">
+      <span></span><span></span><span></span>
+    </button>
+    <ul class="nav-links" id="navlinks">
+      <li><a href="index.html">Home</a></li>
+      <li><a href="about.html">About</a></li>
+      <li><a href="blog.html" class="active">Blog</a></li>
+      <li><a href="contact.html" class="nav-cta">Contact</a></li>
+    </ul>
+  </nav>
+
+  <header class="post-header">
+    <div class="post-breadcrumb">
+      <a href="blog.html">← Blog</a> &nbsp;·&nbsp; Security Architecture
+    </div>
+    <h1 class="post-title">Azure Application Gateway: Common Mistakes &amp; The Right WAF Rollout</h1>
+    <div class="post-meta">
+      <span>⏱ 14 min read</span>
+      <span>📅 June 28, 2026</span>
+      <span>✍️ Srinivas Yenuganti</span>
+    </div>
+    <div class="post-tags">
+      <span class="post-tag">Application Gateway</span>
+      <span class="post-tag">WAF v2</span>
+      <span class="post-tag">OWASP CRS</span>
+      <span class="post-tag">SaaS Security</span>
+      <span class="post-tag">Azure Policy</span>
+      <span class="post-tag">Terraform</span>
+    </div>
+  </header>
+
+  <section class="article-section">
+    <div class="article-body">
+
+      <p>Azure Application Gateway with WAF v2 is the front door for most SaaS workloads I review. It is also the single most consistently mis-deployed component in those reviews. The pattern repeats across organisations of every size:</p>
+
+      <ol>
+        <li>CloudOps stands up Application Gateway with WAF in <strong>Prevention</strong> mode on day one to "tick the security box."</li>
+        <li>Within days, the WAF blocks legitimate traffic — JSON bodies, file uploads, customer SSO callbacks, the marketing team's redirect chains.</li>
+        <li>Engineers respond by flipping WAF into <strong>Detection</strong> mode "temporarily."</li>
+        <li>Six months later, Detection is still on. The platform has compliance signage that says WAF, and protection that is purely cosmetic.</li>
+      </ol>
+
+      <p>I have walked into too many environments where this is the steady state. The fix is not a product — it is a disciplined rollout. This article catalogs the mistakes I see most often and lays out the playbook I use to take SaaS apps from no WAF to full Prevention without breaking real users.</p>
+
+      <div class="kpi-row">
+        <div class="kpi-card"><div class="kpi-value">2–4 wk</div><div class="kpi-label">Detection baseline</div></div>
+        <div class="kpi-card"><div class="kpi-value">95%+</div><div class="kpi-label">False positives tuned</div></div>
+        <div class="kpi-card"><div class="kpi-value">0</div><div class="kpi-label">Customer-visible blocks</div></div>
+        <div class="kpi-card"><div class="kpi-value">CRS 3.2</div><div class="kpi-label">Baseline ruleset</div></div>
+      </div>
+
+      <div class="toc">
+        <div class="toc-title">What's inside</div>
+        <ol>
+          <li><a href="#mistakes">The 10 mistakes I see most often</a></li>
+          <li><a href="#reference">Reference architecture — WAF in front of SaaS</a></li>
+          <li><a href="#playbook">The rollout playbook: Detection → tune → Prevention</a></li>
+          <li><a href="#tuning">Tuning the false positives without weakening the WAF</a></li>
+          <li><a href="#risk">Risk register — threat, blast radius, mitigation</a></li>
+          <li><a href="#monitoring">Monitoring &amp; alerting that actually works</a></li>
+          <li><a href="#iac">Terraform baseline (App Gateway + WAF Policy)</a></li>
+          <li><a href="#checklist">Architect's checklist</a></li>
+        </ol>
+      </div>
+
+      <h2 id="mistakes">1. The 10 Mistakes I See Most Often</h2>
+
+      <p>Before the design pattern, the anti-patterns. If you recognise three or more of these in your environment, your WAF is not doing what your compliance team thinks it is doing.</p>
+
+      <ul class="mistakes-list">
+        <li><strong>Prevention mode on day one</strong> with no traffic baseline — guaranteed to block legitimate users and force a panicked rollback.</li>
+        <li><strong>Detection mode left on indefinitely</strong> after the rollback "for now." There is no protection — only logs no one reads.</li>
+        <li><strong>Disabling entire OWASP rule groups</strong> (e.g. all of RuleGroup 942 SQL Injection) instead of excluding the specific noisy rule.</li>
+        <li><strong>Wildcard exclusions like <code>RequestArgNames</code> = <code>*</code></strong> that effectively turn off whole inspection categories for every request.</li>
+        <li><strong>No diagnostic logs sent to Log Analytics</strong> — you cannot tune what you cannot see.</li>
+        <li><strong>WAF Policy attached at the gateway level only</strong>, with no per-listener or per-URI overrides, so tuning for one app weakens protection for all of them.</li>
+        <li><strong>SKU sprawl</strong> — using Standard_v2 (no WAF) in lower environments, WAF_v2 in production. The tuning never transfers.</li>
+        <li><strong>Backend HTTP and no end-to-end TLS</strong> — TLS terminates at the gateway and traffic flows unencrypted to the backend over the private subnet.</li>
+        <li><strong>Public IP with no NSG / no private endpoint backend</strong> — bypassing the gateway is one misconfigured DNS record away.</li>
+        <li><strong>No autoscaling, fixed two instances</strong> — first marketing campaign fills the gateway and customers see 502s.</li>
+      </ul>
+
+      <h2 id="reference">2. Reference Architecture — WAF in Front of SaaS</h2>
+
+      <p>The right architecture is single-ingress, private backends, end-to-end TLS, and one WAF Policy per application surface. Diagram first, then the playbook for getting there safely.</p>
+
+      <div class="arch-diagram">
+        <svg viewBox="0 0 720 290" role="img" aria-label="Application Gateway WAF reference architecture">
+          <rect x="10" y="20" width="700" height="250" rx="10" fill="#fff" stroke="#cbd5e1"/>
+          <text x="360" y="42" text-anchor="middle" font-size="12" font-weight="700" fill="#7b2f00">Single ingress · WAF v2 · private backends</text>
+
+          <rect x="30" y="115" width="110" height="55" rx="8" fill="#fff3e0" stroke="#b3541e"/><text x="85" y="140" text-anchor="middle" font-size="10" fill="#0d1b2a">User /</text><text x="85" y="155" text-anchor="middle" font-size="10" fill="#0d1b2a">SSO / API</text>
+
+          <rect x="170" y="80" width="180" height="125" rx="10" fill="#ffe0b2" stroke="#7b2f00"/>
+          <text x="260" y="103" text-anchor="middle" font-size="11" font-weight="700" fill="#7b2f00">App Gateway WAF v2</text>
+          <rect x="185" y="112" width="150" height="22" rx="4" fill="#fff" stroke="#b3541e"/><text x="260" y="127" text-anchor="middle" font-size="9" fill="#0d1b2a">TLS 1.2+ · cert from KV</text>
+          <rect x="185" y="138" width="150" height="22" rx="4" fill="#fff" stroke="#b3541e"/><text x="260" y="153" text-anchor="middle" font-size="9" fill="#0d1b2a">WAF Policy (CRS 3.2)</text>
+          <rect x="185" y="164" width="150" height="22" rx="4" fill="#fff" stroke="#b3541e"/><text x="260" y="179" text-anchor="middle" font-size="9" fill="#0d1b2a">Autoscale 2 → 10</text>
+
+          <rect x="390" y="55" width="135" height="55" rx="8" fill="#e8f5e9" stroke="#388e3c"/><text x="457" y="80" text-anchor="middle" font-size="10" fill="#0d1b2a">App Service /</text><text x="457" y="95" text-anchor="middle" font-size="10" fill="#0d1b2a">AKS (private)</text>
+          <rect x="390" y="125" width="135" height="55" rx="8" fill="#e8f5e9" stroke="#388e3c"/><text x="457" y="150" text-anchor="middle" font-size="10" fill="#0d1b2a">API Backend</text><text x="457" y="165" text-anchor="middle" font-size="10" fill="#0d1b2a">(Private EP)</text>
+          <rect x="390" y="195" width="135" height="55" rx="8" fill="#e8f5e9" stroke="#388e3c"/><text x="457" y="220" text-anchor="middle" font-size="10" fill="#0d1b2a">Static portal</text><text x="457" y="235" text-anchor="middle" font-size="10" fill="#0d1b2a">(Storage PE)</text>
+
+          <rect x="560" y="80" width="135" height="55" rx="8" fill="#e3f2fd" stroke="#1565c0"/><text x="627" y="105" text-anchor="middle" font-size="10" fill="#0d1b2a">Log Analytics +</text><text x="627" y="120" text-anchor="middle" font-size="10" fill="#0d1b2a">Sentinel</text>
+          <rect x="560" y="150" width="135" height="55" rx="8" fill="#fff" stroke="#475569"/><text x="627" y="175" text-anchor="middle" font-size="10" fill="#0d1b2a">Key Vault</text><text x="627" y="190" text-anchor="middle" font-size="10" fill="#0d1b2a">(TLS cert)</text>
+
+          <line x1="140" y1="142" x2="168" y2="142" stroke="#7b2f00" stroke-width="2" marker-end="url(#w)"/>
+          <line x1="350" y1="120" x2="388" y2="82" stroke="#7b2f00" stroke-width="2" marker-end="url(#w)"/>
+          <line x1="350" y1="152" x2="388" y2="152" stroke="#7b2f00" stroke-width="2" marker-end="url(#w)"/>
+          <line x1="350" y1="184" x2="388" y2="222" stroke="#7b2f00" stroke-width="2" marker-end="url(#w)"/>
+          <line x1="350" y1="105" x2="558" y2="105" stroke="#1565c0" stroke-width="1.5" stroke-dasharray="4 3" marker-end="url(#b)"/>
+          <line x1="350" y1="170" x2="558" y2="170" stroke="#475569" stroke-width="1.5" stroke-dasharray="4 3" marker-end="url(#k)"/>
+
+          <defs>
+            <marker id="w" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6" fill="#7b2f00"/></marker>
+            <marker id="b" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6" fill="#1565c0"/></marker>
+            <marker id="k" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6" fill="#475569"/></marker>
+          </defs>
+        </svg>
+        <div class="diagram-caption">One public IP, one WAF, multiple private backends. Diagnostics to Sentinel; certificates from Key Vault.</div>
+      </div>
+
+      <h2 id="playbook">3. The Rollout Playbook — Detection → Tune → Prevention</h2>
+
+      <p>This is the four-phase rollout I use every time. It is boring, it works, and it keeps both the security team and the application owners on side.</p>
+
+      <div class="phase-grid">
+        <div class="phase-card">
+          <div class="phase-num">Phase 1 · Week 0</div>
+          <div class="phase-title">Deploy in Detection</div>
+          <div class="phase-desc">WAF v2 enabled, OWASP CRS 3.2, mode = Detection. Diagnostic logs to Log Analytics from minute one.</div>
+        </div>
+        <div class="phase-card">
+          <div class="phase-num">Phase 2 · Weeks 1–3</div>
+          <div class="phase-title">Baseline the traffic</div>
+          <div class="phase-desc">Daily KQL review of <code>AzureDiagnostics</code>. Cluster matches by rule ID, host, URI. Catch every real-traffic anomaly.</div>
+        </div>
+        <div class="phase-card">
+          <div class="phase-num">Phase 3 · Weeks 3–4</div>
+          <div class="phase-title">Tune surgically</div>
+          <div class="phase-desc">Add scoped exclusions per rule ID + selector (never wildcard, never disable groups). Re-test in a staging gateway.</div>
+        </div>
+        <div class="phase-card">
+          <div class="phase-num">Phase 4 · Week 4+</div>
+          <div class="phase-title">Flip to Prevention</div>
+          <div class="phase-desc">Per-listener cutover, smallest blast radius first. Alert on every block for 7 days. Then steady-state.</div>
+        </div>
+      </div>
+
+      <div class="callout callout-tip">
+        <div class="callout-title">💡 Architect's Tip</div>
+        <p>"Whitelist" is the wrong mental model. You are <strong>excluding specific WAF rules for specific request attributes on specific URIs</strong> — never permitting traffic. Frame every exclusion request to the security team that way and the conversation gets a lot easier.</p>
+      </div>
+
+      <h2 id="tuning">4. Tuning Without Weakening the WAF</h2>
+
+      <p>Most WAF horror stories trace back to a single bad habit: when something gets blocked, the team disables the whole rule group. That converts a precision instrument into a placebo. The right pattern is targeted exclusions.</p>
+
+      <h3>KQL to baseline blocks before you tune</h3>
+      <pre class="code"><span class="c">// Top WAF rule IDs triggering, by host + URI</span>
+AzureDiagnostics
+| where ResourceType == "APPLICATIONGATEWAYS" and Category == "ApplicationGatewayFirewallLog"
+| where action_s in ("Matched","Blocked")
+| summarize hits = count() by ruleId_s, hostname_s, requestUri_s, action_s
+| order by hits desc
+| take 50</pre>
+
+      <h3>Scoped exclusion (right way)</h3>
+      <p>Exclude rule <code>942100</code> only for the JSON field <code>filter</code> on the search API — not everywhere:</p>
+      <pre class="code"><span class="c"># Terraform: per-rule, per-selector exclusion</span>
+managed_rules {
+  exclusion {
+    match_variable          = "RequestArgNames"
+    selector                = "filter"
+    selector_match_operator = "Equals"
+    excluded_rule_set {
+      type    = "OWASP"
+      version = "3.2"
+      rule_group {
+        rule_group_name = "REQUEST-942-APPLICATION-ATTACK-SQLI"
+        excluded_rules  = ["942100"]
+      }
+    }
+  }
+}</pre>
+
+      <h3>Anti-pattern (do not ship this)</h3>
+      <pre class="code"><span class="c"># Disables the entire SQLi rule group for every request - do NOT do this</span>
+disabled_rule_group {
+  rule_group_name = "REQUEST-942-APPLICATION-ATTACK-SQLI"
+}</pre>
+
+      <h2 id="risk">5. Risk Register — Threat, Blast Radius, Mitigation</h2>
+
+      <p>Every WAF mistake maps to a specific risk. This is the table I bring to architecture reviews:</p>
+
+      <table class="arch-table">
+        <thead><tr><th>Threat / mistake</th><th>Blast radius</th><th>Mitigation</th></tr></thead>
+        <tbody>
+          <tr><td>Detection left on indefinitely</td><td>WAF is a logger, not a control. SQLi, XSS, RFI reach the app.</td><td>Time-boxed rollout with a Prevention date in the change record</td></tr>
+          <tr><td>Whole rule group disabled</td><td>Entire OWASP category off — silent over-permission</td><td>Scoped exclusions per rule ID + selector; weekly review</td></tr>
+          <tr><td>Day-one Prevention, no baseline</td><td>Legitimate traffic blocked; emergency rollback erodes security mandate</td><td>Mandatory 2–4 week Detection baseline gate</td></tr>
+          <tr><td>Backend reachable directly</td><td>Attacker bypasses the WAF</td><td>Private Endpoint backends; NSG deny from internet; policy enforce</td></tr>
+          <tr><td>TLS terminates at gateway only</td><td>Plaintext between gateway and backend</td><td>End-to-end TLS, backend HTTPS settings with pinned root CA</td></tr>
+          <tr><td>No diagnostics</td><td>No tuning possible; incident forensics blind</td><td>Diagnostic setting to LA on day one; 90-day retention minimum</td></tr>
+          <tr><td>Fixed instance count</td><td>Capacity saturation under marketing spike; 502s to customers</td><td>Autoscale 2 → 10 minimum on WAF_v2</td></tr>
+        </tbody>
+      </table>
+
+      <h2 id="monitoring">6. Monitoring &amp; Alerting That Actually Works</h2>
+
+      <p>Detection mode is useless without someone watching. Set these alerts on day one — Detection or Prevention:</p>
+
+      <ul>
+        <li><strong>Spike in matched rules</strong> for any single rule ID (&gt;3x rolling 24h baseline) — early signal of a real attack or a deploy that introduced false positives.</li>
+        <li><strong>Blocked requests above threshold per backend</strong> — anything above ~0.1% of total traffic in steady state deserves investigation.</li>
+        <li><strong>Backend health probe failures</strong> — these are routinely mistaken for WAF blocks during incidents; correlate the two.</li>
+        <li><strong>Certificate expiry &lt; 30 days</strong> — alert from Key Vault, not from production failure.</li>
+        <li><strong>Gateway autoscale ceiling hit</strong> — your sizing assumption was wrong; investigate before the next traffic peak.</li>
+      </ul>
+
+      <p>Wire all of these into Microsoft Sentinel or your existing SIEM. WAF logs without correlation are noise; correlated with sign-in logs, NSG flow logs, and backend app logs, they are gold.</p>
+
+      <h2 id="iac">7. Terraform Baseline — App Gateway + WAF Policy</h2>
+
+      <p>Deploy the same baseline to every environment. Tuning that happens only in production never gets validated, and exclusions that live only in the portal disappear at the next redeploy.</p>
+
+      <pre class="code"><span class="c"># WAF Policy: start in Detection, flip to Prevention via variable</span>
+resource "azurerm_web_application_firewall_policy" "this" {
+  name                = "wafp-${var.app}"
+  resource_group_name = var.rg
+  location            = var.location
+
+  policy_settings {
+    enabled                     = true
+    mode                        = var.waf_mode    <span class="c"># "Detection" until baseline complete</span>
+    request_body_check          = true
+    file_upload_limit_in_mb     = 100
+    max_request_body_size_in_kb = 128
+  }
+
+  managed_rules {
+    managed_rule_set {
+      type    = "OWASP"
+      version = "3.2"
+    }
+  }
+}
+
+<span class="c"># Application Gateway WAF v2 with autoscale + Key Vault cert</span>
+resource "azurerm_application_gateway" "this" {
+  name                = "agw-${var.app}"
+  resource_group_name = var.rg
+  location            = var.location
+  firewall_policy_id  = azurerm_web_application_firewall_policy.this.id
+
+  sku {
+    name = "WAF_v2"
+    tier = "WAF_v2"
+  }
+  autoscale_configuration {
+    min_capacity = 2
+    max_capacity = 10
+  }
+
+  ssl_certificate {
+    name                = "tls-cert"
+    key_vault_secret_id = azurerm_key_vault_certificate.tls.secret_id
+  }
+  <span class="c"># ... listeners, backend pools, end-to-end TLS settings ...</span>
+}</pre>
+
+      <p>Pair this with an Azure Policy assignment at the management group that <em>denies</em> creation of Application Gateways without an attached WAF Policy. That single guardrail prevents 90% of the day-one mistakes from ever shipping.</p>
+
+      <h2 id="checklist">8. Architect's Checklist</h2>
+
+      <ul>
+        <li>WAF v2 (not Standard_v2). OWASP CRS 3.2 attached.</li>
+        <li>Mode = Detection at launch. Calendar entry for the Prevention cutover.</li>
+        <li>Diagnostic logs to Log Analytics — day one, every environment.</li>
+        <li>Per-rule, per-selector exclusions in IaC. No disabled rule groups.</li>
+        <li>Private Endpoint backends. Public access disabled by policy.</li>
+        <li>End-to-end TLS. Cert from Key Vault, auto-rotation enabled.</li>
+        <li>Autoscale 2 → 10 minimum. Alert on ceiling reached.</li>
+        <li>Sentinel rules for block-spike, rule-spike, backend health, cert expiry.</li>
+        <li>Azure Policy: deny App Gateway without WAF Policy attached.</li>
+        <li>Quarterly WAF tuning review. Exclusions expire if not re-validated.</li>
+      </ul>
+
+      <h2>Key Takeaway</h2>
+
+      <p>Application Gateway WAF is not a checkbox. It is an operational discipline. Stand it up in Detection, baseline real traffic for weeks, tune surgically, then flip to Prevention with a date you committed to in advance. Do that and you ship a WAF that actually protects the application — not one that protects the audit slide deck.</p>
+
+    </div>
+  </section>
+
+  <section style="padding:0 1.5rem 3.5rem;">
+    <div class="author-card">
+      <div class="author-avatar">SY</div>
+      <div>
+        <div class="author-name">Srinivas Yenuganti</div>
+        <div class="author-role">Cloud Engineer · IT Infrastructure &amp; Security Architect</div>
+        <div class="author-bio">20+ years building secure, compliant cloud environments across healthcare and global enterprise. Currently at iSpace Inc., Los Angeles, designing HIPAA/HITRUST-compliant Azure architectures for healthcare SaaS platforms.</div>
+        <a href="https://www.linkedin.com/in/syenuganti-bb767744/" target="_blank" style="color:#1e88e5;font-size:.85rem;text-decoration:none;font-weight:600;">Connect on LinkedIn →</a>
+      </div>
+    </div>
+  </section>
+
+  <div style="max-width:760px;margin:2.5rem auto;padding:1.25rem 1.5rem;background:#f8fafc;border:1px solid #e2e8f0;border-left:4px solid #94a3b8;border-radius:8px;">
+    <p style="margin:0;font-size:.82rem;color:#64748b;line-height:1.75;"><strong style="color:#475569;">Disclaimer:</strong> The views and opinions expressed in this article are solely those of the author (Srinivas Yenuganti) and do not represent the views of any employer, client, or affiliated organisation. All information is based on publicly available sources and personal practitioner experience as of the date of publication. Content is for educational purposes only and is not a substitute for professional advice. Validate all configurations in a non-production environment before applying to production. Product names and trademarks referenced herein are the property of their respective owners.</p>
+  </div>
+
+  <footer class="main-footer">
+    <p>&copy; 2026 Srinivas Yenuganti &nbsp;&middot;&nbsp;
+      <a href="https://www.linkedin.com/in/syenuganti-bb767744/" target="_blank">LinkedIn</a> &nbsp;&middot;&nbsp;
+      <a href="blog.html">Blog</a> &nbsp;&middot;&nbsp;
+      <a href="contact.html">Contact</a>
+    </p>
+  </footer>
+
+</body>
+</html>
