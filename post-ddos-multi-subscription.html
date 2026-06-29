@@ -1,0 +1,493 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="One Azure DDoS Protection Plan can protect VNets across every subscription in the tenant — most teams still create one plan per subscription and pay for it. Cost math, reference architecture, RBAC, Terraform, healthcare addendum, and verified Microsoft Learn links." />
+  <title>Azure DDoS Protection: One Plan, Many Subscriptions — The Multi-Subscription Cost Mistake | Srinivas Yenuganti</title>
+  <meta property="og:type" content="article" />
+  <meta property="og:title" content="Azure DDoS Protection: One Plan, Many Subscriptions — The Multi-Subscription Cost Mistake" />
+  <meta property="og:description" content="A single Azure DDoS Protection Plan covers VNets across every subscription in the same tenant. Teams that create one plan per subscription burn ~US$35K/year per extra plan. Architecture, RBAC, Terraform, and healthcare guidance." />
+  <meta property="og:url" content="https://yenuganti.in/post-ddos-multi-subscription.html" />
+  <meta property="article:published_time" content="2026-06-28" />
+  <meta name="twitter:card" content="summary" />
+  <link rel="canonical" href="https://yenuganti.in/post-ddos-multi-subscription.html" />
+  <link rel="stylesheet" href="style.css" />
+  <style>
+    .post-header{background:linear-gradient(135deg,#0f172a 0%,#0d9488 55%,#5eead4 100%);padding:3.5rem 1.5rem 3rem}
+    .post-breadcrumb{font-size:.78rem;color:rgba(255,255,255,.55);margin-bottom:1rem}
+    .post-breadcrumb a{color:rgba(255,255,255,.7);text-decoration:none}
+    .post-breadcrumb a:hover{color:#fff}
+    .post-title{font-size:clamp(1.7rem,4vw,2.5rem);font-weight:800;color:#fff;letter-spacing:-.75px;line-height:1.2;margin-bottom:1.25rem;max-width:820px}
+    .post-meta{display:flex;flex-wrap:wrap;gap:1rem;font-size:.78rem;color:rgba(255,255,255,.6);margin-bottom:1rem}
+    .post-tags{display:flex;flex-wrap:wrap;gap:.5rem}
+    .post-tag{background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.25);color:rgba(255,255,255,.9);padding:.22rem .7rem;border-radius:50px;font-size:.7rem;font-weight:600}
+    .article-section{padding:3.5rem 1.5rem 4rem}
+    .article-body{max-width:760px;margin:0 auto;line-height:1.8}
+    .article-body p{color:#374151;font-size:.97rem;margin-bottom:1.2rem}
+    .article-body h2{font-size:1.4rem;font-weight:700;color:#0d1b2a;letter-spacing:-.3px;margin:2.5rem 0 .9rem;padding-top:2rem;border-top:1px solid #e2e8f0}
+    .article-body h2:first-of-type{border-top:none;padding-top:0;margin-top:0}
+    .article-body h3{font-size:1.05rem;font-weight:700;color:#0d9488;margin:1.75rem 0 .5rem}
+    .article-body ul,.article-body ol{margin-left:1.4rem;margin-bottom:1.2rem;color:#374151;font-size:.95rem}
+    .article-body li{margin-bottom:.4rem;line-height:1.75}
+    .article-body strong{color:#0d1b2a}
+    .article-body code{background:#ecfdf5;padding:.1rem .35rem;border-radius:4px;font-size:.85em;color:#0f766e}
+    .article-body a{color:#0d9488}
+    .callout{border-radius:8px;padding:1rem 1.25rem;margin:1.5rem 0;border-left:3px solid}
+    .callout-tip{background:rgba(13,148,136,.06);border-color:#0d9488}
+    .callout-arch{background:rgba(46,125,50,.06);border-color:#388e3c}
+    .callout-warn{background:rgba(245,124,0,.07);border-color:#ef6c00}
+    .callout-title{font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:1px;margin-bottom:.35rem}
+    .callout-tip .callout-title{color:#0d9488}
+    .callout-arch .callout-title{color:#388e3c}
+    .callout-warn .callout-title{color:#ef6c00}
+    .callout p{margin:0;font-size:.88rem;color:#374151;line-height:1.7}
+    .arch-table{width:100%;border-collapse:collapse;font-size:.85rem;margin:1.5rem 0;overflow:hidden;box-shadow:0 1px 6px rgba(0,0,0,.07)}
+    .arch-table th{background:#0f172a;color:#fff;padding:.7rem 1rem;text-align:left;font-size:.78rem;font-weight:600}
+    .arch-table td{padding:.6rem 1rem;border-bottom:1px solid #e2e8f0;color:#374151;vertical-align:top;line-height:1.6}
+    .arch-table tr:last-child td{border-bottom:none}
+    .arch-table tr:nth-child(even) td{background:#f0fdfa}
+    .mistakes-list{list-style:none!important;margin-left:0!important}
+    .mistakes-list li{padding:.6rem 0 .6rem 2rem;position:relative;border-bottom:1px solid #e2e8f0;font-size:.9rem;margin:0;color:#374151}
+    .mistakes-list li:last-child{border-bottom:none}
+    .mistakes-list li::before{content:'⚠️';position:absolute;left:0;font-size:.85rem}
+    .kpi-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:.85rem;margin:1.5rem 0}
+    .kpi-card{background:linear-gradient(135deg,#0f766e,#14b8a6);color:#fff;border-radius:10px;padding:1.1rem 1.15rem;box-shadow:0 2px 8px rgba(15,118,110,.18)}
+    .kpi-value{font-size:1.55rem;font-weight:800;letter-spacing:-.5px;line-height:1.1}
+    .kpi-label{font-size:.7rem;opacity:.88;text-transform:uppercase;letter-spacing:1px;margin-top:.25rem}
+    .toc{background:#f0fdfa;border:1px solid #99f6e4;border-radius:8px;padding:1.25rem 1.5rem;margin:1.75rem 0}
+    .toc-title{font-size:.72rem;font-weight:700;color:#0d9488;text-transform:uppercase;letter-spacing:1.2px;margin-bottom:.6rem}
+    .toc ol{margin:0;padding-left:1.25rem;font-size:.85rem;color:#374151}
+    .toc li{margin-bottom:.25rem}
+    .toc a{color:#0d9488;text-decoration:none}
+    .toc a:hover{text-decoration:underline}
+    .arch-diagram{background:#f0fdfa;border:1px solid #99f6e4;border-radius:10px;padding:1.5rem;margin:1.75rem 0;overflow-x:auto}
+    .arch-diagram svg{display:block;margin:0 auto;max-width:100%;height:auto}
+    .diagram-caption{font-size:.78rem;color:#64748b;text-align:center;margin-top:.6rem;font-style:italic}
+    pre.code{background:#0d1b2a;color:#e2e8f0;border-radius:8px;padding:1.1rem 1.25rem;overflow-x:auto;font-size:.78rem;line-height:1.6;margin:1.25rem 0;font-family:ui-monospace,SFMono-Regular,Menlo,monospace}
+    pre.code .c{color:#94a3b8}
+    .phase-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:1rem;margin:1.5rem 0}
+    .phase-card{background:#fff;border:1px solid #99f6e4;border-left:4px solid #0d9488;border-radius:8px;padding:1rem 1.1rem;box-shadow:0 1px 4px rgba(0,0,0,.04)}
+    .phase-num{font-size:.65rem;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:#0d9488;margin-bottom:.3rem}
+    .phase-title{font-size:.92rem;font-weight:700;color:#0d1b2a;margin-bottom:.35rem}
+    .phase-desc{font-size:.8rem;color:#64748b;line-height:1.55}
+    .author-card{background:#fff;border:1px solid #e2e8f0;border-radius:12px;padding:1.75rem;display:flex;gap:1.25rem;align-items:flex-start;box-shadow:0 2px 8px rgba(0,0,0,.06);margin:3rem auto 0;max-width:760px}
+    .author-avatar{width:52px;height:52px;border-radius:50%;background:linear-gradient(135deg,#0f766e,#14b8a6);display:flex;align-items:center;justify-content:center;color:#fff;font-size:1.1rem;font-weight:700;flex-shrink:0}
+    .author-name{font-size:.97rem;font-weight:700;color:#0d1b2a;margin-bottom:.15rem}
+    .author-role{font-size:.78rem;color:#64748b;margin-bottom:.5rem}
+    .author-bio{font-size:.85rem;color:#64748b;line-height:1.6;margin-bottom:.5rem}
+  </style>
+</head>
+<body>
+
+  <nav class="main-nav">
+    <a href="index.html" class="nav-logo">Srinivas <span>Y.</span></a>
+    <button class="hamburger" onclick="document.getElementById('navlinks').classList.toggle('open')" aria-label="Toggle menu">
+      <span></span><span></span><span></span>
+    </button>
+    <ul class="nav-links" id="navlinks">
+      <li><a href="index.html">Home</a></li>
+      <li><a href="about.html">About</a></li>
+      <li><a href="blog.html" class="active">Blog</a></li>
+      <li><a href="contact.html" class="nav-cta">Contact</a></li>
+    </ul>
+  </nav>
+
+  <header class="post-header">
+    <div class="post-breadcrumb">
+      <a href="blog.html">← Blog</a> &nbsp;·&nbsp; Cloud Cost &amp; Security Architecture
+    </div>
+    <h1 class="post-title">Azure DDoS Protection: One Plan, Many Subscriptions — The Multi-Subscription Cost Mistake</h1>
+    <div class="post-meta">
+      <span>⏱ 12 min read</span>
+      <span>📅 June 28, 2026</span>
+      <span>✍️ Srinivas Yenuganti</span>
+    </div>
+    <div class="post-tags">
+      <span class="post-tag">DDoS Protection</span>
+      <span class="post-tag">Hub-Spoke</span>
+      <span class="post-tag">Cost Optimization</span>
+      <span class="post-tag">Landing Zone</span>
+      <span class="post-tag">Healthcare</span>
+      <span class="post-tag">HIPAA</span>
+      <span class="post-tag">Terraform</span>
+    </div>
+  </header>
+
+  <section class="article-section">
+    <div class="article-body">
+
+      <p>The pattern shows up in almost every multi-subscription Azure tenant I review:</p>
+
+      <ol>
+        <li>The platform team enables <strong>Azure DDoS Protection (Network Protection tier)</strong> in the connectivity subscription. Good.</li>
+        <li>A workload team in a different subscription spins up an internet-facing app, follows their security checklist, and creates <strong>their own DDoS Protection Plan</strong> in their subscription.</li>
+        <li>Another workload team does the same in a third subscription.</li>
+        <li>Twelve months later the tenant is paying for three, four, sometimes a dozen DDoS plans. At roughly <strong>US$2,944 per plan per month</strong> the bill compounds quickly.</li>
+      </ol>
+
+      <p>Almost none of that spend is necessary. Microsoft is explicit on this point: <em>a single DDoS Protection Plan can be shared across multiple subscriptions in the same Azure AD tenant.</em> One plan, one bill, every spoke VNet protected. This article is the architect's case for that pattern — the cost math, the reference architecture (modelled on Microsoft's own hub-and-spoke guidance), the RBAC required, a Terraform baseline, and the healthcare addendum that makes it auditable.</p>
+
+      <div class="kpi-row">
+        <div class="kpi-card"><div class="kpi-value">1</div><div class="kpi-label">DDoS plan per tenant</div></div>
+        <div class="kpi-card"><div class="kpi-value">~$35K</div><div class="kpi-label">Saved per extra plan / yr</div></div>
+        <div class="kpi-card"><div class="kpi-value">100</div><div class="kpi-label">Public IPs included</div></div>
+        <div class="kpi-card"><div class="kpi-value">Multi-sub</div><div class="kpi-label">Single tenant scope</div></div>
+      </div>
+
+      <div class="toc">
+        <div class="toc-title">What's inside</div>
+        <ol>
+          <li><a href="#mistake">The multi-subscription mistake</a></li>
+          <li><a href="#what-microsoft-says">What Microsoft actually says</a></li>
+          <li><a href="#reference">Reference architecture — one plan, many spokes</a></li>
+          <li><a href="#cost">The cost math — why this matters</a></li>
+          <li><a href="#sku">SKU choice — IP Protection vs Network Protection</a></li>
+          <li><a href="#rbac">RBAC for cross-subscription association</a></li>
+          <li><a href="#iac">Terraform baseline</a></li>
+          <li><a href="#monitoring">Monitoring, simulation &amp; rapid response</a></li>
+          <li><a href="#healthcare"><strong>Healthcare addendum (HIPAA · HITRUST)</strong></a></li>
+          <li><a href="#checklist">Architect's checklist</a></li>
+          <li><a href="#docs">Further reading — official documentation</a></li>
+        </ol>
+      </div>
+
+      <h2 id="mistake">1. The Multi-Subscription Mistake</h2>
+
+      <p>These are the anti-patterns I find on every cost review of a mid-to-large Azure estate:</p>
+
+      <ul class="mistakes-list">
+        <li><strong>One DDoS Protection Plan per subscription</strong> — each workload team creates their own, treating it like a per-subscription resource.</li>
+        <li><strong>Plan created in the workload subscription</strong>, owned by the app team, with no tenant-level governance.</li>
+        <li><strong>Network Protection tier used for a single public IP</strong> when IP Protection (per-IP pricing) would be 1/10th the cost.</li>
+        <li><strong>No Azure Policy</strong> to prevent or detect duplicate plans being created elsewhere in the tenant.</li>
+        <li><strong>Plan enabled, VNets never associated</strong> — paying the flat fee for protection that is not applied to any public IP.</li>
+        <li><strong>No DDoS simulation</strong> in the lifecycle — the plan is bought as compliance signage, never validated.</li>
+        <li><strong>No telemetry / no alerts</strong> — an actual attack arrives and nobody notices the mitigation log entries.</li>
+      </ul>
+
+      <h2 id="what-microsoft-says">2. What Microsoft Actually Says</h2>
+
+      <p>From the official Microsoft Learn documentation on <a href="https://learn.microsoft.com/azure/ddos-protection/manage-ddos-protection" target="_blank" rel="noopener">managing DDoS Protection</a>:</p>
+
+      <div class="callout callout-tip">
+        <div class="callout-title">💡 Microsoft's stated guidance</div>
+        <p>A <strong>DDoS Protection Plan defines a set of virtual networks that have DDoS Network Protection enabled, across subscriptions</strong>. You can configure one DDoS Protection Plan for your organization and link virtual networks from multiple subscriptions to the same plan. The plan and the virtual networks <strong>can be in different subscriptions</strong>, but they must be associated with the <strong>same Azure Active Directory tenant</strong>.</p>
+      </div>
+
+      <p>That single statement collapses the multi-plan pattern. The architectural rule becomes: <strong>one DDoS Protection Plan per tenant, deployed in the connectivity / hub subscription, referenced by every spoke VNet that needs Network Protection.</strong></p>
+
+      <h2 id="reference">3. Reference Architecture — One Plan, Many Spokes</h2>
+
+      <p>This is the hub-and-spoke pattern Microsoft recommends in the <a href="https://learn.microsoft.com/azure/architecture/networking/architecture/dmz-ddos" target="_blank" rel="noopener">DDoS reference architectures</a> and in the <a href="https://learn.microsoft.com/azure/cloud-adoption-framework/ready/landing-zone/" target="_blank" rel="noopener">Cloud Adoption Framework landing zone</a>. One plan in the connectivity subscription; every workload VNet across every other subscription associates with it.</p>
+
+      <div class="arch-diagram">
+        <svg viewBox="0 0 760 360" role="img" aria-label="Single DDoS Protection Plan shared across multiple subscriptions">
+          <rect x="10" y="10" width="740" height="340" rx="10" fill="#fff" stroke="#cbd5e1"/>
+          <text x="380" y="32" text-anchor="middle" font-size="12" font-weight="700" fill="#0d9488">Single Azure AD tenant · One DDoS Protection Plan · Multi-subscription spokes</text>
+
+          <!-- Hub / Connectivity subscription -->
+          <rect x="30" y="55" width="220" height="270" rx="10" fill="#f0fdfa" stroke="#0d9488" stroke-dasharray="5 3"/>
+          <text x="140" y="75" text-anchor="middle" font-size="10" font-weight="700" fill="#0d9488">Connectivity Subscription (Hub)</text>
+
+          <rect x="55" y="95" width="170" height="60" rx="8" fill="#ccfbf1" stroke="#0f766e"/>
+          <text x="140" y="118" text-anchor="middle" font-size="11" font-weight="700" fill="#0f172a">DDoS Protection Plan</text>
+          <text x="140" y="135" text-anchor="middle" font-size="9" fill="#0f172a">Network Protection tier</text>
+          <text x="140" y="148" text-anchor="middle" font-size="9" fill="#0f172a">(one per tenant)</text>
+
+          <rect x="55" y="175" width="170" height="50" rx="8" fill="#fff" stroke="#0f766e"/>
+          <text x="140" y="198" text-anchor="middle" font-size="10" fill="#0f172a">Hub VNet</text>
+          <text x="140" y="213" text-anchor="middle" font-size="9" fill="#64748b">Azure Firewall · ExpressRoute</text>
+
+          <rect x="55" y="245" width="170" height="50" rx="8" fill="#fff" stroke="#475569"/>
+          <text x="140" y="268" text-anchor="middle" font-size="10" fill="#0f172a">Azure Monitor · Sentinel</text>
+          <text x="140" y="283" text-anchor="middle" font-size="9" fill="#64748b">DDoS telemetry &amp; alerts</text>
+
+          <!-- Spoke subscriptions -->
+          <rect x="290" y="55" width="200" height="85" rx="10" fill="#fffbeb" stroke="#d97706" stroke-dasharray="5 3"/>
+          <text x="390" y="75" text-anchor="middle" font-size="10" font-weight="700" fill="#b45309">Subscription A — Workload 1</text>
+          <rect x="310" y="88" width="160" height="40" rx="6" fill="#fff" stroke="#d97706"/>
+          <text x="390" y="105" text-anchor="middle" font-size="9" fill="#0f172a">Spoke VNet · Public IP</text>
+          <text x="390" y="119" text-anchor="middle" font-size="9" fill="#64748b">associated to shared plan</text>
+
+          <rect x="290" y="155" width="200" height="85" rx="10" fill="#eff6ff" stroke="#2563eb" stroke-dasharray="5 3"/>
+          <text x="390" y="175" text-anchor="middle" font-size="10" font-weight="700" fill="#1d4ed8">Subscription B — Workload 2</text>
+          <rect x="310" y="188" width="160" height="40" rx="6" fill="#fff" stroke="#2563eb"/>
+          <text x="390" y="205" text-anchor="middle" font-size="9" fill="#0f172a">Spoke VNet · App Gateway</text>
+          <text x="390" y="219" text-anchor="middle" font-size="9" fill="#64748b">associated to shared plan</text>
+
+          <rect x="290" y="255" width="200" height="85" rx="10" fill="#fdf2f8" stroke="#be185d" stroke-dasharray="5 3"/>
+          <text x="390" y="275" text-anchor="middle" font-size="10" font-weight="700" fill="#9f1239">Subscription C — Workload 3</text>
+          <rect x="310" y="288" width="160" height="40" rx="6" fill="#fff" stroke="#be185d"/>
+          <text x="390" y="305" text-anchor="middle" font-size="9" fill="#0f172a">Spoke VNet · Front Door origin</text>
+          <text x="390" y="319" text-anchor="middle" font-size="9" fill="#64748b">associated to shared plan</text>
+
+          <!-- Right side: governance + telemetry -->
+          <rect x="530" y="55" width="200" height="135" rx="10" fill="#f1f5f9" stroke="#475569" stroke-dasharray="5 3"/>
+          <text x="630" y="75" text-anchor="middle" font-size="10" font-weight="700" fill="#0f172a">Management Group (Tenant)</text>
+          <rect x="550" y="90" width="160" height="40" rx="6" fill="#fff" stroke="#475569"/>
+          <text x="630" y="107" text-anchor="middle" font-size="9" fill="#0f172a">Azure Policy: deny duplicate</text>
+          <text x="630" y="121" text-anchor="middle" font-size="9" fill="#64748b">DDoS plans in any sub</text>
+          <rect x="550" y="140" width="160" height="40" rx="6" fill="#fff" stroke="#475569"/>
+          <text x="630" y="157" text-anchor="middle" font-size="9" fill="#0f172a">RBAC: Network Contributor</text>
+          <text x="630" y="171" text-anchor="middle" font-size="9" fill="#64748b">on plan for spoke owners</text>
+
+          <rect x="530" y="205" width="200" height="80" rx="10" fill="#ecfeff" stroke="#0891b2" stroke-dasharray="5 3"/>
+          <text x="630" y="225" text-anchor="middle" font-size="10" font-weight="700" fill="#0e7490">Microsoft DDoS Response Team</text>
+          <text x="630" y="243" text-anchor="middle" font-size="9" fill="#0f172a">Rapid Response (DRR)</text>
+          <text x="630" y="257" text-anchor="middle" font-size="9" fill="#0f172a">active-attack engagement</text>
+          <text x="630" y="271" text-anchor="middle" font-size="9" fill="#64748b">(included with Network tier)</text>
+
+          <!-- Arrows from plan to spokes -->
+          <line x1="225" y1="125" x2="308" y2="108" stroke="#0d9488" stroke-width="2" marker-end="url(#a)"/>
+          <line x1="225" y1="125" x2="308" y2="208" stroke="#0d9488" stroke-width="2" marker-end="url(#a)"/>
+          <line x1="225" y1="125" x2="308" y2="308" stroke="#0d9488" stroke-width="2" marker-end="url(#a)"/>
+          <line x1="225" y1="270" x2="528" y2="245" stroke="#0891b2" stroke-width="1.5" stroke-dasharray="4 3" marker-end="url(#b)"/>
+          <line x1="250" y1="100" x2="528" y2="110" stroke="#475569" stroke-width="1.5" stroke-dasharray="4 3" marker-end="url(#k)"/>
+
+          <defs>
+            <marker id="a" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6" fill="#0d9488"/></marker>
+            <marker id="b" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6" fill="#0891b2"/></marker>
+            <marker id="k" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6" fill="#475569"/></marker>
+          </defs>
+        </svg>
+        <div class="diagram-caption">Microsoft-aligned pattern: one DDoS Protection Plan in the connectivity subscription, every spoke VNet across subscriptions associated to it, governed by Azure Policy at the tenant management group. Adapted from the official <em>DDoS reference architectures</em> and <em>landing zone</em> guidance.</div>
+      </div>
+
+      <h2 id="cost">4. The Cost Math — Why This Matters</h2>
+
+      <p>Public list pricing for Azure DDoS Protection (Network Protection tier) is approximately <strong>US$2,944 per month, per plan, flat</strong>, covering up to 100 protected public IP resources, with a small per-resource overage above that. The flat fee is the cost trap — it does not scale down with use.</p>
+
+      <table class="arch-table">
+        <thead><tr><th>Pattern</th><th>Plans</th><th>Approx. annual cost</th><th>Outcome</th></tr></thead>
+        <tbody>
+          <tr><td>One plan per subscription (5 subs)</td><td>5</td><td>≈ US$176,640 / yr</td><td>4 plans are redundant; protection identical</td></tr>
+          <tr><td>One plan per workload (12 apps)</td><td>12</td><td>≈ US$423,936 / yr</td><td>11 plans redundant; same protection</td></tr>
+          <tr><td><strong>Shared plan, multi-subscription (recommended)</strong></td><td><strong>1</strong></td><td><strong>≈ US$35,328 / yr</strong></td><td>Same protection, one bill, central governance</td></tr>
+        </tbody>
+      </table>
+
+      <p class="diagram-caption" style="text-align:left;font-style:normal;">List prices for illustration only; check the <a href="https://azure.microsoft.com/pricing/details/ddos-protection/" target="_blank" rel="noopener">Azure DDoS Protection pricing page</a> for current per-region figures and EA/CSP discounts.</p>
+
+      <div class="callout callout-warn">
+        <div class="callout-title">⚠️ The hidden cost trap</div>
+        <p>The flat fee charges from the moment the plan is created, even if <strong>zero</strong> VNets are associated. I have seen tenants paying for plans that were stood up by a workload team for a POC, never associated to a VNet, and never deleted. Azure Policy + a monthly FinOps review catches these — a quarterly review does not.</p>
+      </div>
+
+      <h2 id="sku">5. SKU Choice — IP Protection vs Network Protection</h2>
+
+      <p>Since 2023 Microsoft has offered two SKUs. Choose deliberately, per the <a href="https://learn.microsoft.com/azure/ddos-protection/ddos-protection-sku-comparison" target="_blank" rel="noopener">official SKU comparison</a>:</p>
+
+      <table class="arch-table">
+        <thead><tr><th>Aspect</th><th>IP Protection</th><th>Network Protection</th></tr></thead>
+        <tbody>
+          <tr><td>Scope</td><td>Per public IP</td><td>Per VNet (plan-scoped)</td></tr>
+          <tr><td>Pricing model</td><td>Per protected IP / month</td><td>Flat plan fee + included IPs</td></tr>
+          <tr><td>Rapid Response (DRR)</td><td>Not included</td><td>Included</td></tr>
+          <tr><td>WAF cost protection</td><td>No</td><td>Yes (cost reimbursement on attack)</td></tr>
+          <tr><td>Multi-subscription sharing</td><td>N/A (per IP)</td><td><strong>Yes — single plan across tenant</strong></td></tr>
+          <tr><td>Best for</td><td>Small estate, &lt; ~15 public IPs</td><td>Enterprise / regulated / multi-sub</td></tr>
+        </tbody>
+      </table>
+
+      <p>For a multi-subscription enterprise tenant — and <strong>always for healthcare or any regulated workload</strong> — Network Protection is the right choice because DRR and WAF cost protection materially change incident economics. The architectural mistake is not <em>which</em> SKU to pick; it is buying Network Protection <em>more than once</em>.</p>
+
+      <h2 id="rbac">6. RBAC for Cross-Subscription Association</h2>
+
+      <p>Sharing a plan across subscriptions is a permissions exercise, not a connectivity one. The user or service principal that creates / updates a spoke VNet must hold a role that includes the <code>Microsoft.Network/ddosProtectionPlans/join/action</code> on the plan in the hub subscription. Per Microsoft's <a href="https://learn.microsoft.com/azure/ddos-protection/manage-permissions" target="_blank" rel="noopener">permissions documentation</a>:</p>
+
+      <ul>
+        <li><strong>Network Contributor</strong> built-in role on the DDoS Protection Plan resource — typically granted to the spoke landing-zone managed identity.</li>
+        <li><strong>Or</strong> a custom role containing only <code>Microsoft.Network/ddosProtectionPlans/join/action</code> if you want least-privilege.</li>
+        <li>Grant at the <strong>DDoS plan scope</strong> (not the hub subscription) to minimise blast radius.</li>
+      </ul>
+
+      <p>Operate this through the same group-based RBAC model your landing zone already uses — do not hand-grant per spoke.</p>
+
+      <h2 id="iac">7. Terraform Baseline</h2>
+
+      <p>This is the minimum viable pattern: the plan in the hub subscription, the spoke VNet in any other subscription referencing it by full resource ID across an aliased provider.</p>
+
+      <pre class="code"><span class="c"># providers.tf — one provider per subscription</span>
+provider "azurerm" {
+  alias           = "hub"
+  subscription_id = var.hub_subscription_id
+  features {}
+}
+provider "azurerm" {
+  alias           = "spoke"
+  subscription_id = var.spoke_subscription_id
+  features {}
+}
+
+<span class="c"># hub.tf — one DDoS Protection Plan for the whole tenant</span>
+resource "azurerm_network_ddos_protection_plan" "tenant" {
+  provider            = azurerm.hub
+  name                = "ddos-plan-tenant"
+  resource_group_name = var.hub_rg
+  location            = var.location
+  tags = {
+    owner       = "platform-network"
+    cost-center = "shared-services"
+    purpose     = "tenant-wide-ddos-network-protection"
+  }
+}
+
+<span class="c"># spoke.tf — spoke VNet in a different subscription, same tenant</span>
+resource "azurerm_virtual_network" "spoke" {
+  provider            = azurerm.spoke
+  name                = "vnet-spoke-app1"
+  resource_group_name = var.spoke_rg
+  location            = var.location
+  address_space       = ["10.20.0.0/16"]
+
+  ddos_protection_plan {
+    id     = azurerm_network_ddos_protection_plan.tenant.id   <span class="c"># cross-sub reference</span>
+    enable = true
+  }
+}</pre>
+
+      <p>Pair this with an Azure Policy at the <strong>tenant root management group</strong>:</p>
+      <ul>
+        <li><strong>Deny</strong> creation of any new <code>Microsoft.Network/ddosProtectionPlans</code> outside the connectivity subscription.</li>
+        <li><strong>Audit</strong> VNets in spoke subscriptions whose <code>ddos_protection_plan.id</code> is null and that have one or more public IPs attached — flag for the FinOps / security review.</li>
+      </ul>
+
+      <h2 id="monitoring">8. Monitoring, Simulation &amp; Rapid Response</h2>
+
+      <p>A DDoS plan you have never tested is the same as one you never bought. Build the lifecycle into the platform:</p>
+
+      <div class="phase-grid">
+        <div class="phase-card">
+          <div class="phase-num">Always-on</div>
+          <div class="phase-title">Diagnostic logs</div>
+          <div class="phase-desc">Send <code>DDoSProtectionNotifications</code>, <code>DDoSMitigationFlowLogs</code>, <code>DDoSMitigationReports</code> to Log Analytics &amp; Sentinel from day one.</div>
+        </div>
+        <div class="phase-card">
+          <div class="phase-num">Quarterly</div>
+          <div class="phase-title">Attack simulations</div>
+          <div class="phase-desc">Run authorised simulations via Microsoft's partner programme to validate detection and the response runbook.</div>
+        </div>
+        <div class="phase-card">
+          <div class="phase-num">On-attack</div>
+          <div class="phase-title">DDoS Rapid Response</div>
+          <div class="phase-desc">During an active attack engage the Microsoft DRR team — included with Network Protection. Document the contact path in the runbook now, not during the incident.</div>
+        </div>
+        <div class="phase-card">
+          <div class="phase-num">Quarterly</div>
+          <div class="phase-title">FinOps review</div>
+          <div class="phase-desc">Run a tenant-wide query for orphan DDoS plans and unassociated VNets. Delete anything not justified.</div>
+        </div>
+      </div>
+
+      <p>Microsoft documents the full simulation programme and the rapid-response process — these are not bolt-ons, they are <a href="https://learn.microsoft.com/azure/ddos-protection/test-through-simulations" target="_blank" rel="noopener">part of the product</a>.</p>
+
+      <h2 id="healthcare">9. Healthcare Addendum — HIPAA &amp; HITRUST</h2>
+
+      <p>For healthcare SaaS the DDoS conversation is not a cost conversation, it is an <strong>availability and integrity</strong> conversation. HIPAA's Security Rule does not name DDoS, but it does require both. Volumetric attacks that knock a payer portal or a FHIR API offline are a §164.308(a)(7) contingency-plan event the moment they happen, and a HITRUST audit finding the moment they recur.</p>
+
+      <table class="arch-table">
+        <thead><tr><th>Control</th><th>How a shared DDoS plan satisfies it</th></tr></thead>
+        <tbody>
+          <tr><td>HIPAA §164.308(a)(7) Contingency Plan</td><td>Always-on mitigation + DRR engagement is part of the documented response runbook; tested via simulation.</td></tr>
+          <tr><td>HIPAA §164.312(b) Audit Controls</td><td>DDoS notification &amp; mitigation logs streamed to Log Analytics with 6-year retention.</td></tr>
+          <tr><td>HIPAA §164.312(e)(1) Transmission Security</td><td>Mitigation preserves availability of the encrypted transport — paired with the WAF in front of the same public IPs.</td></tr>
+          <tr><td>HITRUST 09.m Network Controls</td><td>Network-layer DDoS protection enabled on all internet-facing VNets carrying ePHI; evidence is the VNet → plan association.</td></tr>
+          <tr><td>HITRUST 12.c Information System Continuity</td><td>Continuity plan references DDoS mitigation + DRR contact path; tested via simulation cadence.</td></tr>
+        </tbody>
+      </table>
+
+      <div class="callout callout-arch">
+        <div class="callout-title">🏥 Healthcare design rule</div>
+        <p>For any tenant carrying ePHI on internet-facing endpoints: <strong>every public-IP-bearing VNet must be associated to the shared DDoS Protection Plan</strong>, the association must be enforced by Azure Policy (not goodwill), DDoS logs land in the same regulated workspace as the WAF logs, and at least one DDoS simulation per year is part of the HIPAA contingency-plan testing evidence.</p>
+      </div>
+
+      <h2 id="checklist">10. Architect's Checklist</h2>
+
+      <ul>
+        <li>Exactly <strong>one</strong> DDoS Protection Plan per Azure AD tenant (Network Protection tier).</li>
+        <li>Plan deployed in the connectivity / hub subscription owned by the platform team.</li>
+        <li>Azure Policy at tenant root: deny new plans outside the connectivity subscription.</li>
+        <li>Spoke VNets reference the shared plan by full resource ID (Terraform / Bicep, not portal).</li>
+        <li>RBAC: spoke landing-zone identities have <code>Microsoft.Network/ddosProtectionPlans/join/action</code> on the plan only.</li>
+        <li>Diagnostic logs to Log Analytics + Sentinel; 6-year retention for healthcare.</li>
+        <li>Alerts on <code>IfUnderDDoSAttack</code> metric per protected public IP.</li>
+        <li>Quarterly DDoS attack simulation; results filed against the contingency-plan evidence.</li>
+        <li>Microsoft DRR contact path documented in the SOC runbook.</li>
+        <li>Quarterly FinOps query for orphan plans + public-IP VNets with no plan association.</li>
+        <li><strong>Healthcare:</strong> HIPAA §164.308(a)(7) and HITRUST 09.m / 12.c evidence owner named.</li>
+      </ul>
+
+      <h2 id="docs">11. Further Reading — Official Documentation</h2>
+
+      <p>Every claim in this article maps to current Microsoft Learn guidance. These are the authoritative references:</p>
+
+      <h3>Azure DDoS Protection — core</h3>
+      <ul>
+        <li><a href="https://learn.microsoft.com/azure/ddos-protection/ddos-protection-overview" target="_blank" rel="noopener">Azure DDoS Protection overview</a></li>
+        <li><a href="https://learn.microsoft.com/azure/ddos-protection/ddos-protection-sku-comparison" target="_blank" rel="noopener">DDoS Protection SKU comparison — IP Protection vs Network Protection</a></li>
+        <li><a href="https://learn.microsoft.com/azure/ddos-protection/manage-ddos-protection" target="_blank" rel="noopener">Manage Azure DDoS Protection (cross-subscription plan sharing)</a></li>
+        <li><a href="https://learn.microsoft.com/azure/ddos-protection/ddos-protection-features" target="_blank" rel="noopener">DDoS Protection features</a></li>
+        <li><a href="https://learn.microsoft.com/azure/ddos-protection/manage-permissions" target="_blank" rel="noopener">DDoS Protection permissions &amp; RBAC</a></li>
+      </ul>
+
+      <h3>Architecture &amp; landing zone</h3>
+      <ul>
+        <li><a href="https://learn.microsoft.com/azure/architecture/networking/architecture/dmz-ddos" target="_blank" rel="noopener">DDoS reference architectures (hub-spoke, single-VNet, perimeter)</a></li>
+        <li><a href="https://learn.microsoft.com/azure/cloud-adoption-framework/ready/landing-zone/" target="_blank" rel="noopener">Cloud Adoption Framework — landing zones</a></li>
+        <li><a href="https://learn.microsoft.com/azure/cloud-adoption-framework/ready/azure-best-practices/plan-for-ip-addressing" target="_blank" rel="noopener">CAF — IP addressing &amp; connectivity</a></li>
+      </ul>
+
+      <h3>Operations &amp; testing</h3>
+      <ul>
+        <li><a href="https://learn.microsoft.com/azure/ddos-protection/test-through-simulations" target="_blank" rel="noopener">Test through simulations (authorised partner programme)</a></li>
+        <li><a href="https://learn.microsoft.com/azure/ddos-protection/ddos-rapid-response" target="_blank" rel="noopener">DDoS Rapid Response (DRR)</a></li>
+        <li><a href="https://learn.microsoft.com/azure/ddos-protection/ddos-disaster-recovery-guidance" target="_blank" rel="noopener">DDoS disaster recovery guidance</a></li>
+      </ul>
+
+      <h3>Pricing &amp; compliance</h3>
+      <ul>
+        <li><a href="https://azure.microsoft.com/pricing/details/ddos-protection/" target="_blank" rel="noopener">Azure DDoS Protection pricing</a></li>
+        <li><a href="https://learn.microsoft.com/azure/compliance/offerings/offering-hipaa-hitech" target="_blank" rel="noopener">Azure HIPAA / HITECH offering</a></li>
+        <li><a href="https://learn.microsoft.com/azure/compliance/offerings/offering-hitrust" target="_blank" rel="noopener">Azure HITRUST CSF offering</a></li>
+      </ul>
+
+      <h3>Infrastructure-as-Code</h3>
+      <ul>
+        <li><a href="https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/network_ddos_protection_plan" target="_blank" rel="noopener">Terraform <code>azurerm_network_ddos_protection_plan</code></a></li>
+        <li><a href="https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/virtual_network" target="_blank" rel="noopener">Terraform <code>azurerm_virtual_network</code> (<code>ddos_protection_plan</code> block)</a></li>
+      </ul>
+
+      <h2>Key Takeaway</h2>
+
+      <p>Azure DDoS Protection Plan is a <strong>tenant resource pretending to be a subscription resource</strong>. Treat it as tenant-wide, deploy exactly one, share it across every spoke VNet through cross-subscription RBAC, enforce that uniqueness with Azure Policy at the root management group, and validate with annual simulations. For healthcare, that single plan becomes a HIPAA contingency-plan and HITRUST continuity control — and removes tens of thousands of dollars of unnecessary spend in the same move. Right architecture, right cost, right compliance posture.</p>
+
+    </div>
+  </section>
+
+  <section style="padding:0 1.5rem 3.5rem;">
+    <div class="author-card">
+      <div class="author-avatar">SY</div>
+      <div>
+        <div class="author-name">Srinivas Yenuganti</div>
+        <div class="author-role">Cloud Engineer · IT Infrastructure &amp; Security Architect</div>
+        <div class="author-bio">20+ years building secure, compliant cloud environments across healthcare and global enterprise. Currently at iSpace Inc., Los Angeles, designing HIPAA/HITRUST-compliant Azure architectures for healthcare SaaS platforms.</div>
+        <a href="https://www.linkedin.com/in/syenuganti-bb767744/" target="_blank" style="color:#0d9488;font-size:.85rem;text-decoration:none;font-weight:600;">Connect on LinkedIn →</a>
+      </div>
+    </div>
+  </section>
+
+  <div style="max-width:760px;margin:2.5rem auto;padding:1.25rem 1.5rem;background:#f8fafc;border:1px solid #e2e8f0;border-left:4px solid #94a3b8;border-radius:8px;">
+    <p style="margin:0;font-size:.82rem;color:#64748b;line-height:1.75;"><strong style="color:#475569;">Disclaimer:</strong> The views and opinions expressed in this article are solely those of the author (Srinivas Yenuganti) and do not represent the views of any employer, client, or affiliated organisation. Pricing figures are illustrative public list prices as of the date of publication — always validate current pricing on the official Azure pricing page for your region and agreement. All information is based on publicly available Microsoft documentation and personal practitioner experience. Content is for educational purposes only and is not a substitute for professional advice. Validate all configurations in a non-production environment before applying to production. Product names and trademarks referenced herein are the property of their respective owners.</p>
+  </div>
+
+  <footer class="main-footer">
+    <p>&copy; 2026 Srinivas Yenuganti &nbsp;&middot;&nbsp;
+      <a href="https://www.linkedin.com/in/syenuganti-bb767744/" target="_blank">LinkedIn</a> &nbsp;&middot;&nbsp;
+      <a href="blog.html">Blog</a> &nbsp;&middot;&nbsp;
+      <a href="contact.html">Contact</a>
+    </p>
+  </footer>
+
+</body>
+</html>

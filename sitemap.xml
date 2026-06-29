@@ -29,6 +29,12 @@
 
   <!-- Blog posts -->
   <url>
+    <loc>https://yenuganti.in/post-ddos-multi-subscription.html</loc>
+    <lastmod>2026-06-28</lastmod>
+    <changefreq>yearly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
     <loc>https://yenuganti.in/post-app-gateway-waf-mistakes.html</loc>
     <lastmod>2026-06-28</lastmod>
     <changefreq>yearly</changefreq>
