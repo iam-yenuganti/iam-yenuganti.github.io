@@ -3,11 +3,11 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="description" content="Common mistakes Azure CloudOps teams make with Application Gateway and WAF — and the right rollout: Detection mode, tune for weeks, then Prevention. With architecture, risk register, rule-tuning examples, and Terraform baseline." />
-  <title>Azure Application Gateway: Common Mistakes &amp; The Right WAF Rollout | Srinivas Yenuganti</title>
+  <meta name="description" content="A solution architect's playbook for Azure Application Gateway with WAF v2 — common mistakes, the disciplined Detection → tune → Prevention rollout, HIPAA §164.312 and HITRUST control mapping for healthcare SaaS, FHIR / claims API tuning, PHI-in-logs gotcha, risk register, and Terraform baseline." />
+  <title>Azure Application Gateway: Common Mistakes &amp; The Right WAF Rollout (Healthcare-Ready) | Srinivas Yenuganti</title>
   <meta property="og:type" content="article" />
-  <meta property="og:title" content="Azure Application Gateway: Common Mistakes & The Right WAF Rollout" />
-  <meta property="og:description" content="From day-1 Prevention mode blocking real users to silent Detection mode forever — the mistakes I see most often, and the disciplined Detection → tune → Prevention playbook that protects SaaS apps without breaking them." />
+  <meta property="og:title" content="Azure Application Gateway: Common Mistakes & The Right WAF Rollout (Healthcare-Ready)" />
+  <meta property="og:description" content="From day-1 Prevention mode blocking real users to silent Detection mode forever — the mistakes I see most often, the disciplined Detection → tune → Prevention playbook, and the mandatory healthcare addendum (HIPAA §164.312, HITRUST, FHIR APIs, PHI-in-logs)." />
   <meta property="og:url" content="https://yenuganti.in/post-app-gateway-waf-mistakes.html" />
   <meta property="article:published_time" content="2026-06-28" />
   <meta name="twitter:card" content="summary" />
@@ -96,9 +96,9 @@
     <div class="post-breadcrumb">
       <a href="blog.html">← Blog</a> &nbsp;·&nbsp; Security Architecture
     </div>
-    <h1 class="post-title">Azure Application Gateway: Common Mistakes &amp; The Right WAF Rollout</h1>
+    <h1 class="post-title">Azure Application Gateway: Common Mistakes &amp; The Right WAF Rollout <span style="font-size:.55em;font-weight:600;opacity:.75;display:block;margin-top:.4rem;">— with a mandatory healthcare addendum (HIPAA · HITRUST · FHIR)</span></h1>
     <div class="post-meta">
-      <span>⏱ 14 min read</span>
+      <span>⏱ 16 min read</span>
       <span>📅 June 28, 2026</span>
       <span>✍️ Srinivas Yenuganti</span>
     </div>
@@ -106,8 +106,10 @@
       <span class="post-tag">Application Gateway</span>
       <span class="post-tag">WAF v2</span>
       <span class="post-tag">OWASP CRS</span>
-      <span class="post-tag">SaaS Security</span>
-      <span class="post-tag">Azure Policy</span>
+      <span class="post-tag">Healthcare</span>
+      <span class="post-tag">HIPAA</span>
+      <span class="post-tag">HITRUST</span>
+      <span class="post-tag">FHIR</span>
       <span class="post-tag">Terraform</span>
     </div>
   </header>
@@ -126,11 +128,13 @@
 
       <p>I have walked into too many environments where this is the steady state. The fix is not a product — it is a disciplined rollout. This article catalogs the mistakes I see most often and lays out the playbook I use to take SaaS apps from no WAF to full Prevention without breaking real users.</p>
 
+      <p><strong>Who this is for:</strong> solution architects responsible for the front door of a SaaS platform — and especially those of us working on <strong>healthcare</strong>, where WAF mis-configuration is not just a security gap, it is a HIPAA <em>and</em> HITRUST control failure. The general playbook applies to every workload; the <a href="#healthcare">healthcare addendum (§9)</a> is mandatory reading if any byte of ePHI flows through the gateway.</p>
+
       <div class="kpi-row">
         <div class="kpi-card"><div class="kpi-value">2–4 wk</div><div class="kpi-label">Detection baseline</div></div>
         <div class="kpi-card"><div class="kpi-value">95%+</div><div class="kpi-label">False positives tuned</div></div>
-        <div class="kpi-card"><div class="kpi-value">0</div><div class="kpi-label">Customer-visible blocks</div></div>
-        <div class="kpi-card"><div class="kpi-value">CRS 3.2</div><div class="kpi-label">Baseline ruleset</div></div>
+        <div class="kpi-card"><div class="kpi-value">0</div><div class="kpi-label">PHI in WAF logs</div></div>
+        <div class="kpi-card"><div class="kpi-value">6 yr</div><div class="kpi-label">HIPAA log retention</div></div>
       </div>
 
       <div class="toc">
@@ -143,6 +147,7 @@
           <li><a href="#risk">Risk register — threat, blast radius, mitigation</a></li>
           <li><a href="#monitoring">Monitoring &amp; alerting that actually works</a></li>
           <li><a href="#iac">Terraform baseline (App Gateway + WAF Policy)</a></li>
+          <li><a href="#healthcare"><strong>Healthcare addendum — HIPAA · HITRUST · FHIR (mandatory)</strong></a></li>
           <li><a href="#checklist">Architect's checklist</a></li>
         </ol>
       </div>
@@ -288,6 +293,8 @@ disabled_rule_group {
           <tr><td>TLS terminates at gateway only</td><td>Plaintext between gateway and backend</td><td>End-to-end TLS, backend HTTPS settings with pinned root CA</td></tr>
           <tr><td>No diagnostics</td><td>No tuning possible; incident forensics blind</td><td>Diagnostic setting to LA on day one; 90-day retention minimum</td></tr>
           <tr><td>Fixed instance count</td><td>Capacity saturation under marketing spike; 502s to customers</td><td>Autoscale 2 → 10 minimum on WAF_v2</td></tr>
+          <tr><td><strong>PHI in WAF diagnostic logs</strong> (URI / body capture)</td><td>HIPAA breach: ePHI written to Log Analytics and downstream Sentinel/SIEM with broader access scope than the application database</td><td>Disable <code>request_body_check</code> capture on PHI endpoints OR scrub at ingestion; segregate WAF workspace; RBAC + customer-managed keys</td></tr>
+          <tr><td><strong>No geo-filter on US-only healthcare SaaS</strong></td><td>Expands HIPAA threat surface; non-US recon traffic inflates WAF noise and complicates BAA scope</td><td>WAF Policy <code>geo_match</code> custom rule — allow only contracted geographies; alert on denied geos</td></tr>
         </tbody>
       </table>
 
@@ -356,7 +363,68 @@ resource "azurerm_application_gateway" "this" {
 
       <p>Pair this with an Azure Policy assignment at the management group that <em>denies</em> creation of Application Gateways without an attached WAF Policy. That single guardrail prevents 90% of the day-one mistakes from ever shipping.</p>
 
-      <h2 id="checklist">8. Architect's Checklist</h2>
+      <h2 id="healthcare">8. Healthcare Addendum — HIPAA · HITRUST · FHIR (Mandatory)</h2>
+
+      <p>If your gateway terminates traffic for a healthcare SaaS — a payer portal, a provider app, a claims API, a FHIR endpoint — every architectural decision above gets a compliance dimension on top of the security one. Skipping this section in a healthcare design review is, in my experience, the single fastest way to fail a HITRUST audit on a perfectly good Azure platform.</p>
+
+      <div class="callout callout-warn">
+        <div class="callout-title">⚠️ The PHI-in-logs gotcha</div>
+        <p>Application Gateway WAF logs the <strong>request URI in full</strong> and, when <code>request_body_check</code> is enabled, can capture the matched portion of the request body. On a healthcare API where the URI carries identifiers (<code>/Patient/12345</code>, <code>/claims/MRN/...</code>) or the body carries ePHI, those values land in <strong>Log Analytics, Sentinel, and any downstream SIEM</strong>. That is an unintended PHI store with its own access model. Plan for it before you turn WAF on, not after the auditor finds it.</p>
+      </div>
+
+      <h3>HIPAA §164.312 — how the gateway satisfies each technical safeguard</h3>
+      <table class="arch-table">
+        <thead><tr><th>HIPAA control</th><th>Gateway / WAF implementation</th></tr></thead>
+        <tbody>
+          <tr><td>§164.312(a)(1) Access Control</td><td>Private Endpoint backends; NSG deny-from-internet; gateway is the only ingress; Front Door or App Gateway WAF — not both bypassed</td></tr>
+          <tr><td>§164.312(a)(2)(iv) Encryption &amp; Decryption</td><td>TLS 1.2+ at the listener; end-to-end TLS to backend; cipher suite policy restricted (no TLS 1.0/1.1, no legacy ciphers)</td></tr>
+          <tr><td>§164.312(b) Audit Controls</td><td>Diagnostic settings → Log Analytics → Sentinel; <strong>6-year retention minimum</strong>; immutable archive tier after 90 days</td></tr>
+          <tr><td>§164.312(c)(1) Integrity</td><td>WAF Prevention mode enforces request integrity (no tampered headers/bodies passed to backend); OWASP CRS 3.2 + bot manager</td></tr>
+          <tr><td>§164.312(d) Person / Entity Authentication</td><td>Gateway enforces mTLS / OAuth at the listener where required; AAD-backed SSO for admin plane; never anonymous to backend</td></tr>
+          <tr><td>§164.312(e)(1) Transmission Security</td><td>End-to-end TLS — terminating at the gateway and sending plaintext to a private subnet still fails this control; pin backend root CA</td></tr>
+        </tbody>
+      </table>
+
+      <h3>HITRUST CSF — the controls auditors actually look at</h3>
+      <ul>
+        <li><strong>01.j Network Access Control</strong> — gateway is the documented ingress; backend cannot be reached directly (proven by an explicit deny rule, not by absence).</li>
+        <li><strong>09.s On-line Transactions</strong> — WAF inspects and protects every online PHI transaction in Prevention mode; Detection-only is a finding.</li>
+        <li><strong>09.aa Audit Logging</strong> — WAF + backend logs correlated in Sentinel; retention ≥ 6 years for HIPAA, with documented review cadence.</li>
+        <li><strong>10.f Cryptographic Key Management</strong> — TLS certificate sourced from Key Vault with auto-rotation and HSM-backed keys; no certs on the gateway file system.</li>
+        <li><strong>10.m Control of Technical Vulnerabilities</strong> — managed ruleset version pinned and reviewed quarterly; CVE-driven custom rules added between releases.</li>
+      </ul>
+
+      <h3>FHIR &amp; claims API tuning patterns</h3>
+      <p>These are the exclusions I add early in every healthcare WAF rollout — they show up in the baseline within hours and they are safe when scoped tightly:</p>
+      <ul>
+        <li><strong>FHIR <code>_search</code> with complex query parameters</strong> — exclude rule <code>942100</code> (SQLi) for <code>RequestArgNames</code> selectors <code>filter</code>, <code>_filter</code>, <code>composite</code> on <code>/fhir/*/_search</code> only.</li>
+        <li><strong>Bulk export job IDs</strong> — exclude <code>920420</code> (request content type) for the <code>application/fhir+ndjson</code> path; do not disable the rule globally.</li>
+        <li><strong>X12 / EDI claim payloads</strong> — large bodies trigger <code>920170</code> / <code>920270</code>; raise <code>max_request_body_size_in_kb</code> only for the claims listener, not platform-wide.</li>
+        <li><strong>OAuth callback URLs</strong> from payer / provider IdPs — exclude <code>931130</code> (RFI) for <code>RequestArgNames</code>=<code>redirect_uri</code>, scoped to the <code>/oauth/callback</code> URI.</li>
+      </ul>
+
+      <h3>Geo-restriction is a compliance lever, not just security</h3>
+      <p>For US-only healthcare SaaS the WAF policy should explicitly allow only the contracted geographies. It shrinks the noise the SOC tunes against, and it reduces the BAA threat surface you must defend. A 5-line custom rule:</p>
+      <pre class="code"><span class="c"># Allow US + service-account geos; everything else blocked at WAF</span>
+custom_rules {
+  name      = "geo-allow-us-only"
+  priority  = 10
+  rule_type = "MatchRule"
+  action    = "Block"
+  match_conditions {
+    match_variables { variable_name = "RemoteAddr" }
+    operator           = "GeoMatch"
+    negation_condition = true
+    match_values       = ["US"]
+  }
+}</pre>
+
+      <div class="callout callout-arch">
+        <div class="callout-title">🏥 Healthcare design rule</div>
+        <p>For any listener carrying ePHI: <strong>Prevention mode is the only acceptable steady state</strong>, end-to-end TLS is non-negotiable, the WAF Log Analytics workspace is treated as a regulated data store (CMK, private link, RBAC, 6-year retention), and every exclusion has an expiry date that re-validates against current FHIR / X12 traffic.</p>
+      </div>
+
+      <h2 id="checklist">9. Architect's Checklist</h2>
 
       <ul>
         <li>WAF v2 (not Standard_v2). OWASP CRS 3.2 attached.</li>
@@ -371,9 +439,21 @@ resource "azurerm_application_gateway" "this" {
         <li>Quarterly WAF tuning review. Exclusions expire if not re-validated.</li>
       </ul>
 
+      <p><strong>Healthcare workloads — add these to the checklist:</strong></p>
+      <ul>
+        <li>HIPAA §164.312 mapping documented per listener (access, encryption, audit, integrity, transmission).</li>
+        <li>WAF diagnostic workspace treated as PHI: CMK-encrypted, Private Link, RBAC-locked, 6-year retention.</li>
+        <li>PHI scrubbing or body-capture suppression on endpoints whose URI or body carries identifiers.</li>
+        <li>Geo-allow list (custom rule) restricted to contracted countries; alert on denied geos.</li>
+        <li>FHIR / X12 exclusions are scoped per-URI, per-selector, with expiry dates.</li>
+        <li>TLS 1.2+ minimum, modern cipher policy; TLS 1.0/1.1 explicitly denied.</li>
+        <li>BAA scope diagram includes the gateway, the WAF policy, the diagnostic workspace, and Key Vault.</li>
+        <li>HITRUST controls 01.j, 09.s, 09.aa, 10.f, 10.m have named evidence owners.</li>
+      </ul>
+
       <h2>Key Takeaway</h2>
 
-      <p>Application Gateway WAF is not a checkbox. It is an operational discipline. Stand it up in Detection, baseline real traffic for weeks, tune surgically, then flip to Prevention with a date you committed to in advance. Do that and you ship a WAF that actually protects the application — not one that protects the audit slide deck.</p>
+      <p>Application Gateway WAF is not a checkbox — it is an operational discipline. Stand it up in Detection, baseline real traffic for weeks, tune surgically, then flip to Prevention with a date you committed to in advance. For <strong>healthcare</strong> that discipline becomes a compliance obligation: Prevention is the only acceptable steady state for ePHI listeners, every exclusion is scoped and expires, every diagnostic byte is treated as PHI, and HIPAA §164.312 / HITRUST evidence is generated by the architecture — not added by the audit team six months later. Do that and you ship a WAF that protects the application <em>and</em> the BAA.</p>
 
     </div>
   </section>
