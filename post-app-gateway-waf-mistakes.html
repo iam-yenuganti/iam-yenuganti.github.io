@@ -149,6 +149,7 @@
           <li><a href="#iac">Terraform baseline (App Gateway + WAF Policy)</a></li>
           <li><a href="#healthcare"><strong>Healthcare addendum — HIPAA · HITRUST · FHIR (mandatory)</strong></a></li>
           <li><a href="#checklist">Architect's checklist</a></li>
+          <li><a href="#docs">Further reading — official documentation</a></li>
         </ol>
       </div>
 
@@ -312,6 +313,47 @@ disabled_rule_group {
 
       <p>Wire all of these into Microsoft Sentinel or your existing SIEM. WAF logs without correlation are noise; correlated with sign-in logs, NSG flow logs, and backend app logs, they are gold.</p>
 
+      <h3>Continuous tuning lifecycle — review, exclude, <em>delete</em></h3>
+
+      <p>A WAF is not a “deploy once” control. Traffic shifts, applications ship new endpoints, ruleset versions change, and attackers probe what worked yesterday. Without a continuous loop the exclusions you added in week three quietly become permanent over-permissions — and that is precisely where attackers find the gap. The discipline I run on every healthcare gateway:</p>
+
+      <div class="phase-grid">
+        <div class="phase-card">
+          <div class="phase-num">Daily · SOC</div>
+          <div class="phase-title">Triage blocks &amp; matches</div>
+          <div class="phase-desc">Sentinel workbook: top rule IDs, new host/URI combinations, geo anomalies. Anything new gets a ticket the same day.</div>
+        </div>
+        <div class="phase-card">
+          <div class="phase-num">Weekly · AppOps</div>
+          <div class="phase-title">Tune false positives</div>
+          <div class="phase-desc">Add scoped exclusions in IaC (rule ID + selector + URI). Every exclusion ships with a <strong>review date</strong> and an owner.</div>
+        </div>
+        <div class="phase-card">
+          <div class="phase-num">Monthly · SecOps</div>
+          <div class="phase-title">Hunt &amp; rule-version diff</div>
+          <div class="phase-desc">Threat-hunt across 30 days of WAF logs. Diff managed-ruleset version notes and update custom rules to cover newly published CVEs.</div>
+        </div>
+        <div class="phase-card">
+          <div class="phase-num">Quarterly · Architect</div>
+          <div class="phase-title">Delete stale exclusions</div>
+          <div class="phase-desc">Any exclusion past its review date is <strong>removed by default</strong>. If the false positive comes back, it gets re-added with fresh evidence. No silent permanent allowances.</div>
+        </div>
+      </div>
+
+      <div class="callout callout-warn">
+        <div class="callout-title">⚠️ Stale exclusions are an attack surface</div>
+        <p>Every exclusion is, by definition, a hole in the managed ruleset. An exclusion added two years ago for an endpoint that no longer exists is a free pass for an attacker who finds a way to reach a matching URI or argument name. Treat the exclusion list like firewall rules — reviewed quarterly, deleted aggressively, owned by a named engineer, and tracked in Git so every change is auditable.</p>
+      </div>
+
+      <p>KQL to flag exclusions that have not been hit in 90 days — strong candidates for deletion:</p>
+      <pre class="code"><span class="c">// Find recently "matched but not blocked" rules - candidates whose exclusions may be unnecessary</span>
+AzureDiagnostics
+| where ResourceType == "APPLICATIONGATEWAYS" and Category == "ApplicationGatewayFirewallLog"
+| where TimeGenerated &gt; ago(90d)
+| summarize last_hit = max(TimeGenerated), hits = count() by ruleId_s, hostname_s, requestUri_s
+| where datetime_diff('day', now(), last_hit) &gt; 60
+| order by last_hit asc</pre>
+
       <h2 id="iac">7. Terraform Baseline — App Gateway + WAF Policy</h2>
 
       <p>Deploy the same baseline to every environment. Tuning that happens only in production never gets validated, and exclusions that live only in the portal disappear at the next redeploy.</p>
@@ -449,6 +491,49 @@ custom_rules {
         <li>TLS 1.2+ minimum, modern cipher policy; TLS 1.0/1.1 explicitly denied.</li>
         <li>BAA scope diagram includes the gateway, the WAF policy, the diagnostic workspace, and Key Vault.</li>
         <li>HITRUST controls 01.j, 09.s, 09.aa, 10.f, 10.m have named evidence owners.</li>
+      </ul>
+
+      <h2 id="docs">10. Further Reading — Official Documentation</h2>
+
+      <p>Everything in this article is grounded in current Microsoft guidance. These are the primary references I keep open during a WAF review — follow them for the authoritative configuration details and the latest version notes:</p>
+
+      <h3>Application Gateway &amp; WAF — core</h3>
+      <ul>
+        <li><a href="https://learn.microsoft.com/azure/application-gateway/overview" target="_blank" rel="noopener">Application Gateway overview</a> — service model, SKUs, listeners, backend pools.</li>
+        <li><a href="https://learn.microsoft.com/azure/web-application-firewall/ag/ag-overview" target="_blank" rel="noopener">WAF on Application Gateway — overview</a> — Detection vs Prevention, modes, policy model.</li>
+        <li><a href="https://learn.microsoft.com/azure/web-application-firewall/ag/application-gateway-waf-configuration" target="_blank" rel="noopener">Configure WAF rules and exclusions</a> — the authoritative reference for per-rule, per-selector exclusions.</li>
+        <li><a href="https://learn.microsoft.com/azure/web-application-firewall/ag/application-gateway-crs-rulegroups-rules" target="_blank" rel="noopener">OWASP CRS rule groups &amp; rules</a> — every managed rule ID and its purpose (3.2, 3.1, 3.0).</li>
+        <li><a href="https://learn.microsoft.com/azure/web-application-firewall/ag/custom-waf-rules-overview" target="_blank" rel="noopener">Custom WAF rules</a> — syntax for geo, IP, rate-limit, match-condition custom rules.</li>
+        <li><a href="https://learn.microsoft.com/azure/web-application-firewall/ag/best-practices" target="_blank" rel="noopener">WAF best practices</a> — Microsoft's own deployment guidance; aligns with the Detection → Prevention pattern above.</li>
+      </ul>
+
+      <h3>Operations — logging, monitoring, troubleshooting</h3>
+      <ul>
+        <li><a href="https://learn.microsoft.com/azure/application-gateway/application-gateway-diagnostics" target="_blank" rel="noopener">Diagnostic settings &amp; logs</a> — enabling access, performance, and firewall logs to Log Analytics.</li>
+        <li><a href="https://learn.microsoft.com/azure/web-application-firewall/ag/application-gateway-waf-metrics" target="_blank" rel="noopener">WAF metrics &amp; alerts</a> — metrics to alert on for the monitoring section above.</li>
+        <li><a href="https://learn.microsoft.com/azure/web-application-firewall/ag/web-application-firewall-troubleshoot" target="_blank" rel="noopener">WAF troubleshooting</a> — the official runbook for diagnosing false positives before you add an exclusion.</li>
+        <li><a href="https://learn.microsoft.com/azure/web-application-firewall/ag/application-gateway-waf-request-size-limits" target="_blank" rel="noopener">Request size &amp; body limits</a> — essential reading before tuning for X12 / FHIR bulk payloads.</li>
+      </ul>
+
+      <h3>Security &amp; TLS</h3>
+      <ul>
+        <li><a href="https://learn.microsoft.com/azure/application-gateway/ssl-overview" target="_blank" rel="noopener">TLS / SSL on Application Gateway</a> — listener-side cipher policy.</li>
+        <li><a href="https://learn.microsoft.com/azure/application-gateway/end-to-end-ssl-portal" target="_blank" rel="noopener">End-to-end TLS</a> — step-by-step for backend re-encryption.</li>
+        <li><a href="https://learn.microsoft.com/azure/application-gateway/key-vault-certs" target="_blank" rel="noopener">Key Vault certificates with Application Gateway</a> — the documented pattern for the Terraform baseline above.</li>
+        <li><a href="https://learn.microsoft.com/azure/sentinel/data-connectors-reference" target="_blank" rel="noopener">Microsoft Sentinel data connectors</a> — the WAF connector for correlated detection.</li>
+      </ul>
+
+      <h3>Compliance — HIPAA &amp; HITRUST</h3>
+      <ul>
+        <li><a href="https://learn.microsoft.com/azure/compliance/offerings/offering-hipaa-hitech" target="_blank" rel="noopener">Azure HIPAA / HITECH offering</a> — Microsoft's published mapping of Azure services to HIPAA Security Rule controls.</li>
+        <li><a href="https://learn.microsoft.com/azure/compliance/offerings/offering-hitrust" target="_blank" rel="noopener">Azure HITRUST CSF offering</a> — HITRUST scope and Microsoft's shared-responsibility statement.</li>
+        <li><a href="https://learn.microsoft.com/azure/architecture/example-scenario/apps/healthcare-apps-mlz" target="_blank" rel="noopener">Healthcare landing zone reference architecture</a> — broader pattern the WAF sits inside.</li>
+      </ul>
+
+      <h3>Infrastructure-as-Code</h3>
+      <ul>
+        <li><a href="https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/web_application_firewall_policy" target="_blank" rel="noopener">Terraform <code>azurerm_web_application_firewall_policy</code></a> — every argument in the policy snippet above.</li>
+        <li><a href="https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/application_gateway" target="_blank" rel="noopener">Terraform <code>azurerm_application_gateway</code></a> — listeners, backend settings, autoscale, Key Vault certs.</li>
       </ul>
 
       <h2>Key Takeaway</h2>
