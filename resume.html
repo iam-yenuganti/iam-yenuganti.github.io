@@ -6,6 +6,7 @@
   <meta name="description" content="Srinivas Yenuganti – Cloud Engineer & IT Infrastructure / Security Architect Resume" />
   <title>Resume | Srinivas Yenuganti</title>
   <link rel="canonical" href="https://yenuganti.in/resume.html" />
+  <link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2064%2064%22%3E%3Crect%20width%3D%2264%22%20height%3D%2264%22%20rx%3D%2212%22%20fill%3D%22%230d1b2a%22%2F%3E%3Ctext%20x%3D%2232%22%20y%3D%2244%22%20font-family%3D%22Helvetica%2CArial%2Csans-serif%22%20font-size%3D%2230%22%20font-weight%3D%22bold%22%20text-anchor%3D%22middle%22%20fill%3D%22%231e88e5%22%3ESY%3C%2Ftext%3E%3C%2Fsvg%3E" />
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
     html { scroll-behavior: smooth; }
@@ -16,9 +17,23 @@
       line-height: 1.5;
     }
     .page { background: white; max-width: 900px; margin: 0 auto; padding: 2.5rem; box-shadow: 0 0 20px rgba(0,0,0,0.1); }
-    .nav-bar { background: #0d1b2a; padding: 1rem 1.5rem; text-align: center; margin-bottom: 2rem; }
-    .nav-bar a { color: white; text-decoration: none; font-weight: 600; font-size: 0.9rem; }
-    .nav-bar a:hover { text-decoration: underline; }
+    /* Site nav — mirrored from style.css (not imported: this page has its own
+       reset and reuses .section / .section-title, which would collide). */
+    nav.main-nav { position: sticky; top: 0; z-index: 100; background: rgba(13,27,42,0.97); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); border-bottom: 1px solid rgba(255,255,255,0.08); display: flex; align-items: center; justify-content: space-between; padding: 0 2rem; height: 64px; }
+    .nav-logo { color: white; font-weight: 700; font-size: 1.1rem; text-decoration: none; letter-spacing: -0.3px; white-space: nowrap; }
+    .nav-logo span { color: #1e88e5; }
+    .nav-links { display: flex; align-items: center; gap: 0.25rem; list-style: none; }
+    .nav-links a { color: rgba(255,255,255,0.75); text-decoration: none; padding: 0.45rem 1rem; border-radius: 6px; font-size: 0.9rem; font-weight: 500; transition: all 0.2s; white-space: nowrap; }
+    .nav-links a:hover, .nav-links a.active { color: white; background: rgba(255,255,255,0.10); }
+    .nav-links a.nav-cta { background: #1e88e5; color: white; margin-left: 0.25rem; }
+    .nav-links a.nav-cta:hover { background: #1565c0; }
+    .hamburger { display: none; flex-direction: column; gap: 5px; cursor: pointer; background: none; border: none; padding: 4px; }
+    .hamburger span { display: block; width: 24px; height: 2px; background: white; border-radius: 2px; }
+
+    /* Print / save-as-PDF action */
+    .resume-actions { max-width: 900px; margin: 1.5rem auto 0.75rem; padding: 0 2.5rem; text-align: right; }
+    .print-btn { background: #1e88e5; color: white; border: none; border-radius: 8px; padding: 0.6rem 1.2rem; font-size: 0.85rem; font-weight: 600; cursor: pointer; font-family: inherit; transition: background 0.2s; }
+    .print-btn:hover { background: #1565c0; }
 
     /* Header */
     .header { text-align: center; margin-bottom: 2rem; border-bottom: 2px solid #0d1b2a; padding-bottom: 1.5rem; }
@@ -65,12 +80,18 @@
     @media print {
       body { background: white; }
       .page { max-width: 100%; margin: 0; padding: 0.5in; box-shadow: none; }
-      .nav-bar { display: none; }
+      nav.main-nav { display: none; }
+      .resume-actions { display: none; }
       .footer { display: none; }
       .section { page-break-inside: avoid; }
     }
 
     @media (max-width: 768px) {
+      .hamburger { display: flex; }
+      .nav-links { display: none; position: absolute; top: 64px; left: 0; right: 0; background: rgba(13,27,42,0.99); flex-direction: column; padding: 1rem; border-bottom: 1px solid rgba(255,255,255,0.1); gap: 0.25rem; }
+      .nav-links.open { display: flex; }
+      .nav-links a { padding: 0.75rem 1rem; }
+      .resume-actions { padding: 0 1.5rem; }
       .page { padding: 1.5rem; }
       .name { font-size: 1.5rem; }
       .skills-row { grid-template-columns: 1fr; }
@@ -80,8 +101,22 @@
 </head>
 <body>
 
-  <div class="nav-bar">
-    <a href="index.html">← Back to Portfolio</a>
+  <nav class="main-nav">
+    <a href="index.html" class="nav-logo">Srinivas <span>Y.</span></a>
+    <button class="hamburger" onclick="document.getElementById('navlinks').classList.toggle('open')" aria-label="Toggle menu">
+      <span></span><span></span><span></span>
+    </button>
+    <ul class="nav-links" id="navlinks">
+      <li><a href="index.html">Home</a></li>
+      <li><a href="about.html">About</a></li>
+      <li><a href="blog.html">Blog</a></li>
+      <li><a href="resume.html" class="active">Resume</a></li>
+      <li><a href="contact.html" class="nav-cta">Contact</a></li>
+    </ul>
+  </nav>
+
+  <div class="resume-actions">
+    <button type="button" class="print-btn" onclick="window.print()">Save as PDF / Print</button>
   </div>
 
   <div class="page">
