@@ -8,10 +8,9 @@ DevSecOps, Zero Trust, and healthcare compliance (HIPAA, HITRUST, ISO 27001, SOC
 This repository hosts my personal site and architecture blog: **https://yenuganti.in**
 
 ## Sections
-- **Home / About** — experience, expertise, featured projects
+- **About** (`index.html`) — short bio and experience
 - **Blog** — real-world architecture solutions: risk-and-right design, industry best
   practices, compliance, and securely protecting sensitive data
-- **Resume / Contact**
 
 ## Stack
 Static HTML/CSS on GitHub Pages. New posts follow `BLOG_GUIDE.md`.

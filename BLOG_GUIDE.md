@@ -35,15 +35,14 @@ Copy this template and save as `post-YOUR-SLUG.html`:
 
   <!-- NAV -->
   <nav class="main-nav">
-    <a href="index.html" class="nav-logo">Srinivas <span>Y.</span></a>
-    <button class="hamburger" onclick="document.getElementById('navlinks').classList.toggle('open')" aria-label="Toggle menu">
+    <a href="index.html" class="nav-logo">Srinivas Yenuganti</a>
+    <button class="hamburger" aria-label="Toggle menu" aria-expanded="false" aria-controls="navlinks"
+      onclick="const o=document.getElementById('navlinks').classList.toggle('open');this.setAttribute('aria-expanded',o)">
       <span></span><span></span><span></span>
     </button>
     <ul class="nav-links" id="navlinks">
-      <li><a href="index.html">Home</a></li>
-      <li><a href="about.html">About</a></li>
+      <li><a href="index.html">About</a></li>
       <li><a href="blog.html" class="active">Blog</a></li>
-      <li><a href="contact.html" class="nav-cta">Contact</a></li>
     </ul>
   </nav>
 
@@ -75,7 +74,7 @@ Copy this template and save as `post-YOUR-SLUG.html`:
 
   <!-- FOOTER -->
   <footer class="main-footer">
-    <p>&copy; 2026 Srinivas Yenuganti · <a href="resume.html">Resume</a> · <a href="https://www.linkedin.com/in/syenuganti-bb767744/" target="_blank">LinkedIn</a> · <a href="contact.html">Contact</a></p>
+    <p>&copy; 2026 Srinivas Yenuganti · <a href="index.html">About</a> · <a href="blog.html">Blog</a> · <a href="https://www.linkedin.com/in/syenuganti-bb767744/" target="_blank">LinkedIn</a> · <a href="mailto:syenuganti@outlook.com">Email</a></p>
   </footer>
 
 </body>

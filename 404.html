@@ -3,53 +3,37 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="description" content="Page not found — Srinivas Yenuganti, IT Infrastructure, Cloud &amp; Security Architect." />
+  <meta name="description" content="Page not found — Srinivas Yenuganti." />
   <meta name="robots" content="noindex, follow" />
   <title>Page Not Found | Srinivas Yenuganti</title>
   <link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2064%2064%22%3E%3Crect%20width%3D%2264%22%20height%3D%2264%22%20rx%3D%2212%22%20fill%3D%22%230d1b2a%22%2F%3E%3Ctext%20x%3D%2232%22%20y%3D%2244%22%20font-family%3D%22Helvetica%2CArial%2Csans-serif%22%20font-size%3D%2230%22%20font-weight%3D%22bold%22%20text-anchor%3D%22middle%22%20fill%3D%22%231e88e5%22%3ESY%3C%2Ftext%3E%3C%2Fsvg%3E" />
   <link rel="stylesheet" href="style.css" />
-  <style>
-    .nf-wrapper { min-height: 68vh; display: flex; align-items: center; justify-content: center; padding: 3rem 1.5rem; }
-    .nf-card { background: var(--bg-white); border: 1px solid var(--border); border-radius: var(--radius); box-shadow: var(--shadow); padding: 3.5rem 2.5rem; text-align: center; max-width: 560px; width: 100%; }
-    .nf-code { font-size: 4.5rem; font-weight: 800; color: var(--accent); line-height: 1; letter-spacing: -3px; margin-bottom: 0.5rem; }
-    .nf-card h1 { font-size: 1.6rem; font-weight: 800; color: var(--primary); letter-spacing: -0.5px; margin-bottom: 0.75rem; }
-    .nf-card p { color: var(--text-muted); font-size: 0.97rem; line-height: 1.7; margin-bottom: 2rem; }
-  </style>
 </head>
 <body>
 
-  <!-- NAV -->
   <nav class="main-nav">
-    <a href="index.html" class="nav-logo">Srinivas <span>Y.</span></a>
-    <button class="hamburger" onclick="document.getElementById('navlinks').classList.toggle('open')" aria-label="Toggle menu">
+    <a href="index.html" class="nav-logo">Srinivas Yenuganti</a>
+    <button class="hamburger" aria-label="Toggle menu" aria-expanded="false" aria-controls="navlinks"
+      onclick="const o=document.getElementById('navlinks').classList.toggle('open');this.setAttribute('aria-expanded',o)">
       <span></span><span></span><span></span>
     </button>
     <ul class="nav-links" id="navlinks">
-      <li><a href="index.html">Home</a></li>
-      <li><a href="about.html">About</a></li>
+      <li><a href="index.html">About</a></li>
       <li><a href="blog.html">Blog</a></li>
-      <li><a href="resume.html">Resume</a></li>
-      <li><a href="contact.html" class="nav-cta">Contact</a></li>
     </ul>
   </nav>
 
-  <div class="nf-wrapper">
-    <div class="nf-card">
-      <div class="nf-code">404</div>
-      <h1>This page doesn't exist</h1>
-      <p>The link may be out of date, or the page has moved. The architecture blog and everything else is still right where you'd expect.</p>
-      <div class="btn-row">
-        <a href="index.html" class="btn btn-primary btn-sm">Back to Home</a>
-        <a href="blog.html" class="btn btn-dark btn-sm">Browse the Blog</a>
-      </div>
-    </div>
-  </div>
+  <main class="centered">
+    <h1>This page doesn't exist</h1>
+    <p>The link may be out of date, or the page has moved.</p>
+    <p><a href="index.html">About</a> &nbsp;·&nbsp; <a href="blog.html">Blog</a></p>
+  </main>
 
   <footer class="main-footer">
-    <p>&copy; 2026 Srinivas Yenuganti &nbsp;&middot;&nbsp;
-      <a href="resume.html">Resume</a> &nbsp;&middot;&nbsp;
-      <a href="https://www.linkedin.com/in/syenuganti-bb767744/" target="_blank">LinkedIn</a> &nbsp;&middot;&nbsp;
-      <a href="contact.html">Contact</a>
+    <p>&copy; 2026 Srinivas Yenuganti &nbsp;·&nbsp;
+      <a href="blog.html">Blog</a> &nbsp;·&nbsp;
+      <a href="https://www.linkedin.com/in/syenuganti-bb767744/" target="_blank" rel="noopener">LinkedIn</a> &nbsp;·&nbsp;
+      <a href="mailto:syenuganti@outlook.com">Email</a>
     </p>
   </footer>
 
