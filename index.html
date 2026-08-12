@@ -61,12 +61,14 @@
       <div class="role-title">Cloud Engineer / Architect</div>
       <div class="role-company">iSpace Inc. · Los Angeles, California</div>
       <ul>
-        <li>Design and run the Azure infrastructure behind a multi-tenant healthcare SaaS platform that processes insurance claims.</li>
-        <li>Secure network topology — segmented VNets and NSGs, Azure Firewall, Application Gateway, API Management, and Private Link for database and storage access.</li>
-        <li>Identity and compliance controls aligned to HIPAA and HITRUST — Entra ID with RBAC, plus Defender for Cloud and Log Analytics for continuous monitoring.</li>
-        <li>Data platform on Azure Data Factory, Data Lake, and Databricks using a medallion architecture, with Azure SQL and Cosmos DB serving operational and analytical workloads.</li>
-        <li>50+ operational Power BI and Microsoft Fabric reports for business stakeholders.</li>
-        <li>Hybrid Azure–AWS architecture with site-to-site VPN, federated identity, and Kafka for cross-platform streaming, under unified observability.</li>
+        <li>Own the target-state Azure architecture for a multi-tenant healthcare-payer SaaS platform — the tenant isolation model, subscription and environment topology, and the policy guardrails every new customer environment is provisioned against.</li>
+        <li>Define the network and edge security reference architecture: tiered VNet segmentation, Azure Firewall, and Application Gateway WAF on OWASP CRS with tuned rules and exclusions, with Private Link as the default path to data services so no database or storage account is reachable from the public internet.</li>
+        <li>Set the identity and Zero Trust model — least-privilege Entra ID role design and Conditional Access on sign-in risk, named location, and device compliance — mapped to the HIPAA and HITRUST controls the platform is audited against.</li>
+        <li>Codify the platform as parameterised, source-controlled IaC modules so staging and production stay identical by construction and every environment change lands through peer review.</li>
+        <li>Own the DevSecOps standard the delivery teams build to — CI/CD pipelines with SonarQube quality gates, automated compliance and vulnerability scanning, and drift detection, so security findings surface at build time instead of at audit.</li>
+        <li>Design the data architecture — a medallion Data Lake fed by Data Factory and Databricks, with Azure SQL and Cosmos DB serving operational and analytical workloads from one pipeline, supporting 50+ downstream Power BI and Fabric reports.</li>
+        <li>Define resilience posture to agreed RPO and RTO targets through Azure Backup policy design and Site Recovery replication, validated by recovery drills rather than assumed.</li>
+        <li>Architect Azure–AWS interoperability — private site-to-site connectivity, federated identity, and Kafka-based cross-platform streaming under a single observability plane spanning both clouds.</li>
       </ul>
     </div>
 
@@ -78,7 +80,7 @@
         <li>Led a team of 15 across infrastructure, cloud operations, and information security, supporting 24×7 SaaS delivery.</li>
         <li>Established SOC and NOC frameworks with Microsoft Sentinel, SentinelOne, CyberArk PAM, and Splunk — improving threat visibility and cutting detection and response times.</li>
         <li>Implemented Zero Trust, IAM, and PIM using Microsoft Entra ID, reducing over-privileged access and reaching least-privilege governance at scale.</li>
-        <li>Embedded DevSecOps into CI/CD pipelines with automated compliance checks, vulnerability scanning, and drift detection.</li>
+        <li>Introduced DevSecOps across the delivery teams — moved security and compliance checks into the pipeline and established the vulnerability management and remediation cycle behind them.</li>
         <li>Led ISO 27001, HITRUST, and SOC 2 certification programmes — auditor coordination, remediation, and continuous compliance.</li>
       </ul>
     </div>
