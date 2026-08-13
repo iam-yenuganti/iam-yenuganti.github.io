@@ -13,7 +13,7 @@
   <meta name="twitter:card" content="summary" />
   <link rel="canonical" href="https://yenuganti.in/post-fabric-ai-foundry.html" />
   <link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2064%2064%22%3E%3Crect%20width%3D%2264%22%20height%3D%2264%22%20rx%3D%2212%22%20fill%3D%22%230d1b2a%22%2F%3E%3Ctext%20x%3D%2232%22%20y%3D%2244%22%20font-family%3D%22Helvetica%2CArial%2Csans-serif%22%20font-size%3D%2230%22%20font-weight%3D%22bold%22%20text-anchor%3D%22middle%22%20fill%3D%22%231e88e5%22%3ESY%3C%2Ftext%3E%3C%2Fsvg%3E" />
-  <link rel="stylesheet" href="style.css?v=2" />
+  <link rel="stylesheet" href="style.css?v=3" />
   <script type="application/ld+json">
   {
     "@context": "https://schema.org",
@@ -82,8 +82,9 @@
 <body>
 
   <nav class="main-nav">
-    <a href="index.html" class="nav-logo">Srinivas <span>Y.</span></a>
-    <button class="hamburger" onclick="document.getElementById('navlinks').classList.toggle('open')" aria-label="Toggle menu">
+    <a href="index.html" class="nav-logo">Srinivas Yenuganti</a>
+    <button class="hamburger" aria-label="Toggle menu" aria-expanded="false" aria-controls="navlinks"
+      onclick="const o=document.getElementById('navlinks').classList.toggle('open');this.setAttribute('aria-expanded',o)">
       <span></span><span></span><span></span>
     </button>
     <ul class="nav-links" id="navlinks">
