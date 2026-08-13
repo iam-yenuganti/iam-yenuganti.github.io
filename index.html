@@ -58,17 +58,16 @@
 
     <div class="role">
       <div class="role-date">June 2025 – Present</div>
-      <div class="role-title">Cloud Engineer / Architect</div>
-      <div class="role-company">iSpace Inc. · Los Angeles, California</div>
+      <div class="role-title">Cloud / DevOps Architect</div>
+      <div class="role-company">iSpace Inc. · Los Angeles, California — client: Lyric (healthcare payment integrity)</div>
       <ul>
-        <li>Own the target-state Azure architecture for a multi-tenant healthcare-payer SaaS platform — the tenant isolation model, subscription and environment topology, and the policy guardrails every new customer environment is provisioned against.</li>
-        <li>Define the network and edge security reference architecture: tiered VNet segmentation, Azure Firewall, and Application Gateway WAF on OWASP CRS with tuned rules and exclusions, with Private Link as the default path to data services so no database or storage account is reachable from the public internet.</li>
-        <li>Set the identity and Zero Trust model — least-privilege Entra ID role design and Conditional Access on sign-in risk, named location, and device compliance — mapped to the HIPAA and HITRUST controls the platform is audited against.</li>
-        <li>Codify the platform as parameterised, source-controlled IaC modules so staging and production stay identical by construction and every environment change lands through peer review.</li>
-        <li>Own the DevSecOps standard the delivery teams build to — CI/CD pipelines with SonarQube quality gates, automated compliance and vulnerability scanning, and drift detection, so security findings surface at build time instead of at audit.</li>
-        <li>Design the data architecture — a medallion Data Lake fed by Data Factory and Databricks, with Azure SQL and Cosmos DB serving operational and analytical workloads from one pipeline, supporting 50+ downstream Power BI and Fabric reports.</li>
-        <li>Define resilience posture to agreed RPO and RTO targets through Azure Backup policy design and Site Recovery replication, validated by recovery drills rather than assumed.</li>
-        <li>Architect Azure–AWS interoperability — private site-to-site connectivity, federated identity, and Kafka-based cross-platform streaming under a single observability plane spanning both clouds.</li>
+        <li>Architect and operate the Azure footprint behind a healthcare payment-integrity SaaS suite, delivered as isolated, per-customer environments for national health plans.</li>
+        <li>Design and run the AKS platform carrying the claims edits engine, chart-audit AI, OCR, and chart-upload services — private container registry, managed identities, and container-level observability.</li>
+        <li>Moved microservices — auth, coordination of benefits, rule engine, shared services, and UI — onto App Service and Azure Container Apps, fronted by a per-tenant Application Gateway and WAF.</li>
+        <li>Own the multi-subscription, multi-tenant landing zone design — management group hierarchy and RBAC model — codified in Terraform with remote state so every environment is reproducible rather than hand-built.</li>
+        <li>Define the zero-trust network architecture across hub-and-spoke VNets: Azure Firewall with policy, Private Endpoints and Private DNS as the default path to data services, and controlled, inspected egress.</li>
+        <li>Set the PHI/HIPAA-aligned security and observability baseline — Defender for Endpoint, Sentinel, Key Vault, disk encryption, and WAF policy, with Azure Monitor, Log Analytics, Application Insights, and Managed Grafana behind it.</li>
+        <li>Design the resilience posture — Recovery Services and Backup vaults, dedicated DR topologies, and geo-redundancy sized to the recovery targets each product is held to.</li>
       </ul>
     </div>
 
