@@ -61,10 +61,6 @@
     .toc li{margin-bottom:.25rem}
     .toc a{color:#00695c;text-decoration:none}
     .toc a:hover{text-decoration:underline}
-    .kpi-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:.85rem;margin:1.5rem 0}
-    .kpi-card{background:linear-gradient(135deg,#004d40,#00897b);color:#fff;border-radius:10px;padding:1.1rem 1.15rem;box-shadow:0 2px 8px rgba(0,77,64,.18)}
-    .kpi-value{font-size:1.55rem;font-weight:800;letter-spacing:-.5px;line-height:1.1}
-    .kpi-label{font-size:.7rem;opacity:.85;text-transform:uppercase;letter-spacing:1px;margin-top:.25rem}
     .arch-diagram{background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;padding:1.5rem;margin:1.5rem 0}
     .arch-diagram svg{display:block;margin:0 auto;max-width:100%;height:auto}
     .diagram-caption{font-size:.78rem;color:#64748b;text-align:center;margin-top:.6rem;font-style:italic}
@@ -111,14 +107,7 @@
 
       <p>Healthcare data breaches cost an average of $10.9 million per incident — the highest of any industry for 13 consecutive years (IBM Cost of a Data Breach Report). For architects building healthcare cloud platforms, compliance is not a checkbox: it is a core design constraint that shapes every architectural decision from Day One.</p>
 
-      <p>This is the playbook I used to take an insurance claims platform serving 500,000+ members to HITRUST certification in four months, with 99.95% uptime and a 35% cloud cost reduction. HIPAA's Security Rule defines the minimum technical safeguards. HITRUST CSF v11 defines a prescriptive, certifiable control framework that goes significantly further. The goal when designing on Azure is a system where compliance is the <strong>natural byproduct of good architecture</strong> — not a late-stage bolt-on that triggers expensive remediation.</p>
-
-      <div class="kpi-row">
-        <div class="kpi-card"><div class="kpi-value">500K+</div><div class="kpi-label">Members served</div></div>
-        <div class="kpi-card"><div class="kpi-value">99.95%</div><div class="kpi-label">Uptime SLA</div></div>
-        <div class="kpi-card"><div class="kpi-value">4 mo</div><div class="kpi-label">To HITRUST cert</div></div>
-        <div class="kpi-card"><div class="kpi-value">35%</div><div class="kpi-label">Cost reduction</div></div>
-      </div>
+      <p>This is the playbook I used to take a large-scale insurance claims platform through HITRUST certification in under six months, without sacrificing availability and while materially reducing cloud spend. HIPAA's Security Rule defines the minimum technical safeguards. HITRUST CSF v11 defines a prescriptive, certifiable control framework that goes significantly further. The goal when designing on Azure is a system where compliance is the <strong>natural byproduct of good architecture</strong> — not a late-stage bolt-on that triggers expensive remediation.</p>
 
       <div class="toc">
         <div class="toc-title">What's inside</div>
