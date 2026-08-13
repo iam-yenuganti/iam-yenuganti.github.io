@@ -158,6 +158,26 @@ h2.heading {
 .role li { margin-bottom: 0.45rem; }
 .role li::marker { color: #b6bfc9; }
 
+/* ── SKILLS ── */
+.skills { list-style: none; }
+.skills li {
+  font-size: 0.92rem;
+  line-height: 1.65;
+  color: var(--text-soft);
+  padding: 0.85rem 0;
+  border-bottom: 1px solid var(--border);
+}
+.skills li:last-child { border-bottom: none; }
+.skills .k {
+  display: block;
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.9px;
+  color: var(--accent);
+  margin-bottom: 0.3rem;
+}
+
 /* ── CERTIFICATIONS ── */
 .certs { list-style: none; }
 .certs li {

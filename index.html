@@ -13,7 +13,7 @@
   <link rel="canonical" href="https://yenuganti.in/" />
   <title>Srinivas Yenuganti</title>
   <link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2064%2064%22%3E%3Crect%20width%3D%2264%22%20height%3D%2264%22%20rx%3D%2212%22%20fill%3D%22%230d1b2a%22%2F%3E%3Ctext%20x%3D%2232%22%20y%3D%2244%22%20font-family%3D%22Helvetica%2CArial%2Csans-serif%22%20font-size%3D%2230%22%20font-weight%3D%22bold%22%20text-anchor%3D%22middle%22%20fill%3D%22%231e88e5%22%3ESY%3C%2Ftext%3E%3C%2Fsvg%3E" />
-  <link rel="stylesheet" href="style.css?v=3" />
+  <link rel="stylesheet" href="style.css?v=4" />
   <script type="application/ld+json">
   {
     "@context": "https://schema.org",
@@ -55,16 +55,31 @@
 
     <div class="intro">
       <h1>Srinivas Yenuganti</h1>
-      <p class="tagline">IT infrastructure, cloud &amp; security architect · Los Angeles</p>
+      <p class="tagline">IT infrastructure, cloud &amp; security architect · 20+ years · Los Angeles</p>
 
-      <p>I've spent 20+ years building and securing enterprise platforms — mostly on Azure, mostly in healthcare. These days that means cloud architecture and landing zones, DevSecOps pipelines, Zero Trust identity and network design, and the compliance work that comes with handling health data.</p>
+      <p>I've spent 20+ years across nine organisations, on both sides of the wire — from racking servers and running Exchange and SAN storage in the mid-2000s, through leading infrastructure, cloud, and security teams, to designing and operating multi-tenant Azure platforms for healthcare today.</p>
 
-      <p>Before the cloud work I ran data centres, mail platforms, and infrastructure teams, which is still how I think about most problems: what breaks, who gets paged, and how you prove it was handled.</p>
+      <p>That range is the point. I've owned networks, servers, storage, and data centres; built SOC and NOC functions and led teams of up to 15 engineers; taken three organisations through ISO 27001, HITRUST, and SOC 2 certification; and migrated estates off on-premises hardware into Azure. Today I design landing zones, Kubernetes platforms, Zero Trust networking, and DevSecOps pipelines across Azure and AWS.</p>
+
+      <p>I'm still hands-on, deliberately. I write the Terraform, tune the WAF rules, and read the KQL — an architecture decision I couldn't implement myself isn't one I'd ask anyone else to trust.</p>
 
       <p>I write up the useful parts on the <a href="blog.html">blog</a> — practical architecture notes, and the mistakes worth avoiding.</p>
     </div>
 
-    <h2 class="heading">Experience</h2>
+    <h2 class="heading">What I work with</h2>
+
+    <ul class="skills">
+      <li><span class="k">Cloud &amp; platform</span>Azure (IaaS/PaaS), AWS, GCP · landing zones, management groups, multi-subscription and multi-tenant isolation · hybrid and cross-cloud architecture · FinOps and cost governance</li>
+      <li><span class="k">Containers &amp; infrastructure as code</span>AKS, Azure Container Registry, Container Apps, Helm · Terraform (remote state, multi-env), Bicep/ARM · GitOps, Ansible, PowerShell</li>
+      <li><span class="k">Networking &amp; edge</span>Hub-and-spoke VNets, NSGs, routing, private DNS · Azure Firewall and Firewall Policy · Application Gateway and Front Door with WAF (OWASP CRS tuning) · Private Link / Private Endpoints · S2S and P2S VPN, MPLS, egress control</li>
+      <li><span class="k">Identity &amp; security</span>Zero Trust, Microsoft Entra ID, Conditional Access, PIM, RBAC, Azure AD B2C · Defender for Cloud and Endpoint, Microsoft Sentinel, Splunk · CyberArk PAM, Fortinet NGFW, Forcepoint DLP, SentinelOne · SOC/NOC operations, vulnerability management, penetration testing (CEH)</li>
+      <li><span class="k">Data &amp; AI</span>Azure SQL, Cosmos DB, Data Factory, Databricks, Data Lake (medallion) · Kafka, Event Grid, Storage Queues · Azure OpenAI and AI Foundry · Power BI, Microsoft Fabric</li>
+      <li><span class="k">DevOps &amp; delivery</span>Azure DevOps pipelines, GitHub Actions · SonarQube quality gates, SAST/DAST, vulnerability scanning, drift detection · release management, feature flags, test automation</li>
+      <li><span class="k">Observability &amp; resilience</span>Azure Monitor, Log Analytics and KQL, Application Insights, Managed Grafana · Azure Backup, Site Recovery, dedicated DR topologies, RPO/RTO design and recovery drills</li>
+      <li><span class="k">Compliance &amp; governance</span>HIPAA, HITRUST CSF, ISO 27001, SOC 2, PCI DSS, GDPR · Azure Policy, audit readiness, certification programme leadership</li>
+    </ul>
+
+    <h2 class="heading" style="margin-top:4rem;">Experience</h2>
 
     <div class="role">
       <div class="role-date">June 2025 – Present</div>
@@ -124,8 +139,9 @@
       <div class="role-title">Senior System Administrator – Lead</div>
       <div class="role-company">GensourceRx · Hyderabad, India</div>
       <ul>
-        <li>Managed enterprise servers, VMware vSphere clusters, and Exchange environments across global offices.</li>
-        <li>Designed secure VPN connectivity and tiered backup strategies for business continuity.</li>
+        <li>Led the systems team managing enterprise servers, VMware vSphere clusters, and Exchange environments across global offices.</li>
+        <li>Designed secure site-to-site VPN connectivity between offices and tiered backup strategies underpinning business continuity.</li>
+        <li>Improved infrastructure efficiency through proactive monitoring, capacity planning, and performance tuning of the virtualization estate.</li>
       </ul>
     </div>
 
@@ -134,8 +150,10 @@
       <div class="role-title">Senior System Administrator – Datacenter Operations</div>
       <div class="role-company">Ramky Group · Hyderabad, India</div>
       <ul>
-        <li>Oversaw data centre operations including Exchange, SAN storage, network security, and application hosting.</li>
-        <li>Led mail platform migration from Linux to Exchange 2010 and implemented MPLS WAN across branch offices.</li>
+        <li>Ran full data centre operations for the group — Exchange, SAN storage, network security, and enterprise application hosting.</li>
+        <li>Led the mail platform migration from Linux to Exchange 2010, and implemented MPLS WAN connectivity linking branch offices to the data centre.</li>
+        <li>Owned server, storage, and network administration end to end: hardware and environmental monitoring, scheduled maintenance, change windows, and vendor/OEM coordination.</li>
+        <li>Administered Active Directory identity and access, and ran backup, recovery, and continuity for data-centre-hosted services.</li>
       </ul>
     </div>
 
@@ -144,7 +162,9 @@
       <div class="role-title">System Administrator</div>
       <div class="role-company">GCET · Hyderabad, India</div>
       <ul>
-        <li>Administered Windows and Linux systems, Group Policy, and network infrastructure.</li>
+        <li>Administered Windows and Linux systems, Active Directory and Group Policy, and campus network infrastructure.</li>
+        <li>Tuned LAN/WAN performance and implemented security and access controls across the estate.</li>
+        <li>Handled backup and recovery readiness and endpoint protection for staff and lab systems.</li>
       </ul>
     </div>
 
@@ -153,8 +173,9 @@
       <div class="role-title">System Administrator</div>
       <div class="role-company">JB Group of Companies · Hyderabad, India</div>
       <ul>
-        <li>Managed Windows/Linux infrastructure, Active Directory, and file services across multi-office environments.</li>
-        <li>Ran antivirus, backup, and patch management programmes.</li>
+        <li>Managed Windows and Linux infrastructure, Active Directory, and file services across a multi-office environment.</li>
+        <li>Ran the antivirus, backup, and patch management programmes keeping the estate secure and available.</li>
+        <li>Handled connectivity troubleshooting, access administration, and day-to-day support for staff across sites.</li>
       </ul>
     </div>
 
@@ -163,7 +184,8 @@
       <div class="role-title">SQL Database Administrator</div>
       <div class="role-company">IDenizen Smartware Pvt Ltd · Bengaluru, India</div>
       <ul>
-        <li>Administered SQL Server — installation, configuration, backup, recovery, and query tuning.</li>
+        <li>Administered SQL Server databases — installation, configuration, backup, recovery, and query performance tuning.</li>
+        <li>Supported the systems and users behind them: incident logging, troubleshooting, and resolution of hardware, software, and connectivity issues.</li>
       </ul>
     </div>
 
