@@ -20,14 +20,46 @@
     "scenario": "An engineering team supports an application across development, test, staging, and production subscriptions or resource groups. Team members have permanent Reader access only where operational visibility is required. Write access is eligible through Microsoft Entra PIM and scoped to the target environment and task; Contributor is not granted universally when a narrower built-in or custom role will work. Activation requires MFA, a change-ticket reference, justification, and approval from a designated approver group. Development and test can use an organization-defined maximum of up to eight hours, while staging and production use shorter risk-based windows, stricter approvers, protected administrative workstations, and change-management evidence. Eight hours is an organizational configuration choice, not a Microsoft default; PIM permits administrators to configure the maximum duration. PIM audit history records eligibility, requests, approvals, activations, and expiry, while Azure Activity Log records resource-plane write operations. The monitoring design correlates both records by identity, scope, and time.",
     "diagram": {
       "title": "Just-in-time access flow across Azure environments",
-      "steps": [
-        "Engineer has scoped Reader access",
-        "Select dev, test, staging, or production scope",
-        "Request the least-privileged eligible role",
-        "MFA, justification, ticket, and approval",
-        "Risk-based activation window",
-        "Azure Activity Log records changes",
-        "PIM records activation and expiry"
+      "subtitle": "Standing visibility is separated from time-bound privileged operations and independent evidence collection.",
+      "lanes": [
+        {
+          "name": "Engineering",
+          "owner": "Application team",
+          "components": [
+            {"name": "Engineer", "detail": "Scoped Reader access"},
+            {"name": "Change request", "detail": "Environment, role, duration, ticket"}
+          ]
+        },
+        {
+          "name": "Identity control plane",
+          "owner": "Identity and security teams",
+          "components": [
+            {"name": "Microsoft Entra PIM", "detail": "Eligibility and activation policy"},
+            {"name": "Security gates", "detail": "MFA, approval, justification, Conditional Access"}
+          ]
+        },
+        {
+          "name": "Azure environment",
+          "owner": "Platform team",
+          "components": [
+            {"name": "Scoped Azure RBAC", "detail": "Least-privileged role at target scope"},
+            {"name": "Dev / test / stage / prod", "detail": "Risk-based activation duration"}
+          ]
+        },
+        {
+          "name": "Evidence and assurance",
+          "owner": "Security operations and audit",
+          "components": [
+            {"name": "PIM audit history", "detail": "Request, approval, activation, expiry"},
+            {"name": "Azure Activity Log", "detail": "Resource-plane management operations"}
+          ]
+        }
+      ],
+      "flows": [
+        "Request scoped privilege",
+        "Apply identity and approval gates",
+        "Issue time-bound RBAC assignment",
+        "Correlate access and resource operations"
       ]
     },
     "category": "Security & Identity",
@@ -48,14 +80,56 @@
     "angle": "Give architects a practical design for GitHub Actions workload identity federation, least-privilege RBAC, environment protection, and migration away from client secrets.",
     "scenario": "Several application teams deploy Terraform and application releases into separate Azure development subscriptions. Existing pipelines use long-lived client secrets shared across repositories. The platform team must migrate each repository to GitHub OIDC, scope federated identities and Azure RBAC by environment, require protected-environment approval for production, and retain evidence that ties a workflow run to an Azure deployment.",
     "diagram": {
-      "title": "Passwordless deployment trust flow",
-      "steps": [
-        "Engineer starts workflow",
-        "GitHub environment approval",
-        "OIDC token issued",
-        "Microsoft Entra validates federation",
-        "Scoped Azure role activated",
-        "Deployment and audit evidence"
+      "title": "Enterprise workload identity and deployment control plane",
+      "subtitle": "Repository identity, environment approval, token exchange, Azure authorization, and evidence are separate control boundaries.",
+      "lanes": [
+        {
+          "name": "Engineering and source",
+          "owner": "Application team",
+          "components": [
+            {"name": "Pull request", "detail": "Reviewed application and IaC change"},
+            {"name": "Reusable workflow", "detail": "Pinned actions and governed deployment contract"}
+          ]
+        },
+        {
+          "name": "GitHub delivery control plane",
+          "owner": "Platform engineering",
+          "components": [
+            {"name": "Protected environment", "detail": "Approvers, branch rules, deployment concurrency"},
+            {"name": "OIDC token", "detail": "Repository, ref, workflow, and environment claims"}
+          ]
+        },
+        {
+          "name": "Microsoft Entra trust boundary",
+          "owner": "Identity team",
+          "components": [
+            {"name": "Federated credential", "detail": "Exact subject and audience match"},
+            {"name": "Workload identity", "detail": "Separate identity per environment or trust boundary"}
+          ]
+        },
+        {
+          "name": "Azure target scope",
+          "owner": "Cloud platform team",
+          "components": [
+            {"name": "Scoped Azure RBAC", "detail": "Least-privileged role at resource-group or resource scope"},
+            {"name": "Deployment target", "detail": "Dev, test, staging, or production landing zone"}
+          ]
+        },
+        {
+          "name": "Evidence and detection",
+          "owner": "Security operations",
+          "components": [
+            {"name": "Workflow evidence", "detail": "Run, commit, approver, and artifact provenance"},
+            {"name": "Azure evidence", "detail": "Entra sign-in and Azure Activity Log correlation"}
+          ]
+        }
+      ],
+      "flows": [
+        "Approve immutable change",
+        "Issue claim-bound OIDC token",
+        "Exchange token through federated trust",
+        "Authorize only the target scope",
+        "Correlate deployment and Azure evidence"
       ]
     },
     "category": "DevSecOps & CI/CD",
@@ -73,14 +147,56 @@
     "angle": "Describe the architecture decisions for a private AKS cluster, controlled egress, private endpoints, DNS, image pulls, and the operational trade-offs teams should test.",
     "scenario": "A platform team operates a private AKS cluster for multiple engineering teams. Workloads must pull images, retrieve secrets, send telemetry, and consume platform services without unrestricted internet egress. The design must preserve developer delivery speed while controlling DNS, private endpoints, firewall paths, and documented break-glass operations.",
     "diagram": {
-      "title": "Private AKS dependency flow",
-      "steps": [
-        "Engineering pipeline",
-        "Private AKS API",
-        "Cluster workloads",
-        "Private endpoints and DNS",
-        "Approved Azure services",
-        "Controlled firewall egress"
+      "title": "Private AKS platform trust boundaries",
+      "subtitle": "Delivery, cluster management, workload traffic, private dependencies, and controlled egress remain independently governed.",
+      "lanes": [
+        {
+          "name": "Software supply chain",
+          "owner": "Engineering and DevSecOps",
+          "components": [
+            {"name": "Build and attest", "detail": "Signed image, SBOM, policy results"},
+            {"name": "Private registry", "detail": "Approved artifacts and image provenance"}
+          ]
+        },
+        {
+          "name": "Cluster management plane",
+          "owner": "Platform engineering",
+          "components": [
+            {"name": "Private AKS API", "detail": "Controlled administration path"},
+            {"name": "Policy and admission", "detail": "Identity, network, and workload guardrails"}
+          ]
+        },
+        {
+          "name": "Workload boundary",
+          "owner": "Application teams",
+          "components": [
+            {"name": "Namespace tenancy", "detail": "Identity, quotas, and network policy"},
+            {"name": "Workload identity", "detail": "Secretless access to Azure dependencies"}
+          ]
+        },
+        {
+          "name": "Shared Azure services",
+          "owner": "Cloud platform team",
+          "components": [
+            {"name": "Private endpoints", "detail": "Registry, Key Vault, data, and monitoring"},
+            {"name": "Private DNS", "detail": "Central resolution and zone lifecycle"}
+          ]
+        },
+        {
+          "name": "Egress and operations",
+          "owner": "Network and SRE teams",
+          "components": [
+            {"name": "Azure Firewall", "detail": "Explicit outbound destinations and logging"},
+            {"name": "Observability", "detail": "SLOs, flow evidence, and break-glass detection"}
+          ]
+        }
+      ],
+      "flows": [
+        "Promote trusted artifact",
+        "Admit compliant workload",
+        "Resolve private dependency",
+        "Authorize workload identity",
+        "Inspect exceptional egress"
       ]
     },
     "category": "Cloud Architecture",
@@ -124,14 +240,48 @@
     "angle": "Explain how security posture, code-to-cloud context, regulatory controls, and remediation ownership can become part of an engineering operating model rather than a dashboard-only exercise.",
     "scenario": "Application and platform teams deploy containerized workloads and infrastructure as code through GitHub. Security findings are visible in Defender for Cloud but lack engineering ownership and remediation targets. The DevSecOps design must connect repositories to cloud resources, route actionable findings to the owning team, block only high-confidence release risks, and retain evidence for governance reviews.",
     "diagram": {
-      "title": "Code-to-cloud remediation loop",
-      "steps": [
-        "Code and infrastructure change",
-        "CI security checks",
-        "Azure deployment",
-        "Defender for Cloud finding",
-        "Owning engineering team",
-        "Remediation and evidence"
+      "title": "Code-to-cloud risk ownership and remediation loop",
+      "subtitle": "Preventive pipeline controls and runtime posture signals converge on the team that owns the affected service.",
+      "lanes": [
+        {
+          "name": "Engineering",
+          "owner": "Service team",
+          "components": [
+            {"name": "Application and IaC", "detail": "Repository ownership and service metadata"},
+            {"name": "Pull request", "detail": "Threat model and risk acceptance context"}
+          ]
+        },
+        {
+          "name": "DevSecOps pipeline",
+          "owner": "Platform security",
+          "components": [
+            {"name": "Preventive checks", "detail": "Secrets, SAST, dependencies, IaC, containers"},
+            {"name": "Release policy", "detail": "Risk-based block, warn, or exception"}
+          ]
+        },
+        {
+          "name": "Azure runtime",
+          "owner": "Cloud platform",
+          "components": [
+            {"name": "Deployed workload", "detail": "Resource graph and code-to-cloud mapping"},
+            {"name": "Defender for Cloud", "detail": "Posture, attack path, and runtime findings"}
+          ]
+        },
+        {
+          "name": "Operations and governance",
+          "owner": "Security operations and risk",
+          "components": [
+            {"name": "Ownership routing", "detail": "Service owner, severity, SLA, exception expiry"},
+            {"name": "Evidence loop", "detail": "Remediation commit, deployment, verification"}
+          ]
+        }
+      ],
+      "flows": [
+        "Evaluate change before merge",
+        "Deploy with traceable provenance",
+        "Correlate runtime exposure to source",
+        "Route finding to accountable owner",
+        "Verify remediation in code and cloud"
       ]
     },
     "category": "DevSecOps & CI/CD",
