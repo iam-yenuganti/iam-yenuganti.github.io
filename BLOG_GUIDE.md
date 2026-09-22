@@ -182,6 +182,79 @@ Given your expertise, here are article ideas:
 
 ---
 
+## Automated Daily Drafts
+
+The local Ollama agent creates a reviewable pull request every day at 07:00
+local time. It never publishes directly. A post goes live only after you review
+and merge its pull request into `main`.
+If an `ai-draft` pull request is already open, the next scheduled run skips
+generation so your review queue does not accumulate duplicate drafts.
+
+### One-time setup
+
+1. Install Ollama, Node.js, Git, and the GitHub CLI.
+2. Pull the configured writing model: `ollama pull qwen3.6:27b`.
+3. Authenticate the GitHub CLI: `gh auth login`.
+4. Make sure the Ollama application starts when you sign in to the Mac.
+5. Commit and push the automation files to `main`. The scheduled process works
+   in a temporary clone and intentionally does not use your working folder.
+6. Install the schedule:
+
+   ```bash
+   chmod +x automation/run-local-draft.sh automation/install-local-schedule.sh
+   ./automation/install-local-schedule.sh
+   ```
+
+The scheduler is macOS `launchd`, not a GitHub self-hosted runner. This avoids
+allowing workflows from a public repository to execute on your personal laptop.
+The laptop must be powered on, awake, connected to the internet, and running
+Ollama when the job starts.
+
+### Editorial workflow
+
+1. The generator selects the first unused entry in `automation/topics.json`.
+2. It creates a clean temporary clone, downloads only the listed Microsoft
+   Learn pages, and gives that material to the local model as reference data.
+3. It rejects malformed output, executable HTML, unapproved links, and drafts
+   outside the configured length limits.
+4. It creates a post, updates `blog.html` and `sitemap.xml`, then opens a pull
+   request.
+5. Review every factual claim and source before merging. Edit the branch
+   directly when needed.
+
+The workflow fails clearly when the curated queue is empty. Add reviewed topic
+entries and official Microsoft Learn source URLs to extend the queue. For a
+professional portfolio, quality is more important than maintaining an
+uninterrupted daily count.
+
+### Local validation
+
+The validation tests do not call Ollama:
+
+```bash
+node --test automation/generate-article.test.mjs
+```
+
+Run a complete draft manually with:
+
+```bash
+./automation/run-local-draft.sh
+```
+
+This opens a real pull request. To test a specific queued topic:
+
+```bash
+TOPIC_ID=aks-network-isolation ./automation/run-local-draft.sh
+```
+
+To remove the daily schedule:
+
+```bash
+./automation/install-local-schedule.sh --uninstall
+```
+
+---
+
 ## Support
 
 Questions? Check existing blog posts in your repo for structure examples.

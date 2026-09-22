@@ -1,0 +1,132 @@
+[
+  {
+    "id": "azure-policy-platform-guardrails",
+    "slug": "azure-policy-platform-guardrails",
+    "title": "Azure Policy Guardrails That Enable Platform Teams",
+    "angle": "Explain how an enterprise platform team can move from audit-only visibility to safe enforcement using initiatives, exemptions, remediation, policy as code, and measurable rollout gates.",
+    "category": "Compliance & Governance",
+    "tags": ["Azure Policy", "Governance", "Platform Engineering"],
+    "sources": [
+      "https://learn.microsoft.com/azure/governance/policy/overview",
+      "https://learn.microsoft.com/azure/governance/policy/concepts/exemption-structure",
+      "https://learn.microsoft.com/azure/governance/policy/how-to/remediate-resources"
+    ]
+  },
+  {
+    "id": "workload-identity-github-actions",
+    "slug": "workload-identity-github-actions",
+    "title": "Passwordless Azure Deployments from GitHub Actions",
+    "angle": "Give architects a practical design for GitHub Actions workload identity federation, least-privilege RBAC, environment protection, and migration away from client secrets.",
+    "category": "DevSecOps & CI/CD",
+    "tags": ["GitHub Actions", "OIDC", "Microsoft Entra ID"],
+    "sources": [
+      "https://learn.microsoft.com/azure/developer/github/connect-from-azure-openid-connect",
+      "https://learn.microsoft.com/entra/workload-id/workload-identity-federation",
+      "https://learn.microsoft.com/azure/role-based-access-control/best-practices"
+    ]
+  },
+  {
+    "id": "aks-network-isolation",
+    "slug": "aks-network-isolation",
+    "title": "AKS Network Isolation Without Breaking Delivery",
+    "angle": "Describe the architecture decisions for a private AKS cluster, controlled egress, private endpoints, DNS, image pulls, and the operational trade-offs teams should test.",
+    "category": "Cloud Architecture",
+    "tags": ["AKS", "Network Security", "Private Link"],
+    "sources": [
+      "https://learn.microsoft.com/azure/aks/private-clusters",
+      "https://learn.microsoft.com/azure/aks/outbound-rules-control-egress",
+      "https://learn.microsoft.com/azure/private-link/private-endpoint-overview"
+    ]
+  },
+  {
+    "id": "azure-key-vault-zero-trust",
+    "slug": "azure-key-vault-zero-trust",
+    "title": "A Zero-Trust Operating Model for Azure Key Vault",
+    "angle": "Build an operational blueprint covering RBAC, private connectivity, managed identities, rotation, logging, recovery controls, and separation of duties.",
+    "category": "Security & Identity",
+    "tags": ["Key Vault", "Zero Trust", "Managed Identity"],
+    "sources": [
+      "https://learn.microsoft.com/azure/key-vault/general/best-practices",
+      "https://learn.microsoft.com/azure/key-vault/general/rbac-guide",
+      "https://learn.microsoft.com/azure/key-vault/general/soft-delete-overview"
+    ]
+  },
+  {
+    "id": "azure-monitor-observability-baseline",
+    "slug": "azure-monitor-observability-baseline",
+    "title": "Designing an Azure Observability Baseline",
+    "angle": "Show how to define a platform-level observability baseline using Azure Monitor, Log Analytics workspace design, diagnostic settings, alerts, and actionable service-level signals.",
+    "category": "Platform Engineering",
+    "tags": ["Azure Monitor", "Observability", "Log Analytics"],
+    "sources": [
+      "https://learn.microsoft.com/azure/azure-monitor/fundamentals/overview",
+      "https://learn.microsoft.com/azure/azure-monitor/logs/workspace-design",
+      "https://learn.microsoft.com/azure/azure-monitor/essentials/diagnostic-settings"
+    ]
+  },
+  {
+    "id": "defender-for-cloud-devsecops",
+    "slug": "defender-for-cloud-devsecops",
+    "title": "Bringing Defender for Cloud into the DevSecOps Loop",
+    "angle": "Explain how security posture, code-to-cloud context, regulatory controls, and remediation ownership can become part of an engineering operating model rather than a dashboard-only exercise.",
+    "category": "DevSecOps & CI/CD",
+    "tags": ["Defender for Cloud", "DevSecOps", "Cloud Security"],
+    "sources": [
+      "https://learn.microsoft.com/azure/defender-for-cloud/defender-for-cloud-introduction",
+      "https://learn.microsoft.com/azure/defender-for-cloud/concept-cloud-security-posture-management",
+      "https://learn.microsoft.com/azure/defender-for-cloud/quickstart-onboard-github"
+    ]
+  },
+  {
+    "id": "azure-cost-governance",
+    "slug": "azure-cost-governance",
+    "title": "FinOps Guardrails for Enterprise Azure",
+    "angle": "Present a practical operating model that connects hierarchy, tags, budgets, anomaly detection, reservations, and engineering accountability without inventing savings percentages.",
+    "category": "Compliance & Governance",
+    "tags": ["FinOps", "Cost Management", "Governance"],
+    "sources": [
+      "https://learn.microsoft.com/azure/cost-management-billing/costs/overview-cost-management",
+      "https://learn.microsoft.com/azure/cost-management-billing/costs/tutorial-acm-create-budgets",
+      "https://learn.microsoft.com/cloud-computing/finops/framework/finops-framework"
+    ]
+  },
+  {
+    "id": "azure-backup-ransomware-resilience",
+    "slug": "azure-backup-ransomware-resilience",
+    "title": "Ransomware-Resilient Backup Architecture on Azure",
+    "angle": "Explain how soft delete, immutability, authorization controls, monitoring, restore testing, and separation of duties fit together in a defensible backup architecture.",
+    "category": "Security & Identity",
+    "tags": ["Azure Backup", "Ransomware", "Business Continuity"],
+    "sources": [
+      "https://learn.microsoft.com/azure/backup/security-overview",
+      "https://learn.microsoft.com/azure/backup/backup-azure-security-feature-cloud",
+      "https://learn.microsoft.com/azure/backup/backup-azure-immutable-vault-concept"
+    ]
+  },
+  {
+    "id": "container-apps-platform-pattern",
+    "slug": "container-apps-platform-pattern",
+    "title": "When Azure Container Apps Is the Right Platform Choice",
+    "angle": "Compare the architectural concerns that make Container Apps suitable for APIs, event-driven services, and jobs, while clearly identifying when AKS or App Service is a better fit.",
+    "category": "Cloud Architecture",
+    "tags": ["Container Apps", "Platform Engineering", "Architecture"],
+    "sources": [
+      "https://learn.microsoft.com/azure/container-apps/overview",
+      "https://learn.microsoft.com/azure/container-apps/compare-options",
+      "https://learn.microsoft.com/azure/container-apps/jobs"
+    ]
+  },
+  {
+    "id": "azure-well-architected-review",
+    "slug": "azure-well-architected-review",
+    "title": "Turning an Azure Architecture Review into an Engineering Backlog",
+    "angle": "Show how architects can use the Well-Architected Framework pillars to produce prioritized, owned, testable improvements instead of a static assessment document.",
+    "category": "Cloud Architecture",
+    "tags": ["Well-Architected", "Architecture Review", "Cloud Adoption"],
+    "sources": [
+      "https://learn.microsoft.com/azure/well-architected/what-is-well-architected-framework",
+      "https://learn.microsoft.com/azure/well-architected/pillars",
+      "https://learn.microsoft.com/assessments/azure-architecture-review/"
+    ]
+  }
+]
