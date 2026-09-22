@@ -227,7 +227,10 @@ identify the actors, Azure scope, default access, change trigger, approval flow,
 time-bound privilege, implementation controls, audit evidence, failure modes,
 and operational trade-offs. For access-governance scenarios, the draft must
 separate PIM activation evidence from Azure Activity Log records of the actual
-resource changes.
+resource changes. Patterns should cover development, test, staging, and
+production where applicable, with controls strengthened according to
+environment risk. They must use least privilege at the narrowest practical
+scope rather than treating Contributor or Owner as universal engineering roles.
 
 Topics can also define a trusted `diagram` in `automation/topics.json`. The
 generator renders it as responsive HTML/CSS from curated labels rather than

@@ -15,17 +15,17 @@
   {
     "id": "pim-developer-write-access",
     "slug": "pim-developer-write-access",
-    "title": "Just-in-Time Azure Write Access for Development Teams with PIM",
-    "angle": "Design a practical Azure access-governance pattern in which developers retain Reader access to the development resource group and activate an eligible Contributor role only for approved changes.",
-    "scenario": "A development team has permanent Reader access at development resource-group scope. A developer who needs to deploy, modify, or delete a resource must activate an eligible Contributor assignment through Microsoft Entra PIM. Activation requires MFA, a change-ticket reference in the justification, and approval from a designated approver group aligned with reporting-manager responsibility. The organization configures an eight-hour maximum activation window, with users expected to request only the time needed. PIM audit history records eligibility, requests, approvals, activations, and expiry; Azure Activity Log records the resource write operations. The monitoring design correlates both records by identity and time.",
+    "title": "Just-in-Time Azure Write Access Across Development, Test, Staging, and Production",
+    "angle": "Design an enterprise Azure access-governance pattern across development, test, staging, and production. Engineering teams retain only the standing read access required for their responsibilities and activate narrowly scoped, eligible write roles through Microsoft Entra PIM.",
+    "scenario": "An engineering team supports an application across development, test, staging, and production subscriptions or resource groups. Team members have permanent Reader access only where operational visibility is required. Write access is eligible through Microsoft Entra PIM and scoped to the target environment and task; Contributor is not granted universally when a narrower built-in or custom role will work. Activation requires MFA, a change-ticket reference, justification, and approval from a designated approver group. Development and test can use an organization-defined maximum of up to eight hours, while staging and production use shorter risk-based windows, stricter approvers, protected administrative workstations, and change-management evidence. Eight hours is an organizational configuration choice, not a Microsoft default; PIM permits administrators to configure the maximum duration. PIM audit history records eligibility, requests, approvals, activations, and expiry, while Azure Activity Log records resource-plane write operations. The monitoring design correlates both records by identity, scope, and time.",
     "diagram": {
-      "title": "Just-in-time development access flow",
+      "title": "Just-in-time access flow across Azure environments",
       "steps": [
-        "Developer has Reader access",
-        "Request Contributor in PIM",
-        "MFA, justification, and ticket",
-        "Manager-aligned approver group",
-        "Contributor active for up to 8 hours",
+        "Engineer has scoped Reader access",
+        "Select dev, test, staging, or production scope",
+        "Request the least-privileged eligible role",
+        "MFA, justification, ticket, and approval",
+        "Risk-based activation window",
         "Azure Activity Log records changes",
         "PIM records activation and expiry"
       ]
@@ -36,7 +36,9 @@
       "https://learn.microsoft.com/entra/id-governance/privileged-identity-management/pim-resource-roles-configure-role-settings",
       "https://learn.microsoft.com/entra/id-governance/privileged-identity-management/pim-resource-roles-activate-your-roles",
       "https://learn.microsoft.com/entra/id-governance/privileged-identity-management/azure-pim-resource-rbac",
-      "https://learn.microsoft.com/azure/azure-monitor/essentials/activity-log"
+      "https://learn.microsoft.com/azure/azure-monitor/essentials/activity-log",
+      "https://learn.microsoft.com/entra/architecture/secure-best-practices",
+      "https://learn.microsoft.com/security/benchmark/azure/mcsb-v2-privileged-access"
     ]
   },
   {

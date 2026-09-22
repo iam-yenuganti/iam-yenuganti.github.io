@@ -230,6 +230,8 @@ Article HTML rules:
 - Begin with the business and engineering problem in a short opening paragraph.
 - Use these exact H2 sections in this order: Scenario, Target Architecture, Request and Approval Flow, Implementation Steps, Audit and Evidence, Failure Modes and Trade-offs, Implementation Checklist, Conclusion.
 - Name the actors, Azure scope, normal access level, elevation trigger, approval path, time boundary, enforcement controls, evidence sources, and rollback or expiry behavior.
+- Apply the pattern across development, test, staging, and production when the scenario spans environments. Include an environment control matrix and make higher-risk environments more restrictive.
+- Follow least privilege at the narrowest practical scope. Do not recommend broad Contributor or Owner access when a narrower built-in or custom role can satisfy the task.
 - Clearly distinguish configurable architecture choices from Microsoft product defaults.
 - Clearly distinguish access-governance records from resource-operation logs. Do not imply that an access system records changes performed in the resource plane.
 - Include concrete portal paths, policy settings, role scopes, or commands only when the supplied sources support them.
