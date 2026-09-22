@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Migrate from long-lived secrets to GitHub OIDC federation. Learn to scope Azure RBAC, enforce environment approvals, and audit passwordless deployments securely." />
+  <title>Passwordless Azure Deployments from GitHub Actions: A Secure Architecture | Srinivas Yenuganti</title>
+  <meta property="og:type" content="article" />
+  <meta property="og:title" content="Passwordless Azure Deployments from GitHub Actions: A Secure Architecture" />
+  <meta property="og:description" content="Migrate from long-lived secrets to GitHub OIDC federation. Learn to scope Azure RBAC, enforce environment approvals, and audit passwordless deployments securely." />
+  <meta property="og:url" content="https://yenuganti.in/post-workload-identity-github-actions.html" />
+  <meta property="article:published_time" content="2026-09-22" />
+  <meta name="twitter:card" content="summary" />
+  <link rel="canonical" href="https://yenuganti.in/post-workload-identity-github-actions.html" />
+  <link rel="stylesheet" href="style.css?v=4" />
+  <style>
+    .post-header{background:linear-gradient(135deg,#071b33,#0b4f75);padding:3.5rem 1.5rem 3rem}
+    .post-header-inner,.article-body,.author-card{max-width:760px;margin:0 auto}
+    .post-breadcrumb,.post-meta{font-size:.78rem;color:rgba(255,255,255,.65)}
+    .post-breadcrumb a{color:rgba(255,255,255,.85)}
+    .post-title{font-size:clamp(1.7rem,4vw,2.5rem);color:#fff;line-height:1.2;margin:1rem 0}
+    .article-section{padding:3.5rem 1.5rem}
+    .article-body p,.article-body li{color:#374151;margin-bottom:1rem}
+    .article-body h2{font-size:1.45rem;margin:2.5rem 0 .8rem;padding-top:1.5rem;border-top:1px solid #e2e8f0}
+    .article-body h3{font-size:1.1rem;color:#0b4f75;margin:1.5rem 0 .5rem}
+    .article-body ul,.article-body ol{margin:0 0 1.25rem 1.5rem}
+    .article-body pre{background:#0b1f33;color:#e6edf3;padding:1rem;border-radius:8px;overflow:auto}
+    .article-body code{background:#eef2f7;padding:.1rem .3rem;border-radius:4px}
+    .article-body table{width:100%;border-collapse:collapse;margin:1.5rem 0}
+    .article-body th,.article-body td{border:1px solid #dbe3ec;padding:.65rem;text-align:left;vertical-align:top}
+    .article-body blockquote{border-left:4px solid #1565c0;background:#f7f9fb;padding:1rem 1.2rem;margin:1.5rem 0}
+    .architecture-diagram{max-width:100%;margin:0 0 2.5rem;padding:1.25rem;background:#f7f9fb;border:1px solid #dbe3ec;border-radius:10px}
+    .architecture-diagram figcaption{font-weight:700;color:#0d1b2a;margin-bottom:1rem}
+    .diagram-flow{display:flex;align-items:stretch;gap:.55rem;overflow-x:auto;padding-bottom:.4rem}
+    .diagram-step{min-width:145px;display:flex;align-items:center;gap:.55rem;padding:.8rem;background:#fff;border:1px solid #cbd5e1;border-radius:8px;font-size:.78rem;line-height:1.4}
+    .diagram-number{display:inline-flex;align-items:center;justify-content:center;min-width:1.6rem;height:1.6rem;border-radius:50%;background:#1565c0;color:#fff;font-weight:700}
+    .diagram-arrow{align-self:center;color:#1565c0;font-size:1.2rem;font-weight:700}
+    .sources{margin-top:2.5rem;padding-top:1.5rem;border-top:1px solid #e2e8f0}
+    .author-card{background:#f7f9fb;border:1px solid #e2e8f0;border-radius:10px;padding:1.5rem;margin-top:3rem}
+  </style>
+</head>
+<body>
+  <nav class="main-nav">
+    <a href="index.html" class="nav-logo">Srinivas Yenuganti</a>
+    <button class="hamburger" aria-label="Toggle menu" aria-expanded="false" aria-controls="navlinks"
+      onclick="const o=document.getElementById('navlinks').classList.toggle('open');this.setAttribute('aria-expanded',o)">
+      <span></span><span></span><span></span>
+    </button>
+    <ul class="nav-links" id="navlinks">
+      <li><a href="index.html">About</a></li>
+      <li><a href="blog.html" class="active">Blog</a></li>
+    </ul>
+  </nav>
+
+  <header class="post-header">
+    <div class="post-header-inner">
+      <div class="post-breadcrumb"><a href="blog.html">&larr; Blog</a> &middot; DevSecOps &amp; CI/CD</div>
+      <h1 class="post-title">Passwordless Azure Deployments from GitHub Actions: A Secure Architecture</h1>
+      <div class="post-meta">12 min read &middot; 22 September 2026</div>
+    </div>
+  </header>
+
+  <main class="article-section">
+    <article class="article-body">
+      
+      <figure class="architecture-diagram" aria-labelledby="architecture-flow-title">
+        <figcaption id="architecture-flow-title">Passwordless deployment trust flow</figcaption>
+        <div class="diagram-flow">
+          <div class="diagram-step">
+            <span class="diagram-number">1</span>
+            <span>Engineer starts workflow</span>
+          </div>
+          <span class="diagram-arrow" aria-hidden="true">&rarr;</span>
+          <div class="diagram-step">
+            <span class="diagram-number">2</span>
+            <span>GitHub environment approval</span>
+          </div>
+          <span class="diagram-arrow" aria-hidden="true">&rarr;</span>
+          <div class="diagram-step">
+            <span class="diagram-number">3</span>
+            <span>OIDC token issued</span>
+          </div>
+          <span class="diagram-arrow" aria-hidden="true">&rarr;</span>
+          <div class="diagram-step">
+            <span class="diagram-number">4</span>
+            <span>Microsoft Entra validates federation</span>
+          </div>
+          <span class="diagram-arrow" aria-hidden="true">&rarr;</span>
+          <div class="diagram-step">
+            <span class="diagram-number">5</span>
+            <span>Scoped Azure role activated</span>
+          </div>
+          <span class="diagram-arrow" aria-hidden="true">&rarr;</span>
+          <div class="diagram-step">
+            <span class="diagram-number">6</span>
+            <span>Deployment and audit evidence</span>
+          </div>
+        </div>
+      </figure>
+      <h2>Scenario</h2>
+<p>Application teams deploy Terraform and application releases into separate Azure development subscriptions. Currently, pipelines rely on long-lived client secrets shared across repositories, creating significant security risk and maintenance overhead. The platform team must migrate each repository to GitHub OpenID Connect (OIDC), scope federated identities and Azure Role-Based Access Control (RBAC) by environment, require protected-environment approval for production, and retain evidence tying a workflow run to an Azure deployment.</p>
+
+<h2>Target Architecture</h2>
+<p>The target architecture eliminates static credentials by establishing a trust relationship between GitHub Actions and Microsoft Entra ID. Instead of storing secrets, the workflow requests a short-lived token from GitHub, which is exchanged for an Azure access token via Microsoft Entra Workload Identity Federation.</p>
+<p>Key components include:</p>
+<ul>
+<li><strong>Identity Provider:</strong> GitHub Actions issues OIDC tokens.</li>
+<li><strong>Trust Anchor:</strong> Microsoft Entra application or user-assigned managed identity configured with a federated identity credential.</li>
+<li><strong>Access Control:</strong> Azure RBAC assigned to the identity, scoped narrowly to specific resource groups or subscriptions.</li>
+<li><strong>Workflow Protection:</strong> GitHub Environments with required reviewers for high-risk stages.</li>
+</ul>
+<p>This design ensures that no long-lived secrets exist in the repository. Access is granted only when a workflow runs, and only if the token claims match the federated credential configuration.</p>
+
+<h2>Request and Approval Flow</h2>
+<p>The deployment flow follows a strict sequence to ensure security and auditability:</p>
+<ol>
+<li><strong>Engineer starts workflow:</strong> A push or pull request triggers the GitHub Actions workflow.</li>
+<li><strong>GitHub environment approval:</strong> For protected environments (e.g., Production), the job pauses until a designated reviewer approves the deployment.</li>
+<li><strong>OIDC token issued:</strong> GitHub issues a short-lived OIDC token containing claims about the repository, branch, and environment.</li>
+<li><strong>Microsoft Entra validates federation:</strong> The Azure Login action sends the token to Microsoft Entra ID. Entra validates the token against the federated identity credential (checking issuer, subject, and audience).</li>
+<li><strong>Scoped Azure role activated:</strong> Upon validation, Microsoft Entra issues an access token. Azure RBAC evaluates the token against the assigned roles (e.g., Contributor on a specific Resource Group).</li>
+<li><strong>Deployment and audit evidence:</strong> The deployment executes. Audit logs record the identity used and the actions performed.</li>
+</ol>
+
+<h2>Implementation Steps</h2>
+<p>Migration requires configuring both the identity trust and the workflow permissions.</p>
+
+<h3>1. Configure Federated Identity Credential</h3>
+<p>Create a Microsoft Entra application or user-assigned managed identity. Configure a federated identity credential to trust tokens from GitHub Actions. The credential must specify the GitHub repository, branch, and optionally the environment. The <code>issuer</code>, <code>subject</code>, and <code>audience</code> values must case-sensitively match the token claims.</p>
+<p>For public clouds, the default audience is <code>api://AzureADTokenExchange</code>. For non-public clouds, update this parameter accordingly.</p>
+
+<h3>2. Set Up GitHub Secrets</h3>
+<p>Store the <code>AZURE_CLIENT_ID</code>, <code>AZURE_TENANT_ID</code>, and <code>AZURE_SUBSCRIPTION_ID</code> as GitHub secrets. For enhanced security in public repositories, use environment secrets instead of repository secrets. If the environment requires approval, the job cannot access these secrets until a reviewer approves it.</p>
+
+<h3>3. Update Workflow Permissions</h3>
+<p>Modify the GitHub Actions workflow to request an OIDC token. Add <code>permissions: id-token: write</code> to the job. This is required to fetch the OIDC token.</p>
+<pre><code>jobs:
+  deploy:
+    permissions:
+      id-token: write
+    runs-on: ubuntu-latest
+    steps:
+      - name: Azure Login
+        uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+</code></pre>
+
+<h3>4. Scope RBAC by Environment</h3>
+<p>Assign Azure RBAC roles to the identity. Follow least-privilege principles. Avoid broad roles like Owner. Use narrower built-in roles or custom roles scoped to specific resource groups.</p>
+
+<table>
+<thead>
+<tr>
+<th>Environment</th>
+<th>RBAC Scope</th>
+<th>Role Assignment</th>
+<th>Approval Required</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Development</td>
+<td>Resource Group: Dev</td>
+<td>Contributor</td>
+<td>No</td>
+</tr>
+<tr>
+<td>Test</td>
+<td>Resource Group: Test</td>
+<td>Contributor</td>
+<td>No</td>
+</tr>
+<tr>
+<td>Staging</td>
+<td>Resource Group: Staging</td>
+<td>Contributor</td>
+<td>Yes (Reviewer)</td>
+</tr>
+<tr>
+<td>Production</td>
+<td>Resource Group: Prod</td>
+<td>Contributor</td>
+<td>Yes (Reviewer + PIM)</td>
+</tr>
+</tbody>
+</table>
+
+<h2>Audit and Evidence</h2>
+<p>It is critical to distinguish between access-governance records and resource-operation logs. Microsoft Entra ID logs the authentication and token issuance events. Azure Activity Logs record the resource operations performed by the identity. The workflow run ID and the Azure deployment ID should be correlated in your CI/CD dashboard to provide end-to-end traceability.</p>
+<p>Do not assume that the access system records changes performed in the resource plane. Azure RBAC controls access, but Azure Monitor and Activity Logs provide the evidence of what was changed.</p>
+
+<h2>Failure Modes and Trade-offs</h2>
+<p><strong>Token Validation Failures:</strong> If the <code>issuer</code>, <code>subject</code>, or <code>audience</code> in the federated credential does not match the token claims, authentication fails. This is a common misconfiguration during migration.</p>
+<p><strong>Secret Exposure:</strong> While OIDC eliminates client secrets, the Client ID and Subscription ID are still stored as GitHub secrets. These are not secrets in the cryptographic sense but should be protected. Using environment secrets adds an additional layer of protection.</p>
+<p><strong>Complexity:</strong> Managing federated credentials for multiple repositories and environments can be complex. Automation via Terraform or Bicep is recommended to manage these configurations at scale.</p>
+<p><strong>Privileged Access:</strong> For production, consider using Microsoft Entra Privileged Identity Management (PIM) to provide just-in-time access. This lowers the exposure time of privileges and increases visibility.</p>
+
+<h2>Implementation Checklist</h2>
+<ul>
+<li>[ ] Create Microsoft Entra application or user-assigned managed identity.</li>
+<li>[ ] Configure federated identity credential with correct issuer, subject, and audience.</li>
+<li>[ ] Assign least-privilege Azure RBAC roles to the identity.</li>
+<li>[ ] Store Client ID, Tenant ID, and Subscription ID as GitHub secrets.</li>
+<li>[ ] Update GitHub Actions workflow to use <code>id-token: write</code> permission.</li>
+<li>[ ] Configure GitHub Environments for staging and production with required reviewers.</li>
+<li>[ ] Validate that audit logs capture both authentication and resource operations.</li>
+<li>[ ] Remove old client secrets from repositories and rotate any compromised credentials.</li>
+</ul>
+
+<h2>Conclusion</h2>
+<p>Migrating to passwordless deployments using GitHub OIDC federation significantly reduces the attack surface by eliminating long-lived secrets. By combining federated identities with least-privilege RBAC and environment protections, organizations can achieve a secure, auditable, and maintainable deployment pipeline. This architecture aligns with modern security best practices and reduces the operational burden of secret rotation.</p>
+      <section class="sources">
+        <h2>Sources</h2>
+        <ol>
+          <li><a href="https://learn.microsoft.com/azure/developer/github/connect-from-azure-openid-connect" target="_blank" rel="noopener">Microsoft Learn source 1</a></li>
+          <li><a href="https://learn.microsoft.com/entra/workload-id/workload-identity-federation" target="_blank" rel="noopener">Microsoft Learn source 2</a></li>
+          <li><a href="https://learn.microsoft.com/azure/role-based-access-control/best-practices" target="_blank" rel="noopener">Microsoft Learn source 3</a></li>
+        </ol>
+      </section>
+      <aside class="author-card">
+        <strong>Srinivas Yenuganti</strong>
+        <p>Azure Cloud and DevSecOps architect writing about secure, governed, and operable enterprise platforms.</p>
+      </aside>
+    </article>
+  </main>
+
+  <footer class="main-footer">
+    <p>&copy; 2026 Srinivas Yenuganti &nbsp;&middot;&nbsp;
+      <a href="index.html">About</a> &nbsp;&middot;&nbsp;
+      <a href="blog.html">Blog</a> &nbsp;&middot;&nbsp;
+      <a href="https://www.linkedin.com/in/syenuganti-bb767744/" target="_blank" rel="noopener">LinkedIn</a>
+    </p>
+  </footer>
+</body>
+</html>
