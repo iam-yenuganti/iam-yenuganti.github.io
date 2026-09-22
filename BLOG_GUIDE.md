@@ -189,6 +189,10 @@ local time. It never publishes directly. A post goes live only after you review
 and merge its pull request into `main`.
 If an `ai-draft` pull request is already open, the next scheduled run skips
 generation so your review queue does not accumulate duplicate drafts.
+The local runner also checks the articles already merged into `main`. If an
+article has today's local publication date, it exits successfully without
+generating another one. This guarantees at most one article per calendar day,
+including manual runs.
 
 ### One-time setup
 
