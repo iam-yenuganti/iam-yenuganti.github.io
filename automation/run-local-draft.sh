@@ -91,6 +91,7 @@ gh pr create \
   --repo "$repository" \
   --base main \
   --head "$branch" \
+  --draft \
   --title "Draft blog: $title" \
   --label "ai-draft" \
   --body "## AI-generated draft

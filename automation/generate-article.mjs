@@ -387,7 +387,13 @@ async function writeOutput(name, value) {
 async function main() {
   const topics = JSON.parse(await fs.readFile(TOPICS_PATH, "utf8"));
   const topic = await chooseTopic(topics, process.env.TOPIC_ID);
-  const date = process.env.PUBLICATION_DATE || new Date().toISOString().slice(0, 10);
+  const now = new Date();
+  const localDate = [
+    now.getFullYear(),
+    String(now.getMonth() + 1).padStart(2, "0"),
+    String(now.getDate()).padStart(2, "0")
+  ].join("-");
+  const date = process.env.PUBLICATION_DATE || localDate;
   if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) {
     throw new Error("PUBLICATION_DATE must use YYYY-MM-DD.");
   }
