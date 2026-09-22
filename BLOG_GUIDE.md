@@ -189,6 +189,10 @@ local time. It never publishes directly. A post goes live only after you review
 and merge its pull request into `main`.
 If an `ai-draft` pull request is already open, the next scheduled run skips
 generation so your review queue does not accumulate duplicate drafts.
+The local runner also checks the articles already merged into `main`. If an
+article has today's local publication date, it exits successfully without
+generating another one. This guarantees at most one article per calendar day,
+including manual runs.
 
 ### One-time setup
 
@@ -225,21 +229,31 @@ Ollama when the job starts.
 5. Review every factual claim and source before merging. Edit the branch
    directly when needed.
 
-Every generated article follows a real-world architecture scenario. It must
-identify the actors, Azure scope, default access, change trigger, approval flow,
-time-bound privilege, implementation controls, audit evidence, failure modes,
-and operational trade-offs. For access-governance scenarios, the draft must
-separate PIM activation evidence from Azure Activity Log records of the actual
-resource changes. Patterns should cover development, test, staging, and
-production where applicable, with controls strengthened according to
-environment risk. They must use least privilege at the narrowest practical
-scope rather than treating Contributor or Owner as universal engineering roles.
+Every generated article targets principal and senior cloud architects with more
+than ten years of experience. It uses a realistic multi-team, multi-environment
+estate and covers constraints, trust boundaries, scale assumptions, blast
+radius, architecture decisions, alternatives rejected, DevSecOps controls,
+operating ownership, evidence, SLOs, failure modes, and an adoption roadmap.
+Product introductions and generic step-by-step tutorials are not acceptable.
 
-Topics can also define a trusted `diagram` in `automation/topics.json`. The
-generator renders it as responsive HTML/CSS from curated labels rather than
-allowing the model to emit scripts or arbitrary SVG. Use diagrams for identity
-flows, network paths, CI/CD stages, observability pipelines, and recovery flows
-when they make the architecture easier to understand.
+Generation uses two passes. The first produces a source-grounded architecture
+draft. The second is an editorial pass that cannot add facts or links; it
+removes repetitive structure, promotional adjectives, generic introductions,
+stock AI transitions, and tutorial language. The house style is direct,
+specific, measured, and written as one experienced architect speaking to peers.
+
+For access-governance scenarios, the draft must separate PIM activation evidence
+from Azure Activity Log records of the actual resource changes. Patterns should
+cover development, test, staging, and production where applicable, with controls
+strengthened according to environment risk. They must use least privilege at the
+narrowest practical scope rather than treating Contributor or Owner as universal
+engineering roles.
+
+Topics can also define a trusted `diagram` in `automation/topics.json`. A diagram
+must show ownership lanes or trust boundaries, named components, control flow,
+and evidence paths. The generator renders the full diagram as responsive
+HTML/CSS without horizontal scrolling; it does not allow the model to emit
+scripts or arbitrary SVG.
 
 The workflow fails clearly when the curated queue is empty. Add reviewed topic
 entries and official Microsoft Learn source URLs to extend the queue. For a
@@ -270,6 +284,14 @@ To remove the daily schedule:
 
 ```bash
 ./automation/install-local-schedule.sh --uninstall
+```
+
+To revise an existing generated article without adding a duplicate blog or
+sitemap entry:
+
+```bash
+REVISION_ONLY=true TOPIC_ID=workload-identity-github-actions \
+  node automation/generate-article.mjs
 ```
 
 ---

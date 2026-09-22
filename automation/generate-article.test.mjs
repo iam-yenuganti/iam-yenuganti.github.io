@@ -15,7 +15,20 @@ const topic = {
   slug: "test-topic",
   diagram: {
     title: "Access flow",
-    steps: ["Reader access", "Approved <write> access"]
+    subtitle: "A realistic trust-boundary view.",
+    lanes: [
+      {
+        name: "Engineering",
+        owner: "Application team",
+        components: [{ name: "Change", detail: "Reviewed <write> request" }]
+      },
+      {
+        name: "Azure",
+        owner: "Platform team",
+        components: [{ name: "Target", detail: "Scoped resource" }]
+      }
+    ],
+    flows: ["Review change", "Authorize target"]
   },
   sources: ["https://learn.microsoft.com/azure/test"]
 };
@@ -24,25 +37,29 @@ const validArticle = {
   title: "A Safe Azure Architecture",
   description: "A practical guide to a safe Azure architecture.",
   excerpt: "Practical architecture guidance.",
-  readTimeMinutes: 7,
+  readTimeMinutes: 12,
   articleHtml: [
     "<p>Opening context for architects.</p>",
-    "<h2>Scenario</h2><p>",
-    "word ".repeat(90),
+    "<h2>Executive Context</h2><p>",
+    "word ".repeat(150),
+    "</p><h2>Constraints and Assumptions</h2><p>",
+    "word ".repeat(150),
     "</p><h2>Target Architecture</h2><p>",
-    "word ".repeat(90),
-    "</p><h2>Request and Approval Flow</h2><p>",
-    "word ".repeat(90),
-    "</p><h2>Implementation Steps</h2><p>",
-    "word ".repeat(90),
-    "</p><h2>Audit and Evidence</h2><p>",
-    "word ".repeat(90),
+    "word ".repeat(150),
+    "</p><h2>DevSecOps Control Model</h2><p>",
+    "word ".repeat(150),
+    "</p><h2>Key Architecture Decisions</h2><p>",
+    "word ".repeat(150),
+    "</p><h2>Implementation Blueprint</h2><p>",
+    "word ".repeat(150),
+    "</p><h2>Operational Evidence and SLOs</h2><p>",
+    "word ".repeat(150),
     "</p><h2>Failure Modes and Trade-offs</h2><p>",
-    "word ".repeat(90),
-    "</p><h2>Implementation Checklist</h2><p>",
-    "word ".repeat(90),
+    "word ".repeat(150),
+    "</p><h2>Adoption Roadmap</h2><p>",
+    "word ".repeat(150),
     "</p><h2>Conclusion</h2><p>",
-    "word ".repeat(90),
+    "word ".repeat(150),
     '</p><p><a href="https://learn.microsoft.com/azure/test">Source</a></p>'
   ].join("")
 };
@@ -67,11 +84,12 @@ test("normalizeArticleMetadata trims long metadata at word boundaries", () => {
   assert.match(normalized.title, /\.\.\.$/);
 });
 
-test("renderScenarioDiagram creates escaped, numbered steps", () => {
+test("renderScenarioDiagram creates complete ownership lanes and flows", () => {
   const diagram = renderScenarioDiagram(topic);
   assert.match(diagram, /Access flow/);
-  assert.match(diagram, /diagram-number">1/);
-  assert.match(diagram, /Approved &lt;write&gt; access/);
+  assert.match(diagram, /Owner: Application team/);
+  assert.match(diagram, /Reviewed &lt;write&gt; request/);
+  assert.match(diagram, /End-to-end control flow/);
 });
 
 test("validateArticle accepts a grounded article", () => {
@@ -116,9 +134,22 @@ test("validateArticle requires the scenario-led technical structure", () => {
   assert.throws(
     () => validateArticle({
       ...validArticle,
-      articleHtml: validArticle.articleHtml.replace("<h2>Audit and Evidence</h2>", "<h2>Observations</h2>")
+      articleHtml: validArticle.articleHtml.replace("<h2>Operational Evidence and SLOs</h2>", "<h2>Observations</h2>")
     }, topic),
-    /missing the required Audit and Evidence section/
+    /missing the required Operational Evidence and SLOs section/
+  );
+});
+
+test("validateArticle rejects formulaic AI phrasing", () => {
+  assert.throws(
+    () => validateArticle({
+      ...validArticle,
+      articleHtml: validArticle.articleHtml.replace(
+        "Opening context for architects.",
+        "In today's rapidly evolving digital landscape, opening context for architects."
+      )
+    }, topic),
+    /formulaic phrasing/
   );
 });
 

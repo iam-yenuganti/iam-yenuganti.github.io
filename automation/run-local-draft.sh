@@ -61,9 +61,24 @@ metadata_path="$work_root/draft-metadata.json"
 gh repo clone "$repository" "$repo_root" -- --depth=1
 cd "$repo_root"
 
+publication_date="${PUBLICATION_DATE:-$(date +%F)}"
+existing_article=""
+for candidate in post-*.html; do
+  if [ -f "$candidate" ] &&
+    grep -Fq "article:published_time\" content=\"$publication_date\"" "$candidate"; then
+    existing_article="$candidate"
+    break
+  fi
+done
+if [ -n "$existing_article" ]; then
+  echo "An article is already published for $publication_date ($existing_article); skipping today's run."
+  exit 0
+fi
+
 OLLAMA_HOST="$ollama_host" \
 OLLAMA_MODEL="$ollama_model" \
 TOPIC_ID="${TOPIC_ID:-}" \
+PUBLICATION_DATE="$publication_date" \
 DRAFT_METADATA_PATH="$metadata_path" \
 node automation/generate-article.mjs
 
@@ -73,7 +88,7 @@ title="$(node -e "const x=JSON.parse(require('fs').readFileSync(process.argv[1])
 slug="$(node -e "const x=JSON.parse(require('fs').readFileSync(process.argv[1])); process.stdout.write(x.slug)" "$metadata_path")"
 topic_id="$(node -e "const x=JSON.parse(require('fs').readFileSync(process.argv[1])); process.stdout.write(x.topicId)" "$metadata_path")"
 post_file="$(node -e "const x=JSON.parse(require('fs').readFileSync(process.argv[1])); process.stdout.write(x.postFile)" "$metadata_path")"
-branch="ai-blog/$(date -u +%F)-${slug}-$(date +%s)"
+branch="ai-blog/${publication_date}-${slug}-$(date +%s)"
 
 git config user.name "local-blog-agent"
 git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
