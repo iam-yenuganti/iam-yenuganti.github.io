@@ -13,10 +13,49 @@
     ]
   },
   {
+    "id": "pim-developer-write-access",
+    "slug": "pim-developer-write-access",
+    "title": "Just-in-Time Azure Write Access for Development Teams with PIM",
+    "angle": "Design a practical Azure access-governance pattern in which developers retain Reader access to the development resource group and activate an eligible Contributor role only for approved changes.",
+    "scenario": "A development team has permanent Reader access at development resource-group scope. A developer who needs to deploy, modify, or delete a resource must activate an eligible Contributor assignment through Microsoft Entra PIM. Activation requires MFA, a change-ticket reference in the justification, and approval from a designated approver group aligned with reporting-manager responsibility. The organization configures an eight-hour maximum activation window, with users expected to request only the time needed. PIM audit history records eligibility, requests, approvals, activations, and expiry; Azure Activity Log records the resource write operations. The monitoring design correlates both records by identity and time.",
+    "diagram": {
+      "title": "Just-in-time development access flow",
+      "steps": [
+        "Developer has Reader access",
+        "Request Contributor in PIM",
+        "MFA, justification, and ticket",
+        "Manager-aligned approver group",
+        "Contributor active for up to 8 hours",
+        "Azure Activity Log records changes",
+        "PIM records activation and expiry"
+      ]
+    },
+    "category": "Security & Identity",
+    "tags": ["Microsoft Entra PIM", "Azure RBAC", "Access Governance"],
+    "sources": [
+      "https://learn.microsoft.com/entra/id-governance/privileged-identity-management/pim-resource-roles-configure-role-settings",
+      "https://learn.microsoft.com/entra/id-governance/privileged-identity-management/pim-resource-roles-activate-your-roles",
+      "https://learn.microsoft.com/entra/id-governance/privileged-identity-management/azure-pim-resource-rbac",
+      "https://learn.microsoft.com/azure/azure-monitor/essentials/activity-log"
+    ]
+  },
+  {
     "id": "workload-identity-github-actions",
     "slug": "workload-identity-github-actions",
     "title": "Passwordless Azure Deployments from GitHub Actions",
     "angle": "Give architects a practical design for GitHub Actions workload identity federation, least-privilege RBAC, environment protection, and migration away from client secrets.",
+    "scenario": "Several application teams deploy Terraform and application releases into separate Azure development subscriptions. Existing pipelines use long-lived client secrets shared across repositories. The platform team must migrate each repository to GitHub OIDC, scope federated identities and Azure RBAC by environment, require protected-environment approval for production, and retain evidence that ties a workflow run to an Azure deployment.",
+    "diagram": {
+      "title": "Passwordless deployment trust flow",
+      "steps": [
+        "Engineer starts workflow",
+        "GitHub environment approval",
+        "OIDC token issued",
+        "Microsoft Entra validates federation",
+        "Scoped Azure role activated",
+        "Deployment and audit evidence"
+      ]
+    },
     "category": "DevSecOps & CI/CD",
     "tags": ["GitHub Actions", "OIDC", "Microsoft Entra ID"],
     "sources": [
@@ -30,6 +69,18 @@
     "slug": "aks-network-isolation",
     "title": "AKS Network Isolation Without Breaking Delivery",
     "angle": "Describe the architecture decisions for a private AKS cluster, controlled egress, private endpoints, DNS, image pulls, and the operational trade-offs teams should test.",
+    "scenario": "A platform team operates a private AKS cluster for multiple engineering teams. Workloads must pull images, retrieve secrets, send telemetry, and consume platform services without unrestricted internet egress. The design must preserve developer delivery speed while controlling DNS, private endpoints, firewall paths, and documented break-glass operations.",
+    "diagram": {
+      "title": "Private AKS dependency flow",
+      "steps": [
+        "Engineering pipeline",
+        "Private AKS API",
+        "Cluster workloads",
+        "Private endpoints and DNS",
+        "Approved Azure services",
+        "Controlled firewall egress"
+      ]
+    },
     "category": "Cloud Architecture",
     "tags": ["AKS", "Network Security", "Private Link"],
     "sources": [
@@ -69,6 +120,18 @@
     "slug": "defender-for-cloud-devsecops",
     "title": "Bringing Defender for Cloud into the DevSecOps Loop",
     "angle": "Explain how security posture, code-to-cloud context, regulatory controls, and remediation ownership can become part of an engineering operating model rather than a dashboard-only exercise.",
+    "scenario": "Application and platform teams deploy containerized workloads and infrastructure as code through GitHub. Security findings are visible in Defender for Cloud but lack engineering ownership and remediation targets. The DevSecOps design must connect repositories to cloud resources, route actionable findings to the owning team, block only high-confidence release risks, and retain evidence for governance reviews.",
+    "diagram": {
+      "title": "Code-to-cloud remediation loop",
+      "steps": [
+        "Code and infrastructure change",
+        "CI security checks",
+        "Azure deployment",
+        "Defender for Cloud finding",
+        "Owning engineering team",
+        "Remediation and evidence"
+      ]
+    },
     "category": "DevSecOps & CI/CD",
     "tags": ["Defender for Cloud", "DevSecOps", "Cloud Security"],
     "sources": [

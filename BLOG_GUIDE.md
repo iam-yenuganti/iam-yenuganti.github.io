@@ -222,6 +222,19 @@ Ollama when the job starts.
 5. Review every factual claim and source before merging. Edit the branch
    directly when needed.
 
+Every generated article follows a real-world architecture scenario. It must
+identify the actors, Azure scope, default access, change trigger, approval flow,
+time-bound privilege, implementation controls, audit evidence, failure modes,
+and operational trade-offs. For access-governance scenarios, the draft must
+separate PIM activation evidence from Azure Activity Log records of the actual
+resource changes.
+
+Topics can also define a trusted `diagram` in `automation/topics.json`. The
+generator renders it as responsive HTML/CSS from curated labels rather than
+allowing the model to emit scripts or arbitrary SVG. Use diagrams for identity
+flows, network paths, CI/CD stages, observability pipelines, and recovery flows
+when they make the architecture easier to understand.
+
 The workflow fails clearly when the curated queue is empty. Add reviewed topic
 entries and official Microsoft Learn source URLs to extend the queue. For a
 professional portfolio, quality is more important than maintaining an

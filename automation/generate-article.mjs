@@ -49,6 +49,23 @@ export function extractJson(raw) {
   return JSON.parse(unfenced.slice(start, end + 1));
 }
 
+function truncateAtWord(value, maxLength) {
+  if (typeof value !== "string" || value.length <= maxLength) return value;
+  const candidate = value.slice(0, maxLength - 3);
+  const lastSpace = candidate.lastIndexOf(" ");
+  const boundary = lastSpace >= Math.floor(maxLength * 0.6) ? lastSpace : candidate.length;
+  return `${candidate.slice(0, boundary).replace(/[,:;.!?\s]+$/, "")}...`;
+}
+
+export function normalizeArticleMetadata(article) {
+  return {
+    ...article,
+    title: truncateAtWord(article.title, 100),
+    description: truncateAtWord(article.description, 180),
+    excerpt: truncateAtWord(article.excerpt, 240)
+  };
+}
+
 export function validateArticle(article, topic) {
   const requiredStrings = ["title", "description", "excerpt", "articleHtml"];
   for (const field of requiredStrings) {
@@ -71,8 +88,8 @@ export function validateArticle(article, topic) {
   const forbidden = [
     /<\s*(script|style|iframe|object|embed|form|input|button|link|meta)\b/i,
     /\son[a-z]+\s*=/i,
-    /javascript\s*:/i,
-    /data\s*:/i,
+    /(?:href|src)\s*=\s*["']\s*javascript\s*:/i,
+    /(?:href|src)\s*=\s*["']\s*data\s*:/i,
     /<!--/i
   ];
   if (forbidden.some((pattern) => pattern.test(html))) {
@@ -108,8 +125,48 @@ export function validateArticle(article, topic) {
   if ((html.match(/<h2(?:\s[^>]*)?>/gi) ?? []).length < 4) {
     throw new Error("Generated article must contain at least four H2 sections.");
   }
+  const requiredSections = [
+    "Scenario",
+    "Target Architecture",
+    "Request and Approval Flow",
+    "Implementation Steps",
+    "Audit and Evidence",
+    "Failure Modes and Trade-offs",
+    "Implementation Checklist",
+    "Conclusion"
+  ];
+  for (const section of requiredSections) {
+    if (!html.includes(`<h2>${section}</h2>`)) {
+      throw new Error(`Generated article is missing the required ${section} section.`);
+    }
+  }
 
   return article;
+}
+
+export function renderScenarioDiagram(topic) {
+  if (!topic.diagram) return "";
+  if (
+    typeof topic.diagram.title !== "string" ||
+    !Array.isArray(topic.diagram.steps) ||
+    topic.diagram.steps.length < 2
+  ) {
+    throw new Error(`Topic ${topic.id} has an invalid diagram definition.`);
+  }
+
+  const steps = topic.diagram.steps.map((step, index) => `
+          <div class="diagram-step">
+            <span class="diagram-number">${index + 1}</span>
+            <span>${escapeHtml(step)}</span>
+          </div>`).join(`
+          <span class="diagram-arrow" aria-hidden="true">&rarr;</span>`);
+
+  return `
+      <figure class="architecture-diagram" aria-labelledby="architecture-flow-title">
+        <figcaption id="architecture-flow-title">${escapeHtml(topic.diagram.title)}</figcaption>
+        <div class="diagram-flow">${steps}
+        </div>
+      </figure>`;
 }
 
 function stripSourceHtml(html) {
@@ -157,6 +214,8 @@ function buildPrompt(topic, sources, date) {
 Audience: cloud architects, platform engineers, security leaders, and hiring managers.
 Topic: ${topic.title}
 Angle: ${topic.angle}
+Scenario: ${topic.scenario || "Create a realistic enterprise scenario with named personas, a clear starting state, a change trigger, technical controls, and an auditable outcome. Do not present it as the author's personal client experience."}
+Diagram context: ${topic.diagram ? `A trusted diagram named "${topic.diagram.title}" will appear before the article and show this flow: ${topic.diagram.steps.join(" -> ")}.` : "No separate diagram is configured for this topic."}
 Publication date: ${date}
 
 Return only one valid JSON object with these fields:
@@ -167,7 +226,13 @@ Return only one valid JSON object with these fields:
 - "articleHtml": 900-1600 words of semantic HTML
 
 Article HTML rules:
-- Begin with a short opening paragraph, then use at least four <h2> sections.
+- Write a technical, scenario-led architecture article rather than a generic product overview.
+- Begin with the business and engineering problem in a short opening paragraph.
+- Use these exact H2 sections in this order: Scenario, Target Architecture, Request and Approval Flow, Implementation Steps, Audit and Evidence, Failure Modes and Trade-offs, Implementation Checklist, Conclusion.
+- Name the actors, Azure scope, normal access level, elevation trigger, approval path, time boundary, enforcement controls, evidence sources, and rollback or expiry behavior.
+- Clearly distinguish configurable architecture choices from Microsoft product defaults.
+- Clearly distinguish access-governance records from resource-operation logs. Do not imply that an access system records changes performed in the resource plane.
+- Include concrete portal paths, policy settings, role scopes, or commands only when the supplied sources support them.
 - Allowed tags: p, h2, h3, ul, ol, li, strong, em, code, pre, table, thead, tbody, tr, th, td, blockquote, and a.
 - Use only href URLs copied exactly from the sources below. Do not add other links or any attributes except href on links.
 - Include practical trade-offs, an implementation checklist, and a concise conclusion.
@@ -202,7 +267,7 @@ async function callOllama(prompt) {
       model,
       prompt,
       system: "You are a careful Azure technical editor. Follow the output contract exactly and prefer omission over unsupported claims.",
-      stream: false,
+      stream: true,
       think: false,
       format: ARTICLE_SCHEMA,
       options: {
@@ -219,13 +284,38 @@ async function callOllama(prompt) {
     const detail = (await response.text()).slice(0, 1000);
     throw new Error(`Ollama inference failed with HTTP ${response.status}: ${detail}`);
   }
-  const payload = await response.json();
-  const content = payload.response;
+  if (!response.body) {
+    throw new Error("Ollama returned an empty response stream.");
+  }
+
+  const reader = response.body.getReader();
+  const decoder = new TextDecoder();
+  let buffer = "";
+  let content = "";
+  let finalEvent;
+  while (true) {
+    const { value, done } = await reader.read();
+    buffer += decoder.decode(value ?? new Uint8Array(), { stream: !done });
+    const lines = buffer.split("\n");
+    buffer = lines.pop() ?? "";
+    for (const line of lines) {
+      if (!line.trim()) continue;
+      const event = JSON.parse(line);
+      content += event.response ?? "";
+      if (event.done) finalEvent = event;
+    }
+    if (done) break;
+  }
+  if (buffer.trim()) {
+    const event = JSON.parse(buffer);
+    content += event.response ?? "";
+    if (event.done) finalEvent = event;
+  }
   if (!content) {
     throw new Error("Ollama returned no article content.");
   }
-  if (!payload.done || !["stop", "end_turn"].includes(payload.done_reason)) {
-    throw new Error(`Ollama response was incomplete: ${payload.done_reason ?? "unknown reason"}.`);
+  if (!finalEvent || !["stop", "end_turn"].includes(finalEvent.done_reason)) {
+    throw new Error(`Ollama response was incomplete: ${finalEvent?.done_reason ?? "unknown reason"}.`);
   }
   return content;
 }
@@ -272,6 +362,12 @@ function renderPost(article, topic, date) {
     .article-body table{width:100%;border-collapse:collapse;margin:1.5rem 0}
     .article-body th,.article-body td{border:1px solid #dbe3ec;padding:.65rem;text-align:left;vertical-align:top}
     .article-body blockquote{border-left:4px solid #1565c0;background:#f7f9fb;padding:1rem 1.2rem;margin:1.5rem 0}
+    .architecture-diagram{max-width:100%;margin:0 0 2.5rem;padding:1.25rem;background:#f7f9fb;border:1px solid #dbe3ec;border-radius:10px}
+    .architecture-diagram figcaption{font-weight:700;color:#0d1b2a;margin-bottom:1rem}
+    .diagram-flow{display:flex;align-items:stretch;gap:.55rem;overflow-x:auto;padding-bottom:.4rem}
+    .diagram-step{min-width:145px;display:flex;align-items:center;gap:.55rem;padding:.8rem;background:#fff;border:1px solid #cbd5e1;border-radius:8px;font-size:.78rem;line-height:1.4}
+    .diagram-number{display:inline-flex;align-items:center;justify-content:center;min-width:1.6rem;height:1.6rem;border-radius:50%;background:#1565c0;color:#fff;font-weight:700}
+    .diagram-arrow{align-self:center;color:#1565c0;font-size:1.2rem;font-weight:700}
     .sources{margin-top:2.5rem;padding-top:1.5rem;border-top:1px solid #e2e8f0}
     .author-card{background:#f7f9fb;border:1px solid #e2e8f0;border-radius:10px;padding:1.5rem;margin-top:3rem}
   </style>
@@ -299,6 +395,7 @@ function renderPost(article, topic, date) {
 
   <main class="article-section">
     <article class="article-body">
+      ${renderScenarioDiagram(topic)}
       ${article.articleHtml}
       <section class="sources">
         <h2>Sources</h2>
@@ -400,7 +497,7 @@ async function main() {
 
   const sources = await fetchSources(topic);
   const raw = await callOllama(buildPrompt(topic, sources, date));
-  const article = validateArticle(extractJson(raw), topic);
+  const article = validateArticle(normalizeArticleMetadata(extractJson(raw)), topic);
   const postPath = path.join(ROOT, `post-${topic.slug}.html`);
   await fs.writeFile(postPath, renderPost(article, topic, date));
 
