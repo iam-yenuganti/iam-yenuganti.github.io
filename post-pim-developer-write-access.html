@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Design an enterprise Azure access-governance pattern using Microsoft Entra PIM. Engineers retain standing read access and activate narrowly scoped write roles via MFA..." />
+  <title>Just-in-Time Azure Write Access: A Governance Pattern for Multi-Environment Engineering | Srinivas Yenuganti</title>
+  <meta property="og:type" content="article" />
+  <meta property="og:title" content="Just-in-Time Azure Write Access: A Governance Pattern for Multi-Environment Engineering" />
+  <meta property="og:description" content="Design an enterprise Azure access-governance pattern using Microsoft Entra PIM. Engineers retain standing read access and activate narrowly scoped write roles via MFA..." />
+  <meta property="og:url" content="https://yenuganti.in/post-pim-developer-write-access.html" />
+  <meta property="article:published_time" content="2026-09-21" />
+  <meta name="twitter:card" content="summary" />
+  <link rel="canonical" href="https://yenuganti.in/post-pim-developer-write-access.html" />
+  <link rel="stylesheet" href="style.css?v=4" />
+  <style>
+    .post-header{background:linear-gradient(135deg,#071b33,#0b4f75);padding:3.5rem 1.5rem 3rem}
+    .post-header-inner,.article-body,.author-card{max-width:760px;margin:0 auto}
+    .post-breadcrumb,.post-meta{font-size:.78rem;color:rgba(255,255,255,.65)}
+    .post-breadcrumb a{color:rgba(255,255,255,.85)}
+    .post-title{font-size:clamp(1.7rem,4vw,2.5rem);color:#fff;line-height:1.2;margin:1rem 0}
+    .article-section{padding:3.5rem 1.5rem}
+    .article-body p,.article-body li{color:#374151;margin-bottom:1rem}
+    .article-body h2{font-size:1.45rem;margin:2.5rem 0 .8rem;padding-top:1.5rem;border-top:1px solid #e2e8f0}
+    .article-body h3{font-size:1.1rem;color:#0b4f75;margin:1.5rem 0 .5rem}
+    .article-body ul,.article-body ol{margin:0 0 1.25rem 1.5rem}
+    .article-body pre{background:#0b1f33;color:#e6edf3;padding:1rem;border-radius:8px;overflow:auto}
+    .article-body code{background:#eef2f7;padding:.1rem .3rem;border-radius:4px}
+    .article-body table{width:100%;border-collapse:collapse;margin:1.5rem 0}
+    .article-body th,.article-body td{border:1px solid #dbe3ec;padding:.65rem;text-align:left;vertical-align:top}
+    .article-body blockquote{border-left:4px solid #1565c0;background:#f7f9fb;padding:1rem 1.2rem;margin:1.5rem 0}
+    .architecture-diagram{max-width:100%;margin:0 0 2.5rem;padding:1.25rem;background:#f7f9fb;border:1px solid #dbe3ec;border-radius:10px}
+    .architecture-diagram figcaption{font-weight:700;color:#0d1b2a;margin-bottom:1rem}
+    .diagram-flow{display:flex;align-items:stretch;gap:.55rem;overflow-x:auto;padding-bottom:.4rem}
+    .diagram-step{min-width:145px;display:flex;align-items:center;gap:.55rem;padding:.8rem;background:#fff;border:1px solid #cbd5e1;border-radius:8px;font-size:.78rem;line-height:1.4}
+    .diagram-number{display:inline-flex;align-items:center;justify-content:center;min-width:1.6rem;height:1.6rem;border-radius:50%;background:#1565c0;color:#fff;font-weight:700}
+    .diagram-arrow{align-self:center;color:#1565c0;font-size:1.2rem;font-weight:700}
+    .sources{margin-top:2.5rem;padding-top:1.5rem;border-top:1px solid #e2e8f0}
+    .author-card{background:#f7f9fb;border:1px solid #e2e8f0;border-radius:10px;padding:1.5rem;margin-top:3rem}
+  </style>
+</head>
+<body>
+  <nav class="main-nav">
+    <a href="index.html" class="nav-logo">Srinivas Yenuganti</a>
+    <button class="hamburger" aria-label="Toggle menu" aria-expanded="false" aria-controls="navlinks"
+      onclick="const o=document.getElementById('navlinks').classList.toggle('open');this.setAttribute('aria-expanded',o)">
+      <span></span><span></span><span></span>
+    </button>
+    <ul class="nav-links" id="navlinks">
+      <li><a href="index.html">About</a></li>
+      <li><a href="blog.html" class="active">Blog</a></li>
+    </ul>
+  </nav>
+
+  <header class="post-header">
+    <div class="post-header-inner">
+      <div class="post-breadcrumb"><a href="blog.html">&larr; Blog</a> &middot; Security &amp; Identity</div>
+      <h1 class="post-title">Just-in-Time Azure Write Access: A Governance Pattern for Multi-Environment Engineering</h1>
+      <div class="post-meta">12 min read &middot; 21 September 2026</div>
+    </div>
+  </header>
+
+  <main class="article-section">
+    <article class="article-body">
+      
+      <figure class="architecture-diagram" aria-labelledby="architecture-flow-title">
+        <figcaption id="architecture-flow-title">Just-in-time access flow across Azure environments</figcaption>
+        <div class="diagram-flow">
+          <div class="diagram-step">
+            <span class="diagram-number">1</span>
+            <span>Engineer has scoped Reader access</span>
+          </div>
+          <span class="diagram-arrow" aria-hidden="true">&rarr;</span>
+          <div class="diagram-step">
+            <span class="diagram-number">2</span>
+            <span>Select dev, test, staging, or production scope</span>
+          </div>
+          <span class="diagram-arrow" aria-hidden="true">&rarr;</span>
+          <div class="diagram-step">
+            <span class="diagram-number">3</span>
+            <span>Request the least-privileged eligible role</span>
+          </div>
+          <span class="diagram-arrow" aria-hidden="true">&rarr;</span>
+          <div class="diagram-step">
+            <span class="diagram-number">4</span>
+            <span>MFA, justification, ticket, and approval</span>
+          </div>
+          <span class="diagram-arrow" aria-hidden="true">&rarr;</span>
+          <div class="diagram-step">
+            <span class="diagram-number">5</span>
+            <span>Risk-based activation window</span>
+          </div>
+          <span class="diagram-arrow" aria-hidden="true">&rarr;</span>
+          <div class="diagram-step">
+            <span class="diagram-number">6</span>
+            <span>Azure Activity Log records changes</span>
+          </div>
+          <span class="diagram-arrow" aria-hidden="true">&rarr;</span>
+          <div class="diagram-step">
+            <span class="diagram-number">7</span>
+            <span>PIM records activation and expiry</span>
+          </div>
+        </div>
+      </figure>
+      <h2>Scenario</h2>
+<p>Engineering teams supporting applications across development, test, staging, and production environments face a persistent tension: operational visibility requires broad read access, while security mandates strict control over write operations. Standing Contributor or Owner access increases the blast radius of credential compromise and violates least-privilege principles. Conversely, removing all write access impedes agility, forcing engineers to request temporary access through informal channels that lack auditability.</p>
+<p>This article outlines an architecture where engineering team members retain permanent <strong>Reader</strong> access for operational visibility. Write access is granted as <strong>eligible</strong> assignments via Microsoft Entra Privileged Identity Management (PIM). Activation requires multifactor authentication (MFA), a change-ticket reference, business justification, and approval from a designated group. The activation window is risk-based, shorter for production, and enforced by Conditional Access policies.</p>
+
+<h2>Target Architecture</h2>
+<p>The architecture relies on separating standing access from privileged elevation. Engineers are assigned the <strong>Reader</strong> role permanently at the subscription or resource group scope to ensure they can monitor resource health, view configurations, and troubleshoot without modifying state. Write permissions are never standing; they are eligible assignments configured in PIM.</p>
+<p>Role settings in PIM define the governance rules. These settings are independent per role and per resource, meaning a policy configured at the subscription level does not automatically inherit to resource groups. Therefore, policies must be explicitly configured for each scope where elevation is permitted. The design avoids broad <strong>Contributor</strong> or <strong>Owner</strong> assignments where narrower built-in roles (e.g., <strong>Virtual Machine Contributor</strong>, <strong>Storage Account Contributor</strong>) or custom roles can satisfy the specific task. This reduces the potential impact of a compromised session.</p>
+
+<h2>Request and Approval Flow</h2>
+<p>The flow begins when an engineer identifies a need to modify a resource. Because they hold only standing Reader access, they cannot perform write operations. They navigate to the Microsoft Entra admin center, select <strong>Identity Governance</strong> > <strong>Privileged Identity Management</strong> > <strong>My roles</strong>, and locate their eligible Azure resource role.</p>
+<p>Upon selecting <strong>Activate</strong>, the system enforces the configured role settings:</p>
+<ul>
+<li><strong>Authentication:</strong> MFA is required. To ensure strong verification, the architecture uses <strong>On activation, require Microsoft Entra Conditional Access authentication context</strong>. This redirects the user to satisfy Conditional Access policies, such as requiring a compliant device or a specific authentication strength, rather than relying solely on the default MFA prompt which might be satisfied by a previous session token.</li>
+<li><strong>Justification and Ticketing:</strong> The user must enter a business justification and a support ticket number. Note that the ticket field is informational; PIM does not enforce correlation with an external ticketing system.</li>
+<li><strong>Approval:</strong> If the role setting requires approval, the request enters a pending state. A designated approver group reviews the request. The approver does not need to hold any specific Azure role to approve.</li>
+<li><strong>Scope Reduction:</strong> During activation, the user can further scope the request. For example, if eligible at the subscription level, they can select a specific resource group or resource, ensuring the active assignment is as narrow as possible.</li>
+</ul>
+<p>Once approved and authenticated, PIM creates an active assignment within seconds. The user can now perform write operations. When the activation duration expires, or if the user manually deactivates, PIM removes the active assignment within seconds. Applications may cache access tokens, so signing out and back in may be required to reflect the removal of permissions immediately.</p>
+
+<h2>Implementation Steps</h2>
+<p>Implementing this pattern requires configuring PIM role settings and Conditional Access policies.</p>
+<ol>
+<li><strong>Assign Eligible Roles:</strong> Assign engineers eligible roles in PIM for the target subscriptions or resource groups. Do not assign permanent active roles for write access.</li>
+<li><strong>Configure Role Settings:</strong> In the Microsoft Entra admin center, navigate to <strong>ID Governance</strong> > <strong>Privileged Identity Management</strong> > <strong>Azure resources</strong>. Select the resource and the role, then edit settings. Set the <strong>Activation maximum duration</strong>. For development and test, an organization may configure up to 8 hours. For staging and production, configure shorter durations based on risk assessment. Enable <strong>Require multifactor authentication</strong> and <strong>Require justification</strong> and <strong>Require ticket information</strong>. Enable <strong>Require approval to activate</strong> and select the approver group.</li>
+<li><strong>Configure Conditional Access:</strong> Create a Conditional Access policy targeting the authentication context defined in PIM. Ensure the policy enforces strong authentication methods (e.g., passwordless sign-in) and device compliance. Set the sign-in frequency to <strong>Every time</strong> under Session controls to force reauthentication on every activation. Note that if no Conditional Access policy targets the context, PIM falls back to standard MFA, but this is a backup mechanism, not a primary control.</li>
+<li><strong>Deploy Secure Workstations:</strong> For staging and production, enforce access from protected administrative workstations or Intune-compliant devices via Conditional Access. This ensures the platform attests the identity and device health before granting elevation.</li>
+</ol>
+
+<h2>Audit and Evidence</h2>
+<p>Effective governance requires correlating access decisions with resource changes. Two distinct log sources are involved:</p>
+<ul>
+<li><strong>PIM Audit History:</strong> Records eligibility, requests, approvals, activations, and expiry. It captures the <em>who</em>, <em>when</em>, and <em>why</em> of the privilege elevation. You can view this in the Microsoft Entra admin center under <strong>Resource audit</strong> or <strong>My audit</strong>. It includes the justification and ticket number entered by the user.</li>
+<li><strong>Azure Activity Log:</strong> Records management operations (control plane) such as creating a virtual machine or changing a key vault policy. It captures the <em>what</em> was changed in the resource plane. The activity log does not typically capture read operations.</li>
+</ul>
+<p>The monitoring design must correlate these records by identity, scope, and time. For example, if a user activated a role for 2 hours, the Activity Log should only show write operations from that user within that 2-hour window. Any write operation outside the activation window indicates a standing permission leak or a misconfigured role. Azure retains activity log events for 90 days by default; for longer retention, route logs to an Azure storage account via diagnostic settings.</p>
+
+<h2>Failure Modes and Trade-offs</h2>
+<p>Implementing just-in-time access introduces operational friction. Engineers must plan their work around activation windows. If an activation expires before a task is complete, a new request must be submitted, requiring re-approval and re-authentication. This can delay incident response if the approval chain is not available.</p>
+<p>Another trade-off is the complexity of Conditional Access. If a Conditional Access policy targeting the PIM authentication context is misconfigured or disabled, PIM falls back to standard MFA. However, this backup mechanism is not triggered if the policy is in report-only mode or if the user is excluded. Administrators must ensure that security principals managing Conditional Access policies are highly privileged and protected.</p>
+<p>Additionally, PIM role settings do not inherit. A policy set at the subscription level does not apply to resource groups. Administrators must configure settings at each scope where elevation is allowed, increasing configuration overhead.</p>
+
+<h2>Implementation Checklist</h2>
+<ul>
+<li><strong>Access Baseline:</strong> Verify all engineering team members have standing <strong>Reader</strong> access only.</li>
+<li><strong>Eligible Assignments:</strong> Confirm write roles are assigned as <strong>eligible</strong> in PIM, not active.</li>
+<li><strong>Role Settings:</strong> Ensure <strong>Activation maximum duration</strong> is set (e.g., &lt;8 hours for prod). Enable MFA, justification, ticketing, and approval.</li>
+<li><strong>Conditional Access:</strong> Deploy policies targeting the PIM authentication context with <strong>Every time</strong> sign-in frequency.</li>
+<li><strong>Device Compliance:</strong> Enforce Intune-compliant devices or secure workstations for staging and production activations.</li>
+<li><strong>Audit Correlation:</strong> Validate that PIM activation logs correlate with Azure Activity Log entries for write operations.</li>
+<li><strong>Review:</strong> Conduct regular access reviews to remove eligible assignments for personnel who no longer need them.</li>
+</ul>
+
+<h2>Conclusion</h2>
+<p>Just-in-time access transforms privilege from a static state to a dynamic, auditable event. By combining standing Reader access with eligible PIM roles, organizations can maintain engineering agility while enforcing strict least-privilege controls. The key is rigorous configuration of role settings, Conditional Access policies, and audit correlation to ensure that every write operation is authorized, authenticated, and recorded.</p>
+      <section class="sources">
+        <h2>Sources</h2>
+        <ol>
+          <li><a href="https://learn.microsoft.com/entra/id-governance/privileged-identity-management/pim-resource-roles-configure-role-settings" target="_blank" rel="noopener">Microsoft Learn source 1</a></li>
+          <li><a href="https://learn.microsoft.com/entra/id-governance/privileged-identity-management/pim-resource-roles-activate-your-roles" target="_blank" rel="noopener">Microsoft Learn source 2</a></li>
+          <li><a href="https://learn.microsoft.com/entra/id-governance/privileged-identity-management/azure-pim-resource-rbac" target="_blank" rel="noopener">Microsoft Learn source 3</a></li>
+          <li><a href="https://learn.microsoft.com/azure/azure-monitor/essentials/activity-log" target="_blank" rel="noopener">Microsoft Learn source 4</a></li>
+          <li><a href="https://learn.microsoft.com/entra/architecture/secure-best-practices" target="_blank" rel="noopener">Microsoft Learn source 5</a></li>
+          <li><a href="https://learn.microsoft.com/security/benchmark/azure/mcsb-v2-privileged-access" target="_blank" rel="noopener">Microsoft Learn source 6</a></li>
+        </ol>
+      </section>
+      <aside class="author-card">
+        <strong>Srinivas Yenuganti</strong>
+        <p>Azure Cloud and DevSecOps architect writing about secure, governed, and operable enterprise platforms.</p>
+      </aside>
+    </article>
+  </main>
+
+  <footer class="main-footer">
+    <p>&copy; 2026 Srinivas Yenuganti &nbsp;&middot;&nbsp;
+      <a href="index.html">About</a> &nbsp;&middot;&nbsp;
+      <a href="blog.html">Blog</a> &nbsp;&middot;&nbsp;
+      <a href="https://www.linkedin.com/in/syenuganti-bb767744/" target="_blank" rel="noopener">LinkedIn</a>
+    </p>
+  </footer>
+</body>
+</html>
