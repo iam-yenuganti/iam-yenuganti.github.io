@@ -207,6 +207,9 @@ generation so your review queue does not accumulate duplicate drafts.
 
 The scheduler is macOS `launchd`, not a GitHub self-hosted runner. This avoids
 allowing workflows from a public repository to execute on your personal laptop.
+The installer copies the runtime script to
+`~/Library/Application Support/YenugantiBlogAgent` because background services
+can be denied access to OneDrive-managed folders by macOS privacy controls.
 The laptop must be powered on, awake, connected to the internet, and running
 Ollama when the job starts.
 

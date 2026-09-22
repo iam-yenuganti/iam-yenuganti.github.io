@@ -4,11 +4,12 @@ set -euo pipefail
 export PATH="/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin"
 
 script_dir="$(cd "$(dirname "$0")" && pwd)"
-runner_path="$script_dir/run-local-draft.sh"
 label="com.yenuganti.blog-draft"
 agents_dir="$HOME/Library/LaunchAgents"
+support_dir="$HOME/Library/Application Support/YenugantiBlogAgent"
 logs_dir="$HOME/Library/Logs"
 plist_path="$agents_dir/$label.plist"
+runner_path="$support_dir/run-local-draft.sh"
 domain="gui/$(id -u)"
 
 if [ "${1:-}" = "--uninstall" ]; then
@@ -17,6 +18,12 @@ if [ "${1:-}" = "--uninstall" ]; then
   fi
   if [ -f "$plist_path" ]; then
     rm -- "$plist_path"
+  fi
+  if [ -f "$runner_path" ]; then
+    rm -- "$runner_path"
+  fi
+  if [ -d "$support_dir" ]; then
+    rmdir "$support_dir" 2>/dev/null || true
   fi
   echo "Removed the local blog draft schedule."
   exit 0
@@ -31,7 +38,8 @@ done
 
 ollama show "qwen3.6:27b" >/dev/null
 gh auth status >/dev/null
-mkdir -p "$agents_dir" "$logs_dir"
+mkdir -p "$agents_dir" "$support_dir" "$logs_dir"
+install -m 700 "$script_dir/run-local-draft.sh" "$runner_path"
 
 cat > "$plist_path" <<PLIST
 <?xml version="1.0" encoding="UTF-8"?>
