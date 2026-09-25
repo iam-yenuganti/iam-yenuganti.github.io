@@ -3,11 +3,11 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="description" content="Migrate from client secrets to GitHub OIDC workload identity federation. Design least-privilege RBAC, environment protection, and audit evidence for enterprise Azure deployments." />
-  <title>Passwordless Azure Deployments: GitHub Actions Workload Identity Federation | Srinivas Yenuganti</title>
+  <meta name="description" content="A practical design for migrating GitHub Actions to OIDC workload identity federation, least-privilege RBAC, and environment-specific controls for secure Azure deployments." />
+  <title>Passwordless Azure Deployments from GitHub Actions: An Architectural Blueprint | Srinivas Yenuganti</title>
   <meta property="og:type" content="article" />
-  <meta property="og:title" content="Passwordless Azure Deployments: GitHub Actions Workload Identity Federation" />
-  <meta property="og:description" content="Migrate from client secrets to GitHub OIDC workload identity federation. Design least-privilege RBAC, environment protection, and audit evidence for enterprise Azure deployments." />
+  <meta property="og:title" content="Passwordless Azure Deployments from GitHub Actions: An Architectural Blueprint" />
+  <meta property="og:description" content="A practical design for migrating GitHub Actions to OIDC workload identity federation, least-privilege RBAC, and environment-specific controls for secure Azure deployments." />
   <meta property="og:url" content="https://yenuganti.in/post-workload-identity-github-actions.html" />
   <meta property="article:published_time" content="2026-09-22" />
   <meta name="twitter:card" content="summary" />
@@ -29,24 +29,13 @@
     .article-body table{display:block;width:100%;border-collapse:collapse;margin:1.5rem 0;overflow-x:auto}
     .article-body th,.article-body td{border:1px solid #dbe3ec;padding:.65rem;text-align:left;vertical-align:top}
     .article-body blockquote{border-left:4px solid #1565c0;background:#f7f9fb;padding:1rem 1.2rem;margin:1.5rem 0}
-    .architecture-diagram{max-width:100%;margin:0 0 2.5rem;padding:1.35rem;background:#f7f9fb;border:1px solid #cbd5e1;border-radius:10px}
-    .architecture-diagram figcaption{font-size:1.05rem;font-weight:750;color:#0d1b2a;margin-bottom:.35rem}
-    .diagram-subtitle{font-size:.84rem!important;color:#5b6672!important;margin-bottom:1.1rem!important}
-    .diagram-lanes{display:grid;gap:.8rem}
-    .diagram-lane{display:grid;grid-template-columns:minmax(145px,.8fr) minmax(0,2.2fr);gap:.8rem;padding:.8rem;background:#fff;border:1px solid #cbd5e1;border-left:4px solid #1565c0;border-radius:8px}
-    .diagram-lane-heading h3{font-size:.82rem;margin:0 0 .25rem;color:#0d1b2a}
-    .diagram-lane-heading span{display:block;font-size:.68rem;line-height:1.35;color:#64748b}
-    .diagram-components{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,170px),1fr));gap:.55rem;min-width:0}
-    .diagram-component{padding:.65rem .7rem;background:#f8fafc;border:1px solid #e2e8f0;border-radius:6px}
-    .diagram-component strong,.diagram-component span{display:block}
-    .diagram-component strong{font-size:.76rem;color:#0b4f75;margin-bottom:.2rem}
-    .diagram-component span{font-size:.7rem;line-height:1.4;color:#475569}
-    .diagram-flow{margin-top:1rem;padding:.85rem;background:#0b1f33;border-radius:8px;color:#fff}
-    .diagram-flow>strong{display:block;font-size:.72rem;text-transform:uppercase;letter-spacing:.06em;margin-bottom:.65rem}
-    .diagram-flow ol{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:.5rem;list-style:none;margin:0;padding:0}
-    .diagram-flow li{display:flex;align-items:flex-start;gap:.45rem;margin:0;color:#dbeafe;font-size:.69rem;line-height:1.35}
-    .diagram-flow li span{display:inline-flex;align-items:center;justify-content:center;flex:0 0 1.35rem;height:1.35rem;border-radius:50%;background:#1e88e5;color:#fff;font-weight:700}
-    @media(max-width:640px){.architecture-diagram{padding:1rem}.diagram-lane{grid-template-columns:1fr}.diagram-components{grid-template-columns:minmax(0,1fr)}.diagram-flow ol{grid-template-columns:minmax(0,1fr)}}
+
+    .architecture-diagram{max-width:100%;margin:0 0 2.5rem;padding:1rem;background:#fff;border:1px solid #c8c6c4;border-top:4px solid #0078d4;border-radius:4px;box-shadow:0 2px 8px rgba(0,0,0,.08)}
+    .architecture-diagram figcaption{font-size:1.05rem;font-weight:760;color:#201f1e;margin-bottom:.3rem}
+    .diagram-subtitle{font-size:.82rem!important;color:#605e5c!important;margin-bottom:.85rem!important}
+    .architecture-diagram img{display:block;width:100%;height:auto;border:1px solid #d2d0ce;border-radius:3px}
+    .diagram-note{margin-top:.65rem!important;font-size:.72rem!important;color:#605e5c!important}
+    @media(max-width:640px){.architecture-diagram{padding:.8rem}}
     .sources{margin-top:2.5rem;padding-top:1.5rem;border-top:1px solid #e2e8f0}
     .author-card{background:#f7f9fb;border:1px solid #e2e8f0;border-radius:10px;padding:1.5rem;margin-top:3rem}
   </style>
@@ -67,162 +56,128 @@
   <header class="post-header">
     <div class="post-header-inner">
       <div class="post-breadcrumb"><a href="blog.html">&larr; Blog</a> &middot; DevSecOps &amp; CI/CD</div>
-      <h1 class="post-title">Passwordless Azure Deployments: GitHub Actions Workload Identity Federation</h1>
-      <div class="post-meta">12 min read &middot; 22 September 2026</div>
+      <h1 class="post-title">Passwordless Azure Deployments from GitHub Actions: An Architectural Blueprint</h1>
+      <div class="post-meta">10 min read &middot; 22 September 2026</div>
     </div>
   </header>
 
   <main class="article-section">
     <article class="article-body">
-      
+
       <figure class="architecture-diagram" aria-labelledby="architecture-flow-title">
         <figcaption id="architecture-flow-title">Enterprise workload identity and deployment control plane</figcaption>
-        <p class="diagram-subtitle">Repository identity, environment approval, token exchange, Azure authorization, and evidence are separate control boundaries.</p>
-        <div class="diagram-lanes">
-          <section class="diagram-lane">
-            <div class="diagram-lane-heading">
-              <h3>Engineering and source</h3>
-              <span>Owner: Application team</span>
-            </div>
-            <div class="diagram-components">
-              <div class="diagram-component">
-                <strong>Pull request</strong>
-                <span>Reviewed application and IaC change</span>
-              </div>
-              <div class="diagram-component">
-                <strong>Reusable workflow</strong>
-                <span>Pinned actions and governed deployment contract</span>
-              </div>
-            </div>
-          </section>
-          <section class="diagram-lane">
-            <div class="diagram-lane-heading">
-              <h3>GitHub delivery control plane</h3>
-              <span>Owner: Platform engineering</span>
-            </div>
-            <div class="diagram-components">
-              <div class="diagram-component">
-                <strong>Protected environment</strong>
-                <span>Approvers, branch rules, deployment concurrency</span>
-              </div>
-              <div class="diagram-component">
-                <strong>OIDC token</strong>
-                <span>Repository, ref, workflow, and environment claims</span>
-              </div>
-            </div>
-          </section>
-          <section class="diagram-lane">
-            <div class="diagram-lane-heading">
-              <h3>Microsoft Entra trust boundary</h3>
-              <span>Owner: Identity team</span>
-            </div>
-            <div class="diagram-components">
-              <div class="diagram-component">
-                <strong>Federated credential</strong>
-                <span>Exact subject and audience match</span>
-              </div>
-              <div class="diagram-component">
-                <strong>Workload identity</strong>
-                <span>Separate identity per environment or trust boundary</span>
-              </div>
-            </div>
-          </section>
-          <section class="diagram-lane">
-            <div class="diagram-lane-heading">
-              <h3>Azure target scope</h3>
-              <span>Owner: Cloud platform team</span>
-            </div>
-            <div class="diagram-components">
-              <div class="diagram-component">
-                <strong>Scoped Azure RBAC</strong>
-                <span>Least-privileged role at resource-group or resource scope</span>
-              </div>
-              <div class="diagram-component">
-                <strong>Deployment target</strong>
-                <span>Dev, test, staging, or production landing zone</span>
-              </div>
-            </div>
-          </section>
-          <section class="diagram-lane">
-            <div class="diagram-lane-heading">
-              <h3>Evidence and detection</h3>
-              <span>Owner: Security operations</span>
-            </div>
-            <div class="diagram-components">
-              <div class="diagram-component">
-                <strong>Workflow evidence</strong>
-                <span>Run, commit, approver, and artifact provenance</span>
-              </div>
-              <div class="diagram-component">
-                <strong>Azure evidence</strong>
-                <span>Entra sign-in and Azure Activity Log correlation</span>
-              </div>
-            </div>
-          </section>
-        </div>
-        <div class="diagram-flow">
-          <strong>End-to-end control flow</strong>
-          <ol>
-            <li><span>1</span>Approve immutable change</li>
-            <li><span>2</span>Issue claim-bound OIDC token</li>
-            <li><span>3</span>Exchange token through federated trust</li>
-            <li><span>4</span>Authorize only the target scope</li>
-            <li><span>5</span>Correlate deployment and Azure evidence</li>
-          </ol>
-        </div>
+        <p class="diagram-subtitle">Reference architecture: repository trust, workload identity federation, scoped Azure authorization, and operational evidence.</p>
+        <img src="assets/diagrams/workload-identity-architecture.png" alt="Enterprise workload identity architecture showing source control, CI/CD flow, workload identity federation, Azure authorization boundaries, and deployment evidence paths." loading="lazy" />
+        <p class="diagram-note">Diagram source: curated architecture board for this article.</p>
       </figure>
-      <h2>Executive Context</h2>
-<p>Static client secrets shared across repositories create a persistent vulnerability in enterprise cloud estates. When application teams deploy Terraform or application releases using these credentials, a single compromise exposes every associated subscription. Platform teams must balance deployment velocity with strict identity governance. Migrating to passwordless authentication via GitHub Actions OpenID Connect (OIDC) workload identity federation removes the need for secret rotation, reduces the attack surface, and enables precise, scope-bound access control. This design establishes a control plane where identity is ephemeral, scoped, and auditable.</p>
+      <h2>Production Scenario</h2>
+<blockquote><p><strong>Representative scenario:</strong> This is a realistic composite design for cloud architects. It does not claim to represent the author's employer, client, production tenant, or measured business results.</p></blockquote>
 
-<h2>Constraints and Assumptions</h2>
-<p>This architecture assumes a multi-team environment. Application teams own source code and deployment pipelines; platform engineering manages the delivery control plane. Microsoft Entra ID serves as the central identity provider. Azure subscriptions are segregated by environment (development, test, staging, production). The current state relies on shared client secrets that must be deprecated. The target state requires that every deployment action ties to a specific workflow run, repository, and branch, with no persistent credentials stored in GitHub or Azure. The design must support regulated workloads requiring explicit approval for production deployments and provide immutable evidence linking source changes to infrastructure modifications.</p>
+<p>Application teams deploy Terraform infrastructure and application releases into separate Azure development subscriptions. Existing pipelines rely on long-lived client secrets shared across repositories, creating a high-risk attack surface. The platform team mandates a migration to GitHub OpenID Connect (OIDC) workload identity federation. The objective is to scope federated identities and Azure Role-Based Access Control (RBAC) by environment, require protected-environment approval for production, and retain evidence tying a workflow run to an Azure deployment.</p>
 
-<h2>Target Architecture</h2>
-<p>The target architecture relies on five trust-boundary lanes. The Engineering and source lane contains the application team’s repositories. The GitHub delivery control plane, managed by platform engineering, orchestrates workflows and enforces environment protection rules. The Microsoft Entra trust boundary, owned by the identity team, hosts the federated identity credentials that validate tokens from GitHub. The Azure target scope, managed by the cloud platform team, contains the subscriptions and resources where deployments occur. Finally, the Evidence and detection lane, overseen by security operations, aggregates logs from GitHub, Entra ID, and Azure to correlate actions.</p>
-<p>Control flow begins when an immutable change is approved in the source lane. GitHub issues a claim-bound OIDC token to the workflow. This token is exchanged through the federated trust relationship in Microsoft Entra ID. Azure RBAC then authorizes the request only against the target scope defined by the token’s claims. Deployment evidence is correlated with Azure activity logs to create a complete audit trail.</p>
+<h2>Constraints and Starting State</h2>
+<p>The current state involves static credentials stored as repository secrets. These secrets are rotated infrequently and accessible to any contributor with read access. The platform team requires passwordless authentication for all new deployments. The identity team mandates trust relationships via Microsoft Entra Workload ID federation. Security operations require every deployment to be traceable to a specific GitHub Actions run and user.</p>
 
-<h2>DevSecOps Control Model</h2>
-<p>DevSecOps operates across the entire lifecycle. Source control is enforced through branch protection rules. Build and artifact provenance are verified before deployment. Infrastructure as Code (IaC) is validated against policy standards. Release authorization requires explicit approval for higher-risk environments. Runtime posture is monitored via Azure Monitor. Exception expiry is managed by the ephemeral nature of OIDC tokens. Audit evidence is aggregated from multiple sources to ensure non-repudiation.</p>
-<p>Controls are categorized into prevent, detect, and respond. Prevention is achieved through GitHub environment protection rules and Azure RBAC least-privilege assignments. Detection relies on Microsoft Defender for Cloud and Azure Activity Logs. Response involves automated rollback procedures and incident response playbooks triggered by anomalous activity. Accountable owners are clearly defined: engineering for source and build, platform for delivery control, identity for trust boundaries, network for segmentation, SRE for runtime posture, and security for audit and detection.</p>
+<p>The architecture supports four environments: Development, Test, Staging, and Production, each in a separate Azure subscription. The platform team controls the Microsoft Entra tenant and Azure subscriptions. Application teams own source code and GitHub repositories. The design must enforce least-privilege access, ensuring a workflow running in Development cannot access Production resources.</p>
 
-<h2>Key Architecture Decisions</h2>
-<h3>Decision 1: Use User-Assigned Managed Identities for Federated Credentials</h3>
-<p><strong>Decision:</strong> Configure user-assigned managed identities in Microsoft Entra ID to trust GitHub Actions tokens, rather than using app registrations with client secrets.</p>
-<p><strong>Why:</strong> User-assigned managed identities eliminate the need for secret management entirely. They provide a clean separation between the identity and the workload, allowing for precise RBAC assignments without exposing credentials. This aligns with the goal of passwordless deployments.</p>
-<p><strong>Alternative Rejected:</strong> App registrations with client secrets or certificates. These require secure storage, rotation, and carry the risk of leakage.</p>
-<p><strong>Consequence:</strong> Simplified credential lifecycle management and reduced risk of secret exposure. However, it requires careful configuration of federated identity credentials to match GitHub’s OIDC issuer and subject claims exactly.</p>
+<h2>Architecture and Decisions</h2>
+<p>The core architectural decision replaces client secrets with OIDC tokens issued by GitHub Actions and validated by Microsoft Entra ID. This eliminates long-lived credentials in GitHub. A trust relationship is established between a Microsoft Entra application and the GitHub repository.</p>
 
-<h3>Decision 2: Scope RBAC by Environment and Repository</h3>
-<p><strong>Decision:</strong> Assign Azure RBAC roles at the resource group or resource level, scoped to specific GitHub repositories and branches via federated identity conditions.</p>
-<p><strong>Why:</strong> Least privilege is critical. By scoping access to specific environments and tying it to repository context, the blast radius of a compromised workflow is minimized. This ensures that a developer’s workflow in a dev repository cannot accidentally or maliciously affect production resources.</p>
-<p><strong>Alternative Rejected:</strong> Subscription-level role assignments. These are too broad and violate the principle of least privilege, increasing the risk of lateral movement in case of a breach.</p>
-<p><strong>Consequence:</strong> More granular RBAC assignments are required, increasing initial configuration complexity. However, this provides significantly stronger security posture and compliance with regulated workload requirements.</p>
+<p><strong>Decision 1: Identity Type.</strong> The platform team selected Microsoft Entra applications (service principals) over user-assigned managed identities. This allows finer-grained control over federated identity credentials using Microsoft Graph or the Azure portal. User-assigned managed identities were rejected because they require Azure resources to be provisioned before the identity can be used, creating a chicken-and-egg problem for initial infrastructure deployment.</p>
 
-<h3>Decision 3: Enforce Environment Protection with Manual Approval for Production</h3>
-<p><strong>Decision:</strong> Require manual approval from designated reviewers for any workflow targeting the production environment.</p>
-<p><strong>Why:</strong> Production deployments carry the highest risk. Manual approval introduces a human-in-the-loop control that prevents automated errors or malicious code from reaching production without scrutiny. This aligns with change management best practices for business-critical workloads.</p>
-<p><strong>Alternative Rejected:</strong> Fully automated deployments to production. While faster, this lacks the necessary control for high-risk environments and may not meet compliance requirements.</p>
-<p><strong>Consequence:</strong> Increased deployment latency for production changes. However, this is a necessary trade-off for security and compliance. The approval process is tracked in GitHub, providing an audit trail.</p>
+<p><strong>Decision 2: Scope of RBAC.</strong> Azure RBAC roles are assigned at the subscription scope for each environment. This allows the platform team to manage access centrally while keeping environments isolated. The <code>Contributor</code> role was rejected in favor of custom roles or narrower built-in roles like <code>Virtual Machine Contributor</code> or <code>Storage Account Contributor</code>, depending on the workload. This aligns with best practices for limiting privileged administrator role assignments.</p>
 
-<h2>Implementation Blueprint</h2>
-<p>Implementation begins with configuring the federated identity credential in Microsoft Entra ID. For each GitHub repository, a user-assigned managed identity is created. A federated identity credential is added to this identity, specifying the GitHub Actions OIDC issuer URL and the subject claim that matches the repository and branch. For example, the subject might be <code>repo:organization/repository:ref:refs/heads/main</code>. This ensures that only workflows running on the main branch of that specific repository can authenticate as this identity.</p>
-<p>Next, Azure RBAC roles are assigned to the user-assigned managed identity. Instead of broad roles like Contributor, custom roles or built-in roles with narrow scopes are used. For instance, a <code>Virtual Machine Contributor</code> role might be assigned at the resource group level for a specific application. This ensures that the identity can only perform actions relevant to its deployment task.</p>
-<p>In GitHub, repository secrets are created for <code>AZURE_CLIENT_ID</code>, <code>AZURE_TENANT_ID</code>, and <code>AZURE_SUBSCRIPTION_ID</code>. These secrets are populated with the values from the user-assigned managed identity. The workflow file is updated to use the <code>azure/login@v2</code> action with OpenID Connect authentication. The <code>id-token</code> permission is set to <code>write</code> to allow the workflow to fetch the OIDC token.</p>
-<p>Environment protection rules are configured in GitHub. For the production environment, required reviewers are added, and deployment branches are restricted. This ensures that no workflow can deploy to production without explicit approval. The same pattern is applied to development, test, and staging environments, with varying levels of restriction based on risk.</p>
+<p><strong>Decision 3: Environment Protection.</strong> GitHub Environments enforce approval gates for Production deployments. This ensures no automated workflow can deploy to Production without manual review. The platform team configured required reviewers for the Production environment in GitHub. This adds a human-in-the-loop control critical for high-risk changes.</p>
 
-<h2>Operational Evidence and SLOs</h2>
-<p>Operational evidence is critical for audit and compliance. Every deployment action generates logs in GitHub, Microsoft Entra ID, and Azure. GitHub logs record the workflow run, including the commit SHA, branch, and approval status. Microsoft Entra ID logs record the token issuance and validation, including the federated identity credential used. Azure Activity Logs record the resource operations performed by the identity.</p>
-<p>To correlate these events, a unique identifier is embedded in the deployment metadata. This identifier links the GitHub workflow run ID to the Azure resource deployment. Security operations can then trace a change from source code to infrastructure modification, ensuring non-repudiation. Key SLOs include the time to detect unauthorized access attempts and the accuracy of audit trail correlation. Control-health indicators monitor the number of failed OIDC token exchanges and RBAC denials, which may indicate misconfiguration or malicious activity.</p>
+<h2>Implementation Walkthrough</h2>
+<p>Implementation begins with creating a Microsoft Entra application for each environment. The application is registered in the Microsoft Entra tenant. Next, a federated identity credential is configured on the application to trust tokens issued by GitHub Actions for the specific repository and branch. The issuer URL for GitHub is <code>https://token.actions.githubusercontent.com</code>. The subject claim is set to <code>repo:organization/repository:ref:refs/heads/main</code> for the main branch.</p>
 
-<h2>Failure Modes and Trade-offs</h2>
-<p>One failure mode is misconfiguration of the federated identity credential. If the issuer or subject claims do not match exactly, the token exchange will fail, causing deployment failures. This requires precise configuration and testing. Another failure mode is RBAC scope creep. If roles are assigned too broadly, the security benefits of least privilege are diminished. Regular audits of RBAC assignments are necessary to prevent this.</p>
-<p>Trade-offs include increased initial setup complexity and potential deployment latency due to manual approvals. However, these are outweighed by the security benefits of eliminating secrets and enforcing strict access controls. The ephemeral nature of OIDC tokens means that there is no long-term credential to rotate or revoke, reducing operational overhead in the long run.</p>
+<p>For the GitHub Actions workflow, the <code>azure/login@v2</code> action authenticates with Azure using OIDC. The workflow requires the <code>id-token: write</code> permission to fetch the OIDC token. The client ID, tenant ID, and subscription ID are stored as GitHub secrets. These secrets are identifiers, not credentials, allowing the workflow to request a token from Microsoft Entra ID.</p>
 
-<h2>Adoption Roadmap</h2>
-<p>The adoption roadmap begins with a pilot in a low-risk development environment. This allows the platform team to validate the configuration and identify any issues. Next, the pattern is extended to test and staging environments. Finally, production environments are migrated, with manual approval enforced. Throughout the process, existing client secrets are gradually deprecated and removed. Training is provided to application teams on the new workflow configuration and RBAC principles. Monitoring and alerting are established to detect any anomalies during the transition.</p>
+<pre><code>name: Deploy to Azure
+on:
+  push:
+    branches: [ main ]
 
-<h2>Conclusion</h2>
-<p>Migrating to passwordless Azure deployments using GitHub Actions workload identity federation is a strategic imperative for enterprise cloud estates. It eliminates the risks associated with long-lived secrets, enforces least-privilege access, and provides a complete audit trail. By carefully designing the trust boundaries, RBAC scopes, and environment protection rules, organizations can achieve a secure, compliant, and efficient deployment pipeline. The initial investment in configuration is justified by the long-term security and operational benefits.</p>
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+    - name: Azure Login
+      uses: azure/login@v2
+      with:
+        client-id: ${{ secrets.AZURE_CLIENT_ID }}
+        tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+        subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+    - name: Deploy Terraform
+      run: |
+        terraform init
+        terraform apply -auto-approve
+</code></pre>
+
+<h2>Pipeline and Policy Controls</h2>
+<p>Pipeline controls are enforced through GitHub Environments and Azure RBAC. For the Development environment, the workflow runs automatically on push to the <code>main</code> branch. For Production, the workflow is blocked until a required reviewer approves the deployment. This approval is recorded in the GitHub audit log.</p>
+
+<p>Azure RBAC policies restrict the scope of the service principal. The service principal for the Production environment is assigned the <code>Contributor</code> role only to the Production subscription. It has no access to other subscriptions. This ensures that even if the service principal is compromised, the blast radius is limited to the Production environment.</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>Environment</th>
+      <th>GitHub Environment</th>
+      <th>Approval Required</th>
+      <th>Azure RBAC Role</th>
+      <th>Scope</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Development</td>
+      <td>dev</td>
+      <td>No</td>
+      <td>Contributor</td>
+      <td>Dev Subscription</td>
+    </tr>
+    <tr>
+      <td>Test</td>
+      <td>test</td>
+      <td>No</td>
+      <td>Contributor</td>
+      <td>Test Subscription</td>
+    </tr>
+    <tr>
+      <td>Staging</td>
+      <td>staging</td>
+      <td>Yes</td>
+      <td>Contributor</td>
+      <td>Staging Subscription</td>
+    </tr>
+    <tr>
+      <td>Production</td>
+      <td>production</td>
+      <td>Yes</td>
+      <td>Contributor</td>
+      <td>Prod Subscription</td>
+    </tr>
+  </tbody>
+</table>
+
+<h2>Failure Test and Recovery</h2>
+<p>To validate the architecture, a failure-injection test is designed. The test involves attempting to deploy to the Production environment from a branch other than <code>main</code>. The expected outcome is that the OIDC token exchange fails because the federated identity credential is scoped to <code>refs/heads/main</code>. The observable evidence is an authentication error in the GitHub Actions log. The stop condition is the failure of the <code>azure/login</code> step. The recovery action is to merge the changes to <code>main</code> and trigger a new deployment. This test confirms that the trust boundary is correctly enforced.</p>
+
+<h2>Operational Evidence</h2>
+<p>Operational evidence is critical for auditing and compliance. The GitHub Actions log provides evidence of the workflow run, including the user who triggered it and the approval status. The Microsoft Entra ID sign-in logs provide evidence of the token exchange, including the client ID and the scope of the access token. The Azure Activity Log provides evidence of the resource changes made by the service principal. By correlating these logs using the workflow run ID and the service principal ID, the security operations team can trace every deployment back to a specific user and code change.</p>
+
+<h2>Reusable Blueprint</h2>
+<p>This architecture can be reused across multiple repositories and environments. The key components are the Microsoft Entra application, the federated identity credential, the GitHub Environment, and the Azure RBAC assignment. The platform team can automate the creation of these components using Terraform or Bicep. The application team can then configure their GitHub Actions workflows to use the OIDC authentication. This blueprint provides a secure, scalable, and auditable way to deploy Azure resources from GitHub Actions.</p>
+
+<p>The migration away from client secrets reduces the operational burden of credential rotation and eliminates the risk of secret leakage. The use of OIDC workload identity federation ensures that access is granted only to the specific workflow and branch, enforcing least-privilege access. The combination of GitHub Environments and Azure RBAC provides a robust control plane for managing deployments across multiple environments.
       <section class="sources">
         <h2>Sources</h2>
         <ol>
