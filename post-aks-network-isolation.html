@@ -29,24 +29,12 @@
     .article-body table{display:block;width:100%;border-collapse:collapse;margin:1.5rem 0;overflow-x:auto}
     .article-body th,.article-body td{border:1px solid #dbe3ec;padding:.65rem;text-align:left;vertical-align:top}
     .article-body blockquote{border-left:4px solid #1565c0;background:#f7f9fb;padding:1rem 1.2rem;margin:1.5rem 0}
-    .architecture-diagram{max-width:100%;margin:0 0 2.5rem;padding:1.35rem;background:#f7f9fb;border:1px solid #cbd5e1;border-radius:10px}
-    .architecture-diagram figcaption{font-size:1.05rem;font-weight:750;color:#0d1b2a;margin-bottom:.35rem}
-    .diagram-subtitle{font-size:.84rem!important;color:#5b6672!important;margin-bottom:1.1rem!important}
-    .diagram-lanes{display:grid;gap:.8rem}
-    .diagram-lane{display:grid;grid-template-columns:minmax(145px,.8fr) minmax(0,2.2fr);gap:.8rem;padding:.8rem;background:#fff;border:1px solid #cbd5e1;border-left:4px solid #1565c0;border-radius:8px}
-    .diagram-lane-heading h3{font-size:.82rem;margin:0 0 .25rem;color:#0d1b2a}
-    .diagram-lane-heading span{display:block;font-size:.68rem;line-height:1.35;color:#64748b}
-    .diagram-components{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,170px),1fr));gap:.55rem;min-width:0}
-    .diagram-component{padding:.65rem .7rem;background:#f8fafc;border:1px solid #e2e8f0;border-radius:6px}
-    .diagram-component strong,.diagram-component span{display:block}
-    .diagram-component strong{font-size:.76rem;color:#0b4f75;margin-bottom:.2rem}
-    .diagram-component span{font-size:.7rem;line-height:1.4;color:#475569}
-    .diagram-flow{margin-top:1rem;padding:.85rem;background:#0b1f33;border-radius:8px;color:#fff}
-    .diagram-flow>strong{display:block;font-size:.72rem;text-transform:uppercase;letter-spacing:.06em;margin-bottom:.65rem}
-    .diagram-flow ol{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:.5rem;list-style:none;margin:0;padding:0}
-    .diagram-flow li{display:flex;align-items:flex-start;gap:.45rem;margin:0;color:#dbeafe;font-size:.69rem;line-height:1.35}
-    .diagram-flow li span{display:inline-flex;align-items:center;justify-content:center;flex:0 0 1.35rem;height:1.35rem;border-radius:50%;background:#1e88e5;color:#fff;font-weight:700}
-    @media(max-width:640px){.architecture-diagram{padding:1rem}.diagram-lane{grid-template-columns:1fr}.diagram-components{grid-template-columns:minmax(0,1fr)}.diagram-flow ol{grid-template-columns:minmax(0,1fr)}}
+    .architecture-diagram{max-width:100%;margin:0 0 2.5rem;padding:1rem;background:#fff;border:1px solid #c8c6c4;border-top:4px solid #0078d4;border-radius:4px;box-shadow:0 2px 8px rgba(0,0,0,.08)}
+    .architecture-diagram figcaption{font-size:1.05rem;font-weight:760;color:#201f1e;margin-bottom:.3rem}
+    .diagram-subtitle{font-size:.82rem!important;color:#605e5c!important;margin-bottom:.85rem!important}
+    .architecture-diagram img{display:block;width:100%;height:auto;border:1px solid #d2d0ce;border-radius:3px}
+    .diagram-note{margin-top:.65rem!important;font-size:.72rem!important;color:#605e5c!important}
+    @media(max-width:640px){.architecture-diagram{padding:.8rem}}
     .sources{margin-top:2.5rem;padding-top:1.5rem;border-top:1px solid #e2e8f0}
     .author-card{background:#f7f9fb;border:1px solid #e2e8f0;border-radius:10px;padding:1.5rem;margin-top:3rem}
   </style>
@@ -74,102 +62,12 @@
 
   <main class="article-section">
     <article class="article-body">
-      
+
       <figure class="architecture-diagram" aria-labelledby="architecture-flow-title">
-        <figcaption id="architecture-flow-title">Private AKS platform trust boundaries</figcaption>
-        <p class="diagram-subtitle">Delivery, cluster management, workload traffic, private dependencies, and controlled egress remain independently governed.</p>
-        <div class="diagram-lanes">
-          <section class="diagram-lane">
-            <div class="diagram-lane-heading">
-              <h3>Software supply chain</h3>
-              <span>Owner: Engineering and DevSecOps</span>
-            </div>
-            <div class="diagram-components">
-              <div class="diagram-component">
-                <strong>Build and attest</strong>
-                <span>Signed image, SBOM, policy results</span>
-              </div>
-              <div class="diagram-component">
-                <strong>Private registry</strong>
-                <span>Approved artifacts and image provenance</span>
-              </div>
-            </div>
-          </section>
-          <section class="diagram-lane">
-            <div class="diagram-lane-heading">
-              <h3>Cluster management plane</h3>
-              <span>Owner: Platform engineering</span>
-            </div>
-            <div class="diagram-components">
-              <div class="diagram-component">
-                <strong>Private AKS API</strong>
-                <span>Controlled administration path</span>
-              </div>
-              <div class="diagram-component">
-                <strong>Policy and admission</strong>
-                <span>Identity, network, and workload guardrails</span>
-              </div>
-            </div>
-          </section>
-          <section class="diagram-lane">
-            <div class="diagram-lane-heading">
-              <h3>Workload boundary</h3>
-              <span>Owner: Application teams</span>
-            </div>
-            <div class="diagram-components">
-              <div class="diagram-component">
-                <strong>Namespace tenancy</strong>
-                <span>Identity, quotas, and network policy</span>
-              </div>
-              <div class="diagram-component">
-                <strong>Workload identity</strong>
-                <span>Secretless access to Azure dependencies</span>
-              </div>
-            </div>
-          </section>
-          <section class="diagram-lane">
-            <div class="diagram-lane-heading">
-              <h3>Shared Azure services</h3>
-              <span>Owner: Cloud platform team</span>
-            </div>
-            <div class="diagram-components">
-              <div class="diagram-component">
-                <strong>Private endpoints</strong>
-                <span>Registry, Key Vault, data, and monitoring</span>
-              </div>
-              <div class="diagram-component">
-                <strong>Private DNS</strong>
-                <span>Central resolution and zone lifecycle</span>
-              </div>
-            </div>
-          </section>
-          <section class="diagram-lane">
-            <div class="diagram-lane-heading">
-              <h3>Egress and operations</h3>
-              <span>Owner: Network and SRE teams</span>
-            </div>
-            <div class="diagram-components">
-              <div class="diagram-component">
-                <strong>Azure Firewall</strong>
-                <span>Explicit outbound destinations and logging</span>
-              </div>
-              <div class="diagram-component">
-                <strong>Observability</strong>
-                <span>SLOs, flow evidence, and break-glass detection</span>
-              </div>
-            </div>
-          </section>
-        </div>
-        <div class="diagram-flow">
-          <strong>End-to-end control flow</strong>
-          <ol>
-            <li><span>1</span>Promote trusted artifact</li>
-            <li><span>2</span>Admit compliant workload</li>
-            <li><span>3</span>Resolve private dependency</li>
-            <li><span>4</span>Authorize workload identity</li>
-            <li><span>5</span>Inspect exceptional egress</li>
-          </ol>
-        </div>
+        <figcaption id="architecture-flow-title">Private AKS production architecture with controlled egress</figcaption>
+        <p class="diagram-subtitle">Reference architecture: private control plane, private dependencies, controlled egress, and observable delivery flow.</p>
+        <img src="assets/diagrams/aks-network-isolation-architecture.png" alt="Private AKS architecture showing software supply chain, Azure subscription hub and spoke VNets, Azure Firewall controlled egress, private DNS and private endpoints, workload boundary, shared Azure services, and end-to-end control flow." loading="lazy" />
+        <p class="diagram-note">Diagram source: curated architecture board for this article.</p>
       </figure>
       <h2>Executive Context</h2>
 <p>Enterprise platform teams manage a persistent tension: strict network isolation to protect critical workloads versus the need for high-velocity software delivery. In regulated environments, unrestricted internet egress from Kubernetes clusters often violates compliance mandates. However, overly restrictive network configurations can break cluster operations, image pulls, and telemetry flows, leading to operational instability. This architecture defines a private Azure Kubernetes Service (AKS) cluster that enforces network isolation without compromising platform reliability or engineering speed.</p>
