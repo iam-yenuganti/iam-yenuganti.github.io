@@ -96,6 +96,14 @@ test("validateArticle accepts a grounded article", () => {
   assert.equal(validateArticle(validArticle, topic), validArticle);
 });
 
+test("validateArticle accepts the prompted line-break tag", () => {
+  const article = {
+    ...validArticle,
+    articleHtml: validArticle.articleHtml.replace("Opening context", "Opening<br>context")
+  };
+  assert.equal(validateArticle(article, topic), article);
+});
+
 test("validateArticle rejects executable HTML", () => {
   assert.throws(
     () => validateArticle({ ...validArticle, articleHtml: `${validArticle.articleHtml}<script>alert(1)</script>` }, topic),

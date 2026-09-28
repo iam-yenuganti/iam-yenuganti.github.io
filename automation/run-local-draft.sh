@@ -24,6 +24,15 @@ cleanup() {
 }
 trap cleanup EXIT
 
+publication_date="${PUBLICATION_DATE:-$(date +%F)}"
+completed_file="$state_root/completed-$publication_date"
+if [ -f "$completed_file" ]; then
+  exit 0
+fi
+if [ -z "${PUBLICATION_DATE:-}" ] && [ "$(date +%H%M)" -lt 700 ]; then
+  exit 0
+fi
+
 for command_name in git gh node ollama curl; do
   if ! command -v "$command_name" >/dev/null 2>&1; then
     echo "Required command is unavailable: $command_name" >&2
@@ -51,6 +60,7 @@ open_count="$(gh pr list \
   --jq "length")"
 if [ "$open_count" -ne 0 ]; then
   echo "An AI draft is already waiting for review; skipping today's run."
+  : > "$completed_file"
   exit 0
 fi
 
@@ -61,7 +71,6 @@ metadata_path="$work_root/draft-metadata.json"
 gh repo clone "$repository" "$repo_root" -- --depth=1
 cd "$repo_root"
 
-publication_date="${PUBLICATION_DATE:-$(date +%F)}"
 existing_article=""
 for candidate in post-*.html; do
   if [ -f "$candidate" ] &&
@@ -72,6 +81,7 @@ for candidate in post-*.html; do
 done
 if [ -n "$existing_article" ]; then
   echo "An article is already published for $publication_date ($existing_article); skipping today's run."
+  : > "$completed_file"
   exit 0
 fi
 
@@ -94,6 +104,10 @@ git config user.name "local-blog-agent"
 git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
 git switch -c "$branch"
 git add "$post_file" blog.html sitemap.xml
+if git diff --cached --quiet; then
+  echo "No draft changes were generated; skipping commit."
+  exit 0
+fi
 git commit -m "Draft blog: $title"
 git push --set-upstream origin "$branch"
 
@@ -119,3 +133,4 @@ Review technical accuracy, source interpretation, tone, originality, links, and 
 This pull request was generated locally with Ollama; it was not published directly."
 
 echo "Draft pull request created for: $title"
+: > "$completed_file"

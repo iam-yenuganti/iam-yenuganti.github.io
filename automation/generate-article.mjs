@@ -12,7 +12,7 @@ const START_MARKER = "<!-- AI_POSTS_START -->";
 const SITEMAP_MARKER = "<!-- AI_POSTS_START -->";
 const ALLOWED_SOURCE_HOSTS = new Set(["learn.microsoft.com"]);
 const ALLOWED_ARTICLE_TAGS = new Set([
-  "a", "blockquote", "code", "em", "h2", "h3", "li", "ol", "p", "pre",
+  "a", "blockquote", "br", "code", "em", "h2", "h3", "li", "ol", "p", "pre",
   "strong", "table", "tbody", "td", "th", "thead", "tr", "ul"
 ]);
 const ARTICLE_SCHEMA = {

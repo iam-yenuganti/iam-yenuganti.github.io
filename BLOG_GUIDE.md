@@ -215,7 +215,14 @@ The installer copies the runtime script to
 `~/Library/Application Support/YenugantiBlogAgent` because background services
 can be denied access to OneDrive-managed folders by macOS privacy controls.
 The laptop must be powered on, awake, connected to the internet, and running
-Ollama when the job starts.
+Ollama when the job starts. The agent also runs at login and checks every
+minute while awake, so opening the laptop after 07:00 triggers a catch-up run
+within a minute. A completed run is recorded for the day to prevent repeated
+generation; an existing open draft or an article already dated today also
+prevents duplicates. Failed attempts can retry on the next check. Check
+`~/Library/Logs/yenuganti-blog-agent-error.log` when no draft appears. Since
+generation runs in a temporary clone of `main`, local uncommitted changes to
+the generator do not affect scheduled drafts.
 
 ### Editorial workflow
 

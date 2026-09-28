@@ -60,6 +60,10 @@ cat > "$plist_path" <<PLIST
     <key>Minute</key>
     <integer>0</integer>
   </dict>
+  <key>RunAtLoad</key>
+  <true/>
+  <key>StartInterval</key>
+  <integer>60</integer>
   <key>EnvironmentVariables</key>
   <dict>
     <key>OLLAMA_HOST</key>
