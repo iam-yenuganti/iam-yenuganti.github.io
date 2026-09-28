@@ -229,8 +229,9 @@ the generator do not affect scheduled drafts.
 1. The generator selects the first unused entry in `automation/topics.json`.
 2. It creates a clean temporary clone, downloads only the listed Microsoft
    Learn pages, and gives that material to the local model as reference data.
-3. It rejects malformed output, executable HTML, unapproved links, and drafts
-   outside the configured length limits.
+3. It retries malformed or out-of-range drafts with validation feedback, then
+   rejects output that still fails validation, including executable HTML and
+   unapproved links.
 4. It creates a post, updates `blog.html` and `sitemap.xml`, then opens a pull
    request.
 5. Review every factual claim and source before merging. Edit the branch

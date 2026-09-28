@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import {
+  buildPrompt,
   escapeHtml,
   extractJson,
   normalizeArticleMetadata,
@@ -102,6 +103,13 @@ test("validateArticle accepts the prompted line-break tag", () => {
     articleHtml: validArticle.articleHtml.replace("Opening context", "Opening<br>context")
   };
   assert.equal(validateArticle(article, topic), article);
+});
+
+test("buildPrompt includes grounded-draft validation feedback on retry", () => {
+  assert.match(
+    buildPrompt(topic, [], "2026-09-24", "Generated article must contain 1300-2400 words"),
+    /previous draft failed validation: Generated article must contain 1300-2400 words/
+  );
 });
 
 test("validateArticle rejects executable HTML", () => {
