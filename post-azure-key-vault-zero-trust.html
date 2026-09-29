@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="A blueprint for securing Azure Key Vault with RBAC, private endpoints, managed identities, soft-delete recovery, and separation of duties for enterprise environments." />
+  <title>Zero-Trust Operating Model for Azure Key Vault: Architecture and Controls | Srinivas Yenuganti</title>
+  <meta property="og:type" content="article" />
+  <meta property="og:title" content="Zero-Trust Operating Model for Azure Key Vault: Architecture and Controls" />
+  <meta property="og:description" content="A blueprint for securing Azure Key Vault with RBAC, private endpoints, managed identities, soft-delete recovery, and separation of duties for enterprise environments." />
+  <meta property="og:url" content="https://yenuganti.in/post-azure-key-vault-zero-trust.html" />
+  <meta property="article:published_time" content="2026-09-27" />
+  <meta name="twitter:card" content="summary" />
+  <link rel="canonical" href="https://yenuganti.in/post-azure-key-vault-zero-trust.html" />
+  <link rel="stylesheet" href="style.css?v=4" />
+  <style>
+    .post-header{background:linear-gradient(135deg,#071b33,#0b4f75);padding:3.5rem 1.5rem 3rem}
+    .post-header-inner,.article-body,.author-card{max-width:760px;margin:0 auto}
+    .post-breadcrumb,.post-meta{font-size:.78rem;color:rgba(255,255,255,.65)}
+    .post-breadcrumb a{color:rgba(255,255,255,.85)}
+    .post-title{font-size:clamp(1.7rem,4vw,2.5rem);color:#fff;line-height:1.2;margin:1rem 0}
+    .article-section{padding:3.5rem 1.5rem}
+    .article-body p,.article-body li{color:#374151;margin-bottom:1rem}
+    .article-body h2{font-size:1.45rem;margin:2.5rem 0 .8rem;padding-top:1.5rem;border-top:1px solid #e2e8f0}
+    .article-body h3{font-size:1.1rem;color:#0b4f75;margin:1.5rem 0 .5rem}
+    .article-body ul,.article-body ol{margin:0 0 1.25rem 1.5rem}
+    .article-body pre{background:#0b1f33;color:#e6edf3;padding:1rem;border-radius:8px;overflow:auto}
+    .article-body code{background:#eef2f7;padding:.1rem .3rem;border-radius:4px;overflow-wrap:anywhere}
+    .article-body table{display:block;width:100%;border-collapse:collapse;margin:1.5rem 0;overflow-x:auto}
+    .article-body th,.article-body td{border:1px solid #dbe3ec;padding:.65rem;text-align:left;vertical-align:top}
+    .article-body blockquote{border-left:4px solid #1565c0;background:#f7f9fb;padding:1rem 1.2rem;margin:1.5rem 0}
+    .architecture-diagram{max-width:100%;margin:0 0 2.5rem;padding:1.35rem;background:#f7f9fb;border:1px solid #cbd5e1;border-radius:10px}
+    .architecture-diagram figcaption{font-size:1.05rem;font-weight:750;color:#0d1b2a;margin-bottom:.35rem}
+    .diagram-subtitle{font-size:.84rem!important;color:#5b6672!important;margin-bottom:1.1rem!important}
+    .diagram-lanes{display:grid;gap:.8rem}
+    .diagram-lane{display:grid;grid-template-columns:minmax(145px,.8fr) minmax(0,2.2fr);gap:.8rem;padding:.8rem;background:#fff;border:1px solid #cbd5e1;border-left:4px solid #1565c0;border-radius:8px}
+    .diagram-lane-heading h3{font-size:.82rem;margin:0 0 .25rem;color:#0d1b2a}
+    .diagram-lane-heading span{display:block;font-size:.68rem;line-height:1.35;color:#64748b}
+    .diagram-components{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,170px),1fr));gap:.55rem;min-width:0}
+    .diagram-component{padding:.65rem .7rem;background:#f8fafc;border:1px solid #e2e8f0;border-radius:6px}
+    .diagram-component strong,.diagram-component span{display:block}
+    .diagram-component strong{font-size:.76rem;color:#0b4f75;margin-bottom:.2rem}
+    .diagram-component span{font-size:.7rem;line-height:1.4;color:#475569}
+    .diagram-flow{margin-top:1rem;padding:.85rem;background:#0b1f33;border-radius:8px;color:#fff}
+    .diagram-flow>strong{display:block;font-size:.72rem;text-transform:uppercase;letter-spacing:.06em;margin-bottom:.65rem}
+    .diagram-flow ol{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:.5rem;list-style:none;margin:0;padding:0}
+    .diagram-flow li{display:flex;align-items:flex-start;gap:.45rem;margin:0;color:#dbeafe;font-size:.69rem;line-height:1.35}
+    .diagram-flow li span{display:inline-flex;align-items:center;justify-content:center;flex:0 0 1.35rem;height:1.35rem;border-radius:50%;background:#1e88e5;color:#fff;font-weight:700}
+    @media(max-width:640px){.architecture-diagram{padding:1rem}.diagram-lane{grid-template-columns:1fr}.diagram-components{grid-template-columns:minmax(0,1fr)}.diagram-flow ol{grid-template-columns:minmax(0,1fr)}}
+    .sources{margin-top:2.5rem;padding-top:1.5rem;border-top:1px solid #e2e8f0}
+    .author-card{background:#f7f9fb;border:1px solid #e2e8f0;border-radius:10px;padding:1.5rem;margin-top:3rem}
+  </style>
+</head>
+<body>
+  <nav class="main-nav">
+    <a href="index.html" class="nav-logo">Srinivas Yenuganti</a>
+    <button class="hamburger" aria-label="Toggle menu" aria-expanded="false" aria-controls="navlinks"
+      onclick="const o=document.getElementById('navlinks').classList.toggle('open');this.setAttribute('aria-expanded',o)">
+      <span></span><span></span><span></span>
+    </button>
+    <ul class="nav-links" id="navlinks">
+      <li><a href="index.html">About</a></li>
+      <li><a href="blog.html" class="active">Blog</a></li>
+    </ul>
+  </nav>
+
+  <header class="post-header">
+    <div class="post-header-inner">
+      <div class="post-breadcrumb"><a href="blog.html">&larr; Blog</a> &middot; Security &amp; Identity</div>
+      <h1 class="post-title">Zero-Trust Operating Model for Azure Key Vault: Architecture and Controls</h1>
+      <div class="post-meta">18 min read &middot; 27 September 2026</div>
+    </div>
+  </header>
+
+  <main class="article-section">
+    <article class="article-body">
+      
+      <h2>Executive Context</h2><p>Azure Key Vault serves as the cryptographic root of trust for regulated enterprises. A breach here extends beyond configuration exposure; it compromises the integrity of encrypted storage, application authentication, and compliance postures. The engineering tension lies in balancing automated, low-latency access for hundreds of microservices against the requirements for strict separation of duties, auditable privilege elevation, and network isolation. This architecture treats Key Vault not as a shared utility, but as a segmented, highly controlled security boundary.</p><h2>Constraints and Assumptions</h2><p>The scenario assumes a multi-subscription estate with distinct development, staging, and production environments. Workloads are distributed across Azure Virtual Networks (VNet) and require access to secrets, keys, and certificates. The organization mandates that no credentials be hardcoded in application code or infrastructure templates. All access must be mediated through Microsoft Entra ID, and all data-plane traffic must traverse private networks. The estate supports regulated workloads requiring immutable audit trails and strict recovery controls.</p><h2>Target Architecture</h2><p>The target architecture enforces a one-vault-per-application-per-environment pattern. This segmentation limits the blast radius of a compromised secret or key. Each vault is deployed in its own resource group, isolated by network security perimeters or private endpoints. Access is governed by Azure Role-Based Access Control (RBAC) for both control-plane and data-plane operations, replacing legacy access policies. Managed identities are the exclusive authentication mechanism for service principals, eliminating static credentials.</p><h2>DevSecOps Control Model</h2><p>The operating model spans the entire lifecycle. In the source phase, secrets are excluded from repositories. During build and release, infrastructure as code (IaC) provisions vaults with soft-delete and purge protection enabled by default. Runtime posture is monitored via diagnostic logs streaming to a centralized Log Analytics workspace. Exception handling requires just-in-time (JIT) privilege elevation via Privileged Identity Management (PIM) with mandatory multi-factor authentication (MFA) and approval workflows. Audit evidence is derived from Azure Activity Logs for control-plane changes and Key Vault diagnostic logs for data-plane access.</p><h2>Key Architecture Decisions</h2><h3>Decision 1: Network Isolation via Private Endpoints</h3><p><strong>Decision:</strong> Disable public network access and enforce connectivity exclusively through Azure Private Link.</p><p><strong>Rationale:</strong> Public exposure increases the attack surface. Private endpoints ensure that data-plane traffic remains within the virtual network, preventing exposure to the public internet. While public DNS records remain resolvable by design, the actual data transfer is secured.</p><p><strong>Alternative Rejected:</strong> Using firewall rules with static IP allow-lists. This approach is brittle in dynamic cloud environments where IP addresses change, and it does not provide the same level of isolation as private endpoints.</p><p><strong>Consequence:</strong> Increased complexity in DNS configuration for hybrid scenarios and the need to manage private DNS zones. Trusted Microsoft services may require specific bypass configurations if they are not on the trusted services list.</p><h3>Decision 2: Azure RBAC over Legacy Access Policies</h3><p><strong>Decision:</strong> Use Azure RBAC for all data-plane and control-plane authorization.</p><p><strong>Rationale:</strong> Legacy access policies lack support for Privileged Identity Management (PIM) and have known security vulnerabilities. Azure RBAC provides centralized management, supports JIT assignments, and allows for granular role assignments at the vault or object scope. Starting with API version 2026-02-01, Azure RBAC is the default for new vaults.</p><p><strong>Alternative Rejected:</strong> Continuing to use legacy access policies for backward compatibility. This introduces security risks and prevents the use of modern identity governance features.</p><p><strong>Consequence:</strong> Requires migration of existing vaults and updates to application code to use the correct RBAC roles. Control plane roles (e.g., Key Vault Contributor) do not grant data-plane access, requiring separate assignments.</p><h3>Decision 3: Soft-Delete with Purge Protection</h3><p><strong>Decision:</strong> Enable soft-delete and purge protection on all vaults.</p><p><strong>Rationale:</strong> Soft-delete prevents accidental or malicious deletion of vaults and objects. Purge protection ensures that even privileged users cannot permanently delete objects before the retention period expires, safeguarding against data loss in encryption scenarios.</p><p><strong>Alternative Rejected:</strong> Disabling soft-delete for operational simplicity. This creates a single point of failure where a mistaken delete command results in immediate, irreversible data loss.</p><p><strong>Consequence:</strong> Deleted vaults and objects remain in a soft-deleted state for 7–90 days (default 90). During this period, the vault name cannot be reused, and recovery requires specific permissions. Billing implications are minimal as no operations are performed on deleted objects.</p><h2>Implementation Blueprint</h2><p>Implementation begins with defining the environment control matrix. Production vaults must have the strictest controls, including JIT access for all administrative roles. Development and staging environments may allow persistent access for developers but must still enforce private endpoints and managed identities.</p><p>Network configuration involves deploying Private Endpoints for each Key Vault. The <code>publicNetworkAccess</code> setting is set to <code>Disabled</code>. If trusted Microsoft services are required, the firewall must be configured to allow them, but this should be avoided where possible. TLS 1.2 or 1.3 is enforced on all client connections.</p><p>Identity management involves assigning managed identities to all applications. These identities are granted the minimum necessary RBAC roles. For example, an application needing to read secrets is assigned the <code>Key Vault Secrets User</code> role. Administrative tasks are assigned via PIM with JIT activation. The <code>Key Vault Contributor</code> role is reserved for platform engineers who manage the vault infrastructure, not the secrets within it.</p><h2>Operational Evidence and SLOs</h2><p>Operational health is measured through control-health indicators. Key metrics include the percentage of vaults with private endpoints enabled, the number of JIT activations requiring approval, and the time to detect unauthorized access attempts. Diagnostic logs are configured to capture all data-plane operations, including <code>get</code>, <code>set</code>, and <code>delete</code> actions. These logs are retained for a period compliant with regulatory requirements, typically 90 days or more.</p><p>SLOs focus on availability and security. Availability SLOs are tied to the underlying Azure region, but security SLOs include the maximum time for privilege escalation (e.g., under 5 minutes for JIT activation) and the frequency of access reviews (e.g., quarterly). Evidence sources include Azure Activity Logs for control-plane changes and Key Vault diagnostic logs for data-plane access. Access-governance records are distinct from resource-operation logs; the former tracks who was authorized, while the latter tracks what actions were performed.</p><h2>Failure Modes and Trade-offs</h2><p>A primary failure mode is the misconfiguration of private DNS zones, leading to resolution failures for applications. Another is the accidental deletion of a vault, which triggers the soft-delete retention period. During this period, the vault is inaccessible, and recovery requires specific permissions. Purge protection prevents immediate recovery, ensuring that the retention policy is followed. This trade-off prioritizes data integrity over operational agility.</p><p>Another trade-off is the complexity of managing multiple vaults. While segmentation reduces blast radius, it increases the operational overhead of provisioning and monitoring. This is mitigated by using IaC and automated compliance checks via Azure Policy. The use of JIT access adds latency to administrative tasks but significantly reduces the risk of unauthorized access.</p><h2>Adoption Roadmap</h2><p>Adoption begins with an inventory of existing Key Vaults and their access patterns. Legacy access policies are identified and migrated to Azure RBAC. Private endpoints are deployed for production vaults first, followed by staging and development. Managed identities are assigned to all applications, and hardcoded credentials are removed. PIM is configured for all administrative roles, and JIT access is enforced. Finally, diagnostic logs are enabled and integrated with the centralized monitoring solution.</p><p>Key steps include:</p><ul><li>Audit existing vaults for public network access and legacy policies.</li><li>Provision private endpoints and update DNS configurations.</li><li>Migrate access policies to Azure RBAC roles.</li><li>Assign managed identities to applications.</li><li>Enable soft-delete and purge protection on all vaults.</li><li>Configure PIM for JIT access with MFA and approval workflows.</li><li>Enable diagnostic logs and integrate with monitoring tools.</li></ul><h2>Conclusion</h2><p>A zero-trust operating model for Azure Key Vault requires a disciplined approach to network isolation, identity management, and access control. By segmenting vaults, enforcing private connectivity, and using Azure RBAC with JIT privileges, organizations can significantly reduce the risk of credential compromise and data loss. The trade-offs in complexity are justified by the enhanced security posture and auditability. This model ensures that Key Vault remains a secure, reliable, and compliant foundation for enterprise cryptographic operations.
+      <section class="sources">
+        <h2>Sources</h2>
+        <ol>
+          <li><a href="https://learn.microsoft.com/azure/key-vault/general/best-practices" target="_blank" rel="noopener">Microsoft Learn source 1</a></li>
+          <li><a href="https://learn.microsoft.com/azure/key-vault/general/rbac-guide" target="_blank" rel="noopener">Microsoft Learn source 2</a></li>
+          <li><a href="https://learn.microsoft.com/azure/key-vault/general/soft-delete-overview" target="_blank" rel="noopener">Microsoft Learn source 3</a></li>
+        </ol>
+      </section>
+      <aside class="author-card">
+        <strong>Srinivas Yenuganti</strong>
+        <p>Azure Cloud and DevSecOps architect writing about secure, governed, and operable enterprise platforms.</p>
+      </aside>
+    </article>
+  </main>
+
+  <footer class="main-footer">
+    <p>&copy; 2026 Srinivas Yenuganti &nbsp;&middot;&nbsp;
+      <a href="index.html">About</a> &nbsp;&middot;&nbsp;
+      <a href="blog.html">Blog</a> &nbsp;&middot;&nbsp;
+      <a href="https://www.linkedin.com/in/syenuganti-bb767744/" target="_blank" rel="noopener">LinkedIn</a>
+    </p>
+  </footer>
+</body>
+</html>
