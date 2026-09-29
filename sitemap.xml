@@ -17,6 +17,12 @@
 
   <!-- Blog posts -->
   <!-- AI_POSTS_START -->
+  <url>
+    <loc>https://yenuganti.in/post-azure-backup-ransomware-resilience.html</loc>
+    <lastmod>2026-09-28</lastmod>
+    <changefreq>yearly</changefreq>
+    <priority>0.8</priority>
+  </url>
 
   <url>
     <loc>https://yenuganti.in/post-azure-key-vault-zero-trust.html</loc>
