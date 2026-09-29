@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Design a practical Azure Monitor baseline: choose workspace boundaries, collect useful resource logs, and turn service-level signals into owned alerts." />
+  <title>Designing an Azure Observability Baseline | Srinivas Yenuganti</title>
+  <meta property="og:type" content="article" />
+  <meta property="og:title" content="Designing an Azure Observability Baseline" />
+  <meta property="og:description" content="Design a practical Azure Monitor baseline: choose workspace boundaries, collect useful resource logs, and turn service-level signals into owned alerts." />
+  <meta property="og:url" content="https://yenuganti.in/post-azure-monitor-observability-baseline.html" />
+  <meta property="article:published_time" content="2026-09-24" />
+  <meta name="twitter:card" content="summary" />
+  <link rel="canonical" href="https://yenuganti.in/post-azure-monitor-observability-baseline.html" />
+  <link rel="stylesheet" href="style.css?v=4" />
+  <style>
+    .post-header{background:linear-gradient(135deg,#071b33,#0b4f75);padding:3.5rem 1.5rem 3rem}
+    .post-header-inner,.article-body{max-width:760px;margin:0 auto}
+    .post-breadcrumb,.post-meta{font-size:.78rem;color:rgba(255,255,255,.7)}
+    .post-breadcrumb a{color:#fff}
+    .post-title{font-size:clamp(1.7rem,4vw,2.5rem);color:#fff;line-height:1.2;margin:1rem 0}
+    .article-section{padding:3.5rem 1.5rem}
+    .article-body p,.article-body li{color:#374151;margin-bottom:1rem}
+    .article-body h2{font-size:1.45rem;margin:2.5rem 0 .8rem;padding-top:1.5rem;border-top:1px solid #e2e8f0}
+    .article-body h3{font-size:1.1rem;color:#0b4f75;margin:1.5rem 0 .5rem}
+    .article-body ul,.article-body ol{margin:0 0 1.25rem 1.5rem}
+    .article-body code{background:#eef2f7;padding:.1rem .3rem;border-radius:4px;overflow-wrap:anywhere}
+    .architecture-diagram{margin:0 0 2.5rem;padding:1rem;border:1px solid #b9d4e8;border-top:4px solid #0078d4;border-radius:4px;background:#f7fbff}
+    .architecture-diagram figcaption{font-size:1.05rem;font-weight:700;color:#172d43}
+    .diagram-flow{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:.7rem;list-style:none;margin:1rem 0 0!important;padding:0}
+    .diagram-flow li{padding:.85rem;border:1px solid #c2d9ea;border-radius:6px;background:#fff;font-size:.86rem}
+    .diagram-flow strong{display:block;color:#0b4f75}
+    .diagram-note{font-size:.8rem;color:#4b5563!important}
+    @media(max-width:640px){.diagram-flow{grid-template-columns:1fr}}
+    .sources{margin-top:2.5rem;padding-top:1.5rem;border-top:1px solid #e2e8f0}
+    .author-card{background:#f7f9fb;border:1px solid #e2e8f0;border-radius:10px;padding:1.5rem;margin-top:3rem}
+  </style>
+</head>
+<body>
+  <nav class="main-nav">
+    <a href="index.html" class="nav-logo">Srinivas Yenuganti</a>
+    <button class="hamburger" aria-label="Toggle menu" aria-expanded="false" aria-controls="navlinks"
+      onclick="const o=document.getElementById('navlinks').classList.toggle('open');this.setAttribute('aria-expanded',o)">
+      <span></span><span></span><span></span>
+    </button>
+    <ul class="nav-links" id="navlinks">
+      <li><a href="index.html">About</a></li>
+      <li><a href="blog.html" class="active">Blog</a></li>
+    </ul>
+  </nav>
+
+  <header class="post-header">
+    <div class="post-header-inner">
+      <div class="post-breadcrumb"><a href="blog.html">&larr; Blog</a> &middot; Platform Engineering</div>
+      <h1 class="post-title">Designing an Azure Observability Baseline</h1>
+      <div class="post-meta">11 min read &middot; 24 September 2026</div>
+    </div>
+  </header>
+
+  <main class="article-section">
+    <article class="article-body">
+      <figure class="architecture-diagram" aria-labelledby="observability-flow-title">
+        <figcaption id="observability-flow-title">From Azure signals to service ownership</figcaption>
+        <p class="diagram-note">A baseline is a collection and response path, not simply a shared dashboard.</p>
+        <ol class="diagram-flow">
+          <li><strong>Collect</strong>Platform metrics and activity logs are available; select resource logs with diagnostic settings.</li>
+          <li><strong>Investigate</strong>Route selected logs to a Log Analytics workspace; retain relevant metrics for rapid health checks.</li>
+          <li><strong>Respond</strong>Connect symptom alerts and supporting evidence to an owning service team and a tested action.</li>
+        </ol>
+      </figure>
+
+      <h2>Executive Context</h2>
+      <p>An Azure subscription can contain thousands of metrics and logs yet still leave an on-call engineer unable to answer a basic question: which customer-facing service is impaired? A platform observability baseline should make that answer faster. It defines which signals are collected, where they live, who may inspect them, and which changes in those signals deserve a human response. It does not promise that every incident will be detected automatically.</p>
+      <p><a href="https://learn.microsoft.com/azure/azure-monitor/fundamentals/overview">Azure Monitor</a> brings together metrics, logs, traces, and events for investigation. Its data platform distinguishes Log Analytics workspaces, used for log and trace analysis with Kusto Query Language, from Azure Monitor workspaces, used for Prometheus and OpenTelemetry metrics with PromQL. An organization should not treat those similar names as interchangeable storage choices. This article concentrates on the Log Analytics and platform-signal path; teams adopting Prometheus metrics should design that workspace path separately.</p>
+
+      <h2>Constraints and Assumptions</h2>
+      <p>Consider a platform team supporting several subscriptions and application teams. Production services have different owners, while platform operators must see cross-service symptoms. Some logs contain sensitive operational information. Regions, data-access boundaries, retention requirements, and a finite telemetry budget influence the design. The baseline therefore needs a default that is easy to operate and an explicit process for exceptions, rather than a separate monitoring stack for every deployment.</p>
+      <p>Assume the application teams can identify critical user journeys and nominate a responder, even if they have not yet formalized service-level objectives. Start with a small set of failure and latency symptoms that a responder can act on. A diagnostic setting that copies every available category does not supply application context by itself. Equally, a dashboard that looks healthy while collection is broken is not an acceptable operational control.</p>
+
+      <h2>Target Architecture</h2>
+      <p>The default design is one appropriately located Log Analytics workspace for a coherent operational boundary, with diagnostic settings on resources whose logs are needed for investigation. Microsoft recommends <a href="https://learn.microsoft.com/azure/azure-monitor/logs/workspace-design">starting with a single workspace</a> and adding only the workspaces required by concrete business criteria. Data volume alone is not a reason to split: the workspace guidance says volume does not impose a workspace performance limit. Cross-resource queries and common operating procedures are simpler when related data remains together.</p>
+      <p>A workspace is not a universal dumping ground. Regional storage obligations, different data owners or billing parties, distinct access requirements, and incompatible retention needs may justify another workspace. For example, a separate security boundary may be appropriate when operational data and Microsoft Sentinel data have different owners or cost implications. Document the exception and its cross-workspace investigation cost before creating it. Set retention deliberately at workspace or table level where the requirement applies, and review who has access to the resulting data.</p>
+      <p>The diagram above describes three connected planes. Azure supplies platform metrics and activity-log data without first creating resource diagnostic settings; selected resource logs need settings to be collected. Log Analytics provides a queryable investigation path for routed logs. Service teams then attach alert rules, ownership and incident procedures to the signals they can actually use. Keep the metric and log roles distinct: a fast metric symptom can prompt an investigation, while resource logs may supply the context needed to explain it.</p>
+
+      <h2>DevSecOps Control Model</h2>
+      <p>Make the baseline part of service onboarding. A service specification should name its critical operation, owning team, expected telemetry sources, relevant resource-log categories, workspace destination, alert contact, and evidence of a tested response. Infrastructure review should check both the existence of required settings and whether they point to the intended destination. Settings must be defined for each resource that produces the selected data; merely creating a workspace does not turn on resource-log collection.</p>
+      <p>Separate authorization to change collection from authorization to read telemetry. Monitoring data can expose identifiers and operational details, so workspace placement and data-access decisions belong in the same review as retention. Platform engineers can maintain a reusable collection pattern, while application owners decide what constitutes a harmful user-visible symptom. A security team may require its own data boundary; that is a documented design choice, not a reason to duplicate all ingestion without review. Record exceptions with an owner and expiration or review date.</p>
+
+      <h2>Key Architecture Decisions</h2>
+      <h3>Choose collection by question</h3>
+      <p>Begin with questions an engineer will ask during a real failure: did requests fail, when did a resource change, and which component was affected? <a href="https://learn.microsoft.com/azure/azure-monitor/essentials/diagnostic-settings">Diagnostic settings</a> can route resource logs, platform metrics, and activity-log entries to supported destinations, including a Log Analytics workspace, a storage account, or an event hub. Resource logs are not collected by default; platform metrics and the activity log are automatically collected, but diagnostic settings are needed to send them to another destination. Select categories that answer investigation questions, then check actual availability and ingestion after rollout.</p>
+      <h3>Separate live queries from archival needs</h3>
+      <p>Choose the destination for the intended use. A Log Analytics workspace supports queries, workbooks, and log-based alerting. Storage can serve longer-lived archival or audit requirements, while an event hub can support downstream processing. These destinations have different operational characteristics; copying the same stream everywhere multiplies data movement and governance work. The Microsoft guidance also notes destination constraints: a destination must exist before configuration, and regional resources sending to storage or event hubs require destinations in the same region. Check those constraints before declaring a shared routing template portable.</p>
+      <h3>Keep the exception budget small</h3>
+      <p>Multiple workspaces increase query and configuration complexity. On the other hand, a single workspace should not override residency or ownership requirements. Write down the reason for each split, the teams allowed to query it, its retention policy, and the way responders will correlate incidents across boundaries. Revisit the decision when a new region, team, or security requirement changes the operating model.</p>
+
+      <h2>Implementation Blueprint</h2>
+      <ol>
+        <li><strong>Inventory the services.</strong> Map subscriptions and resources to customer-facing services and responders. Mark the resources that participate in a critical journey, not just those easiest to monitor.</li>
+        <li><strong>Establish workspace boundaries.</strong> Start with the smallest practical number; review region, tenant, data ownership, access, billing and retention criteria before accepting an additional workspace.</li>
+        <li><strong>Build a collection matrix.</strong> For each resource type, identify the platform metrics to watch, the activity-log events worth investigating, and the resource-log categories required to diagnose a failure. State the destination and why each stream is needed.</li>
+        <li><strong>Apply settings and verify receipt.</strong> Create the destinations first, then configure per-resource diagnostic settings for selected streams. Generate a safe test event or inspect a known event, and verify that it arrives in the expected place. Allow for source-specific ingestion delay before interpreting an empty query as a failure.</li>
+        <li><strong>Bind alerts to actions.</strong> For each critical service, choose a symptom threshold or condition with a clear owner, an escalation route and a runbook. Exercise the alert path, not just the rule definition.</li>
+      </ol>
+      <p>Treat collection templates and service ownership as versioned configuration. A platform change that creates a new resource type should trigger a review of its available diagnostic categories. A service release that changes traffic patterns should prompt a review of its alert thresholds. This is a repeatable control loop, not a one-time portal setup.</p>
+
+      <h2>Operational Evidence and SLOs</h2>
+      <p>Measure the baseline itself. Useful evidence includes the proportion of in-scope resources with the intended settings, whether expected events reach their destination, and the age of the latest representative log. These checks detect gaps in collection; they are different from a service-health objective. For the service, define a user-centered indicator, such as successful requests or time spent responding, and agree on an objective appropriate to that service. A platform-wide CPU alert is rarely a substitute for a failing user journey.</p>
+      <p>Review alert usefulness after incidents. Can the responder identify the service, impact, relevant time window, and next action from the notification? Which notifications were noise, and which incidents went undetected? Track acknowledgement and investigation time as operational feedback, not as proof that a workload met an availability objective. Workbooks or dashboards can help responders correlate signals, but they should follow clear questions and ownership rather than replace them.</p>
+
+      <h2>Failure Modes and Trade-offs</h2>
+      <p>A common failure is to confuse a reachable workspace with complete coverage. Missing per-resource settings leave resource logs absent even though metrics appear in the portal. Another is to route all categories without checking volume, usefulness or access; that raises cost and obscures important events. A third is to create many workspaces for organizational convenience and then discover that incident responders need a cross-workspace view. The antidote is a collection matrix, test events, explicit boundaries, and periodic review of ingestion against actual investigation needs.</p>
+      <p>Lifecycle matters as well. Microsoft warns that diagnostic settings should be removed when a resource is deleted, renamed, or moved across groups or subscriptions; otherwise, a recreated resource can inherit a stale setting. Incorporate that cleanup in decommissioning and migration procedures. Do not assume every resource supports identical log categories or that data appears instantaneously. Test the behavior of each onboarded resource type and state what delayed or absent telemetry means for incident response.</p>
+
+      <h2>Adoption Roadmap</h2>
+      <p>First, select one representative production service and document the journey, owner, workspace decision, required logs, and two or three actionable symptoms. Next, implement its resource settings and confirm that a responder can travel from alert to evidence. Record gaps found in a tabletop incident. Then convert the working pattern into a standard for other teams, allowing justified exceptions for region, access and retention. Finally, review coverage, alert noise, and ingestion choices on a regular cadence with both platform and service owners.</p>
+      <p>The rollout gate should not be “a dashboard exists.” It should be “we can recognize a real service problem, reach an owner, and find the evidence to investigate it.” That test makes observability a platform capability rather than a collection of disconnected charts.</p>
+
+      <h2>Conclusion</h2>
+      <p>An Azure observability baseline is a small set of accountable choices: which questions matter, which signals answer them, where those signals are stored, and who responds when they change. Begin with a simple workspace design, collect resource logs intentionally, and verify the complete path from symptom to investigation. Expand only when a documented requirement or an incident demonstrates the need. The result is not maximum telemetry; it is evidence that an owner can use when the service needs attention.</p>
+
+      <section class="sources">
+        <h2>Sources</h2>
+        <ol>
+          <li><a href="https://learn.microsoft.com/azure/azure-monitor/fundamentals/overview">Microsoft Learn: Azure Monitor overview</a></li>
+          <li><a href="https://learn.microsoft.com/azure/azure-monitor/logs/workspace-design">Microsoft Learn: Design a Log Analytics workspace architecture</a></li>
+          <li><a href="https://learn.microsoft.com/azure/azure-monitor/essentials/diagnostic-settings">Microsoft Learn: Diagnostic settings in Azure Monitor</a></li>
+        </ol>
+      </section>
+      <aside class="author-card">
+        <strong>Srinivas Yenuganti</strong>
+        <p>Azure Cloud and DevSecOps architect writing about secure, governed, and operable enterprise platforms.</p>
+      </aside>
+    </article>
+  </main>
+
+  <footer class="main-footer">
+    <p>&copy; 2026 Srinivas Yenuganti &nbsp;&middot;&nbsp;
+      <a href="index.html">About</a> &nbsp;&middot;&nbsp;
+      <a href="blog.html">Blog</a> &nbsp;&middot;&nbsp;
+      <a href="https://www.linkedin.com/in/syenuganti-bb767744/" target="_blank" rel="noopener">LinkedIn</a>
+    </p>
+  </footer>
+</body>
+</html>
