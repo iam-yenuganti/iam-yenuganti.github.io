@@ -446,6 +446,7 @@ function renderPost(article, topic, date) {
     .article-body ul,.article-body ol{margin:0 0 1.25rem 1.5rem}
     .article-body pre{background:#0b1f33;color:#e6edf3;padding:1rem;border-radius:8px;overflow:auto}
     .article-body code{background:#eef2f7;padding:.1rem .3rem;border-radius:4px;overflow-wrap:anywhere}
+    .article-body pre code{background:none;padding:0;color:inherit;border-radius:0}
     .article-body table{display:block;width:100%;border-collapse:collapse;margin:1.5rem 0;overflow-x:auto}
     .article-body th,.article-body td{border:1px solid #dbe3ec;padding:.65rem;text-align:left;vertical-align:top}
     .article-body blockquote{border-left:4px solid #1565c0;background:#f7f9fb;padding:1rem 1.2rem;margin:1.5rem 0}
