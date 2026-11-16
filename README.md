@@ -1,8 +1,8 @@
 ## Hi there 👋
 
-# Srinivas Yenuganti — Cloud & Security Architect
+# Srinivas Yenuganti — Cloud Engineer (Azure / DevOps)
 
-IT Infra, Cloud & Security Architect with 20+ years of international experience in Azure,
+Cloud Engineer with 20+ years of international experience in Azure,
 DevSecOps, Zero Trust, and healthcare compliance (HIPAA, HITRUST, ISO 27001, SOC 2).
 
 This repository hosts my personal site and architecture blog: **https://yenuganti.in**
@@ -15,7 +15,7 @@ This repository hosts my personal site and architecture blog: **https://yenugant
 ## Stack
 Static HTML/CSS on GitHub Pages. New posts follow `BLOG_GUIDE.md`.
 
-- 🔗 LinkedIn: https://www.linkedin.com/in/syenuganti-bb767744/
+- 🔗 LinkedIn: https://www.linkedin.com/in/srinivas-yenuganti-bb767744/
 
 <!--
 **iam-yenuganti/iam-yenuganti** is a ✨ _special_ ✨ repository because its `README.md` (this file) appears on your GitHub profile.
