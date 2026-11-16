@@ -182,8 +182,8 @@
       </table>
 
       <div class="callout callout-real">
-        <div class="callout-title">🏥 Real example — Healthcare payer storage segmentation</div>
-        <p>A US healthcare payer I worked with had <strong>five distinct workload patterns</strong>, each landing on a separate, purpose-tuned storage account rather than one shared account:</p>
+        <div class="callout-title">🏥 Example — Healthcare payer storage segmentation</div>
+        <p>Consider a typical US healthcare payer with <strong>five distinct workload patterns</strong>, each landing on a separate, purpose-tuned storage account rather than one shared account:</p>
         <ol style="margin:.5rem 0 .25rem 1.2rem;font-size:.86rem;color:#374151;line-height:1.7">
           <li><strong>Active claims data lake</strong> — GPv2 with HNS, RA-GZRS, default tier <em>Hot</em>, consumed by Synapse + Fabric.</li>
           <li><strong>Archived claims PDFs (7-yr retention)</strong> — GPv2 with HNS off, GRS, default tier <em>Cool</em>, lifecycle auto-tiers to Archive at 365 days.</li>
@@ -550,8 +550,8 @@
       </ul>
 
       <div class="callout callout-real">
-        <div class="callout-title">🏥 Real example — Ransomware tabletop, healthcare payer</div>
-        <p>During a simulated ransomware exercise, an attacker (red team) obtained Storage Account Contributor and disabled soft delete on the active claims account, then deleted the latest 30 days of claim PDFs. Soft delete was unrecoverable (the retention window was wiped on disable). <strong>Operational PITR could not help</strong> — its state lived in the same account. The vaulted backup, sitting in a Microsoft-managed RSV with cross-region restore, was used to rebuild the container in the DR region in under 90 minutes. After this exercise, the payer made vaulted backup a Policy-enforced default for every storage account holding PHI.</p>
+        <div class="callout-title">🏥 Example scenario — Ransomware tabletop, healthcare payer</div>
+        <p>Picture a simulated ransomware exercise in which an attacker (red team) obtains Storage Account Contributor, disables soft delete on the active claims account, then deletes the latest 30 days of claim PDFs. Soft delete cannot recover them (the retention window is wiped on disable), and <strong>operational PITR cannot help</strong> — its state lives in the same account. A vaulted backup, sitting in a Microsoft-managed RSV with cross-region restore, can rebuild the container in the DR region. The lesson: make vaulted backup a Policy-enforced default for every storage account holding PHI.</p>
       </div>
 
       <h3>Bicep — Adding Vaulted Backup to a Storage Account</h3>
@@ -812,8 +812,8 @@ Is it dev/test or regenerable?
       <p>Microsoft's own guidance: "for most scenarios, Azure Storage encryption provides a sufficiently powerful encryption algorithm, and there is unlikely to be a benefit to using infrastructure encryption." Enable it where compliance demands it; do not enable it as a reflex.</p>
 
       <div class="callout callout-real">
-        <div class="callout-title">🏥 Real example — PHI claims store at a healthcare payer</div>
-        <p>The active claims data lake (Section 1, pattern #1) was migrated mid-project to a new storage account specifically to enable infrastructure encryption. Why? The CISO's risk register required defence against a hypothetical compromise of either the CMK in Key Vault Premium <em>or</em> the underlying service-side AES implementation — a scenario the original GPv2 account did not cover. Cost: a 4-day data copy window using AzCopy + change-feed-driven catch-up; ~$1,800 in egress and transactions. Benefit: a clean HITRUST control mapping for "encryption with two independent key hierarchies" and an unconditional pass on that control during the next audit. Lesson: <strong>turn it on at creation</strong> for every regulated account; the migration cost only gets bigger.</p>
+        <div class="callout-title">🏥 Example scenario — PHI claims store at a healthcare payer</div>
+        <p>Imagine the active claims data lake (Section 1, pattern #1) having to move mid-project to a new storage account just to enable infrastructure encryption, because the CISO's risk register requires defence against a compromise of either the CMK in Key Vault Premium <em>or</em> the underlying service-side AES implementation — a scenario the original GPv2 account does not cover. The cost is a multi-day data copy using AzCopy plus change-feed-driven catch-up, and egress and transaction charges. The benefit is a clean HITRUST control mapping for "encryption with two independent key hierarchies". Lesson: <strong>turn it on at creation</strong> for every regulated account; the migration cost only gets bigger.</p>
       </div>
 
       <h4>Layer 3 — Encryption in Transit</h4>
@@ -1322,7 +1322,7 @@ resource "azurerm_storage_management_policy" "lifecycle" {
       <div>
         <div class="author-name">Srinivas Yenuganti</div>
         <div class="author-role">Cloud Engineer · Azure, DevOps &amp; Security</div>
-        <div class="author-bio">20+ years designing and operating enterprise cloud environments. Currently building Azure cloud foundations and healthcare platforms at iSpace Inc., Los Angeles, with a focus on governance automation, FinOps, and zero-trust security.</div>
+        <div class="author-bio">20+ years in enterprise infrastructure, cloud and security. Currently a Cloud Engineer at iSpace Inc., Los Angeles, owning the Azure architecture for healthcare SaaS products, with a focus on Zero Trust, compliance and secure AI.</div>
         <a href="https://www.linkedin.com/in/srinivas-yenuganti-bb767744/" target="_blank" style="color:#0077b6;font-size:.85rem;text-decoration:none;font-weight:600;">Connect on LinkedIn →</a>
       </div>
     </div>

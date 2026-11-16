@@ -126,7 +126,7 @@
         <li>Twelve months later the tenant is paying for three, four, sometimes a dozen DDoS plans. At roughly <strong>US$2,944 per plan per month</strong> the bill compounds quickly.</li>
       </ol>
 
-      <p>Almost none of that spend is necessary. Microsoft is explicit on this point: <em>a single DDoS Protection Plan can be shared across multiple subscriptions in the same Azure AD tenant.</em> One plan, one bill, every spoke VNet protected. This article is the architect's case for that pattern — the cost math, the reference architecture (modelled on Microsoft's own hub-and-spoke guidance), the RBAC required, a Terraform baseline, and the healthcare addendum that makes it auditable.</p>
+      <p>Almost none of that spend is necessary. Microsoft is explicit on this point: <em>a single DDoS Protection Plan can be shared across multiple subscriptions in the same Microsoft Entra tenant.</em> One plan, one bill, every spoke VNet protected. This article is the architect's case for that pattern — the cost math, the reference architecture (modelled on Microsoft's own hub-and-spoke guidance), the RBAC required, a Terraform baseline, and the healthcare addendum that makes it auditable.</p>
 
       <div class="kpi-row">
         <div class="kpi-card"><div class="kpi-value">1</div><div class="kpi-label">DDoS plan per tenant</div></div>
@@ -172,7 +172,7 @@
 
       <div class="callout callout-tip">
         <div class="callout-title">💡 Microsoft's stated guidance</div>
-        <p>A <strong>DDoS Protection Plan defines a set of virtual networks that have DDoS Network Protection enabled, across subscriptions</strong>. You can configure one DDoS Protection Plan for your organization and link virtual networks from multiple subscriptions to the same plan. The plan and the virtual networks <strong>can be in different subscriptions</strong>, but they must be associated with the <strong>same Azure Active Directory tenant</strong>.</p>
+        <p>A <strong>DDoS Protection Plan defines a set of virtual networks that have DDoS Network Protection enabled, across subscriptions</strong>. You can configure one DDoS Protection Plan for your organization and link virtual networks from multiple subscriptions to the same plan. The plan and the virtual networks <strong>can be in different subscriptions</strong>, but they must be associated with the <strong>same Microsoft Entra ID tenant</strong>.</p>
       </div>
 
       <p>That single statement collapses the multi-plan pattern. The architectural rule becomes: <strong>one DDoS Protection Plan per tenant, deployed in the connectivity / hub subscription, referenced by every spoke VNet that needs Network Protection.</strong></p>
@@ -184,7 +184,7 @@
       <div class="arch-diagram">
         <svg viewBox="0 0 760 360" role="img" aria-label="Single DDoS Protection Plan shared across multiple subscriptions">
           <rect x="10" y="10" width="740" height="340" rx="10" fill="#fff" stroke="#cbd5e1"/>
-          <text x="380" y="32" text-anchor="middle" font-size="12" font-weight="700" fill="#0d9488">Single Azure AD tenant · One DDoS Protection Plan · Multi-subscription spokes</text>
+          <text x="380" y="32" text-anchor="middle" font-size="12" font-weight="700" fill="#0d9488">Single Microsoft Entra tenant · One DDoS Protection Plan · Multi-subscription spokes</text>
 
           <!-- Hub / Connectivity subscription -->
           <rect x="30" y="55" width="220" height="270" rx="10" fill="#f0fdfa" stroke="#0d9488" stroke-dasharray="5 3"/>
@@ -405,7 +405,7 @@ resource "azurerm_virtual_network" "spoke" {
       <h2 id="checklist">10. Architect's Checklist</h2>
 
       <ul>
-        <li>Exactly <strong>one</strong> DDoS Protection Plan per Azure AD tenant (Network Protection tier).</li>
+        <li>Exactly <strong>one</strong> DDoS Protection Plan per Microsoft Entra tenant (Network Protection tier).</li>
         <li>Plan deployed in the connectivity / hub subscription owned by the platform team.</li>
         <li>Azure Policy at tenant root: deny new plans outside the connectivity subscription.</li>
         <li>Spoke VNets reference the shared plan by full resource ID (Terraform / Bicep, not portal).</li>
@@ -471,7 +471,7 @@ resource "azurerm_virtual_network" "spoke" {
       <div>
         <div class="author-name">Srinivas Yenuganti</div>
         <div class="author-role">Cloud Engineer · Azure, DevOps &amp; Security</div>
-        <div class="author-bio">20+ years building secure, compliant cloud environments across healthcare and global enterprise. Currently at iSpace Inc., Los Angeles, designing HIPAA/HITRUST-compliant Azure architectures for healthcare SaaS platforms.</div>
+        <div class="author-bio">20+ years in enterprise infrastructure, cloud and security. Currently a Cloud Engineer at iSpace Inc., Los Angeles, owning the Azure architecture for healthcare SaaS products, with a focus on Zero Trust, compliance and secure AI.</div>
         <a href="https://www.linkedin.com/in/srinivas-yenuganti-bb767744/" target="_blank" style="color:#0d9488;font-size:.85rem;text-decoration:none;font-weight:600;">Connect on LinkedIn →</a>
       </div>
     </div>

@@ -3,11 +3,11 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="description" content="How to architect a HIPAA-compliant healthcare analytics platform using Microsoft Fabric and Azure AI Foundry — medallion architecture, Power BI, and AI-driven clinical insights." />
-  <title>Microsoft Fabric &amp; Azure AI Foundry for Healthcare Analytics | Srinivas Yenuganti</title>
+  <meta name="description" content="How to architect a HIPAA-compliant healthcare analytics platform using Microsoft Fabric and Microsoft Foundry — medallion architecture, Power BI, and AI-driven clinical insights." />
+  <title>Microsoft Fabric &amp; Microsoft Foundry for Healthcare Analytics | Srinivas Yenuganti</title>
   <meta property="og:type" content="article" />
-  <meta property="og:title" content="Microsoft Fabric &amp; Azure AI Foundry for Healthcare Analytics" />
-  <meta property="og:description" content="Architect a HIPAA-compliant analytics platform using Microsoft Fabric OneLake, Azure AI Foundry, and Power BI — from medallion data layers to AI-driven clinical insights." />
+  <meta property="og:title" content="Microsoft Fabric &amp; Microsoft Foundry for Healthcare Analytics" />
+  <meta property="og:description" content="Architect a HIPAA-compliant analytics platform using Microsoft Fabric OneLake, Microsoft Foundry, and Power BI — from medallion data layers to AI-driven clinical insights." />
   <meta property="og:url" content="https://yenuganti.in/post-fabric-ai-foundry.html" />
   <meta property="article:published_time" content="2026-05-16" />
   <meta name="twitter:card" content="summary" />
@@ -18,11 +18,11 @@
   {
     "@context": "https://schema.org",
     "@type": "BlogPosting",
-    "headline": "Microsoft Fabric & Azure AI Foundry for Healthcare Analytics",
+    "headline": "Microsoft Fabric & Microsoft Foundry for Healthcare Analytics",
     "datePublished": "2026-05-16",
     "author": { "@type": "Person", "name": "Srinivas Yenuganti" },
     "url": "https://yenuganti.in/post-fabric-ai-foundry.html",
-    "description": "How to architect a HIPAA-compliant healthcare analytics platform using Microsoft Fabric and Azure AI Foundry."
+    "description": "How to architect a HIPAA-compliant healthcare analytics platform using Microsoft Fabric and Microsoft Foundry."
   }
   </script>
   <style>
@@ -97,7 +97,7 @@
     <div class="post-breadcrumb">
       <a href="blog.html">← Blog</a> &nbsp;·&nbsp; Data & AI Architecture
     </div>
-    <h1 class="post-title">Microsoft Fabric &amp; Azure AI Foundry for Healthcare Analytics: An Architect's Blueprint</h1>
+    <h1 class="post-title">Microsoft Fabric &amp; Microsoft Foundry for Healthcare Analytics: An Architect's Blueprint</h1>
     <div class="post-meta">
       <span>⏱ 14 min read</span>
       <span>📅 May 16, 2026</span>
@@ -105,7 +105,7 @@
     </div>
     <div class="post-tags">
       <span class="post-tag">Microsoft Fabric</span>
-      <span class="post-tag">Azure AI Foundry</span>
+      <span class="post-tag">Microsoft Foundry</span>
       <span class="post-tag">Healthcare Analytics</span>
       <span class="post-tag">HIPAA</span>
       <span class="post-tag">Medallion Architecture</span>
@@ -116,13 +116,13 @@
   <section class="article-section">
     <div class="article-body">
 
-      <p>Healthcare organisations are sitting on vast reserves of operational data — claims records, clinical workflows, patient outcomes, and financial transactions — yet most of it lives in siloed systems that were never designed to talk to each other. Microsoft Fabric and Azure AI Foundry, used together, give architects a path to unify that data, enforce HIPAA-grade compliance controls, and deliver AI-driven insights without bolting together a dozen separate services.</p>
+      <p>Healthcare organisations are sitting on vast reserves of operational data — claims records, clinical workflows, patient outcomes, and financial transactions — yet most of it lives in siloed systems that were never designed to talk to each other. Microsoft Fabric and Microsoft Foundry, used together, give architects a path to unify that data, enforce HIPAA-grade compliance controls, and deliver AI-driven insights without bolting together a dozen separate services.</p>
 
       <p>This guide walks through the architecture decisions, data flow design, security controls, and AI integration patterns I've used when building healthcare analytics platforms on Azure — including the tradeoffs you'll hit and how to navigate them.</p>
 
       <div class="callout callout-hipaa">
         <div class="callout-title">HIPAA Context</div>
-        <p>Any platform ingesting Protected Health Information (PHI) must enforce encryption at rest and in transit, audit all data access, restrict PHI to authorised identities, and maintain a complete audit trail. Microsoft Fabric's OneLake and Azure AI Foundry both support these requirements natively — but architecture choices determine whether you actually meet them in practice.</p>
+        <p>Any platform ingesting Protected Health Information (PHI) must enforce encryption at rest and in transit, audit all data access, restrict PHI to authorised identities, and maintain a complete audit trail. Microsoft Fabric's OneLake and Microsoft Foundry both support these requirements natively — but architecture choices determine whether you actually meet them in practice.</p>
       </div>
 
       <h2>Why Microsoft Fabric for Healthcare?</h2>
@@ -248,9 +248,9 @@
 
       <p>For real-time use cases — such as eligibility verification responses or prior authorisation status updates — Fabric Eventstream connects directly to Azure Event Hubs or Kafka topics and writes to OneLake with sub-second latency. This replaces the previous pattern of ADF + Stream Analytics + ADLS Gen2, with a single managed surface.</p>
 
-      <h2>Azure AI Foundry Integration</h2>
+      <h2>Microsoft Foundry Integration</h2>
 
-      <p>Azure AI Foundry (formerly Azure AI Studio) is the platform for deploying, evaluating, and governing AI models in the enterprise. For healthcare analytics, the use cases that deliver the clearest ROI are:</p>
+      <p>Microsoft Foundry (formerly Azure AI Foundry and Azure AI Studio) is the platform for deploying, evaluating, and governing AI models in the enterprise. For healthcare analytics, the use cases that deliver the clearest ROI are:</p>
 
       <h3>1. Claims Denial Prediction</h3>
       <p>Train a classification model on historical claims data (adjudication outcomes, denial reason codes, payer behaviour patterns) from the Gold layer. Deploy via AI Foundry as a managed endpoint. Fabric Notebook calls the endpoint during the Silver-to-Gold transformation, appending a <code>denial_risk_score</code> column before the record reaches the Power BI semantic model. Clinical teams see the score in their dashboards before claims are submitted.</p>
@@ -351,7 +351,7 @@
       <p>Embed data quality checks directly in the Silver transformation notebooks using the Great Expectations framework (Python) or native Fabric Data Activator rules. Quality metrics — completeness rates, referential integrity checks, PHI detection rates — should write to a dedicated <code>dq_metrics</code> Gold table and surface in a dedicated Power BI data quality dashboard.</p>
 
       <h3>Security Posture</h3>
-      <p>Stream Fabric audit logs to a centralised Log Analytics workspace alongside your Azure Defender for Cloud alerts. Create a Microsoft Sentinel analytic rule that fires when a user accesses a PHI-tagged dataset outside their normal working hours or from an unusual location — this is a critical HIPAA breach detection control.</p>
+      <p>Stream Fabric audit logs to a centralised Log Analytics workspace alongside your Microsoft Defender for Cloud alerts. Create a Microsoft Sentinel analytic rule that fires when a user accesses a PHI-tagged dataset outside their normal working hours or from an unusual location — this is a critical HIPAA breach detection control.</p>
 
       <h2>Implementation Roadmap</h2>
 
@@ -366,7 +366,7 @@
 
       <div class="callout callout-tip">
         <div class="callout-title">Final Thought</div>
-        <p>Microsoft Fabric and Azure AI Foundry represent a genuine architectural simplification for healthcare data teams — fewer services to manage, a single governance surface, and AI capabilities that are native rather than bolted on. The compliance work is still real, but you're doing it once against a unified platform rather than replaying the same configuration across five separate services. That alone is worth the migration effort for any organisation handling PHI at scale.</p>
+        <p>Microsoft Fabric and Microsoft Foundry represent a genuine architectural simplification for healthcare data teams — fewer services to manage, a single governance surface, and AI capabilities that are native rather than bolted on. The compliance work is still real, but you're doing it once against a unified platform rather than replaying the same configuration across five separate services. That alone is worth the migration effort for any organisation handling PHI at scale.</p>
       </div>
 
     </div>
@@ -375,8 +375,8 @@
       <div class="author-avatar">SY</div>
       <div>
         <div class="author-name">Srinivas Yenuganti</div>
-        <div class="author-role">Cloud Engineer &nbsp;·&nbsp; iSpace Inc., Los Angeles</div>
-        <div class="author-bio">20+ years architecting enterprise cloud platforms with a focus on healthcare data, compliance, and AI. AZ-305 · AZ-400 · AZ-500 · Azure AI Engineer · CEH.</div>
+        <div class="author-role">Cloud Engineer · Azure, DevOps &amp; Security</div>
+        <div class="author-bio">20+ years in enterprise infrastructure, cloud and security. Currently a Cloud Engineer at iSpace Inc., Los Angeles, owning the Azure architecture for healthcare SaaS products, with a focus on Zero Trust, compliance and secure AI.</div>
         <a href="https://www.linkedin.com/in/srinivas-yenuganti-bb767744/" target="_blank" style="font-size:.82rem;color:#1e88e5;font-weight:600;">LinkedIn →</a>
         &nbsp;&nbsp;
         <a href="blog.html" style="font-size:.82rem;color:#1e88e5;font-weight:600;">More Articles →</a>
