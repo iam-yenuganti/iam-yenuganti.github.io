@@ -74,7 +74,7 @@ Copy this template and save as `post-YOUR-SLUG.html`:
 
   <!-- FOOTER -->
   <footer class="main-footer">
-    <p>&copy; 2026 Srinivas Yenuganti · <a href="index.html">About</a> · <a href="blog.html">Blog</a> · <a href="https://www.linkedin.com/in/syenuganti-bb767744/" target="_blank">LinkedIn</a> · <a href="mailto:syenuganti@outlook.com">Email</a></p>
+    <p>&copy; 2026 Srinivas Yenuganti · <a href="index.html">About</a> · <a href="blog.html">Blog</a> · <a href="https://www.linkedin.com/in/srinivas-yenuganti-bb767744/" target="_blank">LinkedIn</a> · <a href="mailto:syenuganti@outlook.com">Email</a></p>
   </footer>
 
 </body>
