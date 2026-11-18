@@ -3,11 +3,11 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="description" content="A comprehensive blueprint for architects building HIPAA and HITRUST-compliant cloud platforms on Azure — encryption, network isolation, audit logging, and DR." />
-  <title>Healthcare Cloud Architecture | Srinivas Yenuganti</title>
+  <meta name="description" content="How I design Azure platforms for PHI: classify data first, no public endpoints, customer-managed keys, complete audit logs, and DR you have actually tested." />
+  <title>Healthcare Cloud on Azure: Designing for HIPAA and HITRUST | Srinivas Yenuganti</title>
   <meta property="og:type" content="article" />
-  <meta property="og:title" content="Healthcare Cloud: Designing for HIPAA &amp; HITRUST Compliance" />
-  <meta property="og:description" content="A comprehensive blueprint for HIPAA and HITRUST-compliant cloud platforms — PHI data flows, encryption, network isolation, audit logging, and DR design." />
+  <meta property="og:title" content="Healthcare Cloud on Azure: Designing for HIPAA and HITRUST" />
+  <meta property="og:description" content="How I design Azure platforms for PHI: classify data first, no public endpoints, customer-managed keys, complete audit logs, and DR you have actually tested." />
   <meta property="og:url" content="https://yenuganti.in/post-healthcare-cloud.html" />
   <meta property="article:published_time" content="2025-10-08" />
   <meta name="twitter:card" content="summary" />
@@ -68,6 +68,12 @@
     pre.code .c{color:#64748b}
     .article-body code{background:#eef2f7;padding:.1rem .35rem;border-radius:4px;font-size:.85em;color:#0d4d40}
     .article-body pre code{background:none;padding:0;color:inherit;border-radius:0}
+    .architecture-diagram{margin:2rem 0;padding:1rem;background:#fff;border:1px solid #c8c6c4;border-top:4px solid #00897b;border-radius:4px;box-shadow:0 2px 8px rgba(0,0,0,.08)}
+    .architecture-diagram figcaption{font-size:1.05rem;font-weight:700;color:#201f1e;margin-bottom:.3rem}
+    .diagram-subtitle{font-size:.82rem!important;color:#605e5c!important;margin-bottom:.85rem!important}
+    .architecture-diagram img{display:block;width:100%;height:auto;border:1px solid #d2d0ce;border-radius:3px}
+    .diagram-note{margin-top:.65rem!important;font-size:.72rem!important;color:#605e5c!important}
+    .sources{margin-top:2.5rem;padding-top:1.5rem;border-top:1px solid #e2e8f0}
   </style>
 </head>
 <body>
@@ -88,9 +94,9 @@
     <div class="post-breadcrumb">
       <a href="blog.html">← Blog</a> &nbsp;·&nbsp; Cloud Architecture
     </div>
-    <h1 class="post-title">Healthcare Cloud Architecture: Designing for HIPAA &amp; HITRUST Compliance</h1>
+    <h1 class="post-title">Healthcare Cloud on Azure: Designing for HIPAA and HITRUST</h1>
     <div class="post-meta">
-      <span>⏱ 18 min read</span>
+      <span>⏱ 7 min read</span>
       <span>📅 October 8, 2025</span>
       <span>✍️ Srinivas Yenuganti</span>
     </div>
@@ -107,237 +113,155 @@
   <section class="article-section">
     <div class="article-body">
 
-      <p>Healthcare data breaches cost an average of $10.9 million per incident — the highest of any industry for 13 consecutive years (IBM Cost of a Data Breach Report). For architects building healthcare cloud platforms, compliance is not a checkbox: it is a core design constraint that shapes every architectural decision from Day One.</p>
+      <p>When I design a platform that will hold protected health information (PHI), I try to make compliance a side effect of the architecture rather than a project at the end. If PHI can't reach the internet, every access is logged, keys are under your control and recovery is tested, the audit mostly becomes a matter of showing evidence. If those things are bolted on later, the audit becomes a remediation project.</p>
 
-      <p>This is a practical playbook for taking a large-scale insurance claims platform through HITRUST certification without sacrificing availability or overspending on cloud. HIPAA's Security Rule defines the minimum technical safeguards. HITRUST CSF v11 defines a prescriptive, certifiable control framework that goes significantly further. The goal when designing on Azure is a system where compliance is the <strong>natural byproduct of good architecture</strong> — not a late-stage bolt-on that triggers expensive remediation.</p>
+      <p>This post walks through the Azure design I use for HIPAA-regulated workloads and how it lines up with HITRUST. Think of a typical example: a SaaS platform that takes in claims and clinical documents through APIs, stores them in Azure SQL and a data lake, and runs some analytics and Azure OpenAI processing on top.</p>
 
-      <div class="toc">
-        <div class="toc-title">What's inside</div>
-        <ol>
-          <li><a href="#scenario">The scenario — a claims platform under audit</a></li>
-          <li><a href="#platform">Azure as a HIPAA-eligible platform</a></li>
-          <li><a href="#classification">Data classification — know your PHI first</a></li>
-          <li><a href="#reference">Reference architecture</a></li>
-          <li><a href="#risk">The risk register — threat, blast radius, mitigation</a></li>
-          <li><a href="#encryption">Encryption — defense in depth</a></li>
-          <li><a href="#network">Network isolation by design</a></li>
-          <li><a href="#identity">Identity &amp; access governance</a></li>
-          <li><a href="#audit">Audit logging — the non-negotiable</a></li>
-          <li><a href="#dr">Backup, DR &amp; business continuity</a></li>
-          <li><a href="#compliance">Compliance mapping — HIPAA &amp; HITRUST controls</a></li>
-          <li><a href="#iac">IaC baseline (Terraform)</a></li>
-          <li><a href="#mistakes">Mistakes to avoid &amp; the architect's checklist</a></li>
-        </ol>
-      </div>
+      <h2>What Azure covers, and what it doesn't</h2>
+      <p>Microsoft offers a Business Associate Agreement (BAA) that covers a specific list of in-scope Azure services. Only build PHI workloads on services that appear on that list, and check it when you add something new. The list changes over time.</p>
+      <p>Azure Policy has a built-in <strong>HITRUST/HIPAA</strong> regulatory compliance initiative, and Microsoft Defender for Cloud can show HIPAA in its regulatory compliance dashboard. I turn both on early, at the highest scope that makes sense, because they show gaps months before an auditor does. But read Microsoft's own caveat: a "compliant" result only means the mapped policies pass. Many controls can't be checked automatically, so the dashboard is a partial view, not a certificate.</p>
 
-      <h2 id="scenario">The Scenario — A Claims Platform Under Audit</h2>
-      <p>Consider a representative platform that ingests 837 claim files and FHIR records, adjudicates them, and surfaces member portals. PHI flows from intake APIs into Azure SQL and a data lake, with downstream analytics and an Azure OpenAI denial-prediction service. The brief was uncompromising: zero PHI exposure to the public internet, every access auditable for six years, RTO under one hour, RPO under five minutes, and a HITRUST CSF certification within two quarters. Every decision below was made against those constraints — and against an auditor who would test, not just read, the controls.</p>
-
-      <h2 id="platform">Azure as a HIPAA-Eligible Platform</h2>
-
-      <p>Microsoft signs Business Associate Agreements (BAAs) covering over 100 Azure services for HIPAA-covered entities and their business associates. This contractual foundation is what makes Azure usable for PHI workloads. Before your first deployment, verify every service you intend to use appears on Microsoft's current BAA-covered services list — the list evolves as new services achieve eligibility.</p>
-
-      <p>Azure provides built-in Policy initiatives for HIPAA/HITRUST in Azure Policy, and Defender for Cloud's regulatory compliance dashboard maps your actual resource configuration to HITRUST CSF controls in real time. This is your primary audit preparation tool — treat the compliance score as a KPI that your team reviews weekly.</p>
-
-      <div class="callout callout-tip">
-        <div class="callout-title">💡 Architect's Tip</div>
-        <p>Enable Defender for Cloud's regulatory compliance dashboard and assign the HIPAA/HITRUST policy initiative at your management group level on Day 1. Starting with visibility gives your team weeks of lead time to remediate before a formal audit.</p>
-      </div>
-
-      <h2 id="classification">Data Classification — Know Your PHI Before You Architect</h2>
-
-      <p>Not all data in a healthcare platform is PHI. Separating data by classification drives your architecture decisions at every layer. A practical taxonomy:</p>
-
+      <h2>Classify the data before drawing anything</h2>
+      <p>Not everything in a healthcare platform is PHI, and treating it all the same is expensive. I agree three classes up front:</p>
       <table class="arch-table">
-        <thead>
-          <tr><th>Classification</th><th>Examples</th><th>Required Controls</th></tr>
-        </thead>
+        <thead><tr><th>Class</th><th>Examples</th><th>Controls</th></tr></thead>
         <tbody>
-          <tr>
-            <td><strong>PHI</strong> — Protected Health Information</td>
-            <td>Names, diagnoses, dates, SSNs, MRNs, billing data</td>
-            <td>CMK encryption, private endpoints, audit logging, strict RBAC, BAA-covered services only</td>
-          </tr>
-          <tr>
-            <td><strong>De-identified data</strong></td>
-            <td>Scrubbed per HIPAA Safe Harbor (18 identifiers removed)</td>
-            <td>Standard encryption, can be used for analytics without full PHI controls</td>
-          </tr>
-          <tr>
-            <td><strong>Operational data</strong></td>
-            <td>Infrastructure metrics, app logs (no PHI)</td>
-            <td>Standard security controls, no BAA requirement</td>
-          </tr>
+          <tr><td><strong>PHI</strong></td><td>Names with diagnoses, member IDs, claims, clinical notes</td><td>BAA-covered services only, private endpoints, customer-managed keys, full audit logging, tight RBAC</td></tr>
+          <tr><td><strong>De-identified</strong></td><td>Data with identifiers removed under HIPAA's de-identification rules</td><td>Standard encryption; can feed analytics with lighter controls</td></tr>
+          <tr><td><strong>Operational</strong></td><td>Metrics and application logs that contain no PHI</td><td>Normal platform security</td></tr>
         </tbody>
       </table>
+      <p>That third row is a promise you have to keep. Application logs are the most common place PHI leaks into a system nobody treats as sensitive. If logs might contain PHI, classify them as PHI.</p>
 
-      <p>Use Microsoft Purview for automated data discovery and classification across your Azure data stores. Define a mandatory tagging taxonomy that flows into Azure Policy conditions — resources tagged <code>data-classification: PHI</code> can be automatically governed by stricter policy assignments.</p>
+      <figure class="architecture-diagram" aria-labelledby="hc-arch-title">
+        <figcaption id="hc-arch-title">Reference architecture for a PHI workload</figcaption>
+        <p class="diagram-subtitle">One public entry point, a spoke with no public endpoints, and keys and logs kept in a separate subscription.</p>
+        <img src="assets/diagrams/healthcare-cloud.svg" alt="Diagram: users reach an Application Gateway WAF in the hub subscription, which forwards privately to App Service in the PHI spoke. App Service reaches Azure SQL, Data Lake Storage and Azure OpenAI through private endpoints, and all outbound traffic is routed to Azure Firewall in the hub. The hub also has Private DNS zones, Azure Bastion and DDoS Network Protection. A separate security subscription holds Key Vault for customer-managed keys, Defender for Cloud, Log Analytics with Microsoft Sentinel, and an immutable blob archive for logs." loading="lazy" />
+        <p class="diagram-note">Editable source: assets/diagrams/healthcare-cloud.drawio</p>
+      </figure>
 
-      <h2 id="reference">Reference Architecture</h2>
-      <p>A single ingress, a deny-all PHI spoke, private endpoints for every PaaS service, and forced-tunnel egress through a hub firewall. The public surface is exactly one WAF; everything else is private.</p>
-      <div class="arch-diagram">
-        <svg viewBox="0 0 720 300" role="img" aria-label="Healthcare PHI reference architecture">
-          <rect x="10" y="20" width="700" height="260" rx="10" fill="#fff" stroke="#cbd5e1"/>
-          <rect x="30" y="40" width="180" height="220" rx="8" fill="#e0f2f1" stroke="#00897b"/>
-          <text x="120" y="60" text-anchor="middle" font-size="12" font-weight="700" fill="#00695c">HUB (Connectivity)</text>
-          <rect x="50" y="80" width="140" height="34" rx="6" fill="#fff" stroke="#00897b"/><text x="120" y="101" text-anchor="middle" font-size="10" fill="#0d1b2a">App Gateway WAF v2</text>
-          <rect x="50" y="124" width="140" height="34" rx="6" fill="#fff" stroke="#00897b"/><text x="120" y="145" text-anchor="middle" font-size="10" fill="#0d1b2a">Azure Firewall</text>
-          <rect x="50" y="168" width="140" height="34" rx="6" fill="#fff" stroke="#00897b"/><text x="120" y="189" text-anchor="middle" font-size="10" fill="#0d1b2a">Private DNS Zones</text>
-          <rect x="50" y="212" width="140" height="34" rx="6" fill="#fff" stroke="#00897b"/><text x="120" y="233" text-anchor="middle" font-size="10" fill="#0d1b2a">Bastion + DDoS</text>
-          id="network" <rect x="260" y="40" width="430" height="220" rx="8" fill="#f1f5f9" stroke="#475569"/>
-          <text x="475" y="60" text-anchor="middle" font-size="12" font-weight="700" fill="#334155">PHI SPOKE (deny-all)</text>
-          <rect x="280" y="80" width="180" height="34" rx="6" fill="#fff" stroke="#475569"/><text x="370" y="101" text-anchor="middle" font-size="10" fill="#0d1b2a">App Service / AKS (no public IP)</text>
-          <rect x="280" y="124" width="180" height="34" rx="6" fill="#fff" stroke="#475569"/><text x="370" y="145" text-anchor="middle" font-size="10" fill="#0d1b2a">Azure SQL (Private EP, CMK)</text>
-          <rect x="280" y="168" width="180" height="34" rx="6" fill="#fff" stroke="#475569"/><text x="370" y="189" text-anchor="middle" font-size="10" fill="#0d1b2a">Data Lake (Private EP, CMK)</text>
-          <rect x="280" y="212" width="180" height="34" rx="6" fill="#fff" stroke="#475569"/><text x="370" y="233" text-anchor="middle" font-size="10" fill="#0d1b2a">Azure OpenAI (Private EP)</text>
-          <rect x="490" y="80" width="180" height="34" rx="6" fill="#fff" stroke="#475569"/><text x="580" y="101" text-anchor="middle" font-size="10" fill="#0d1b2a">Key Vault HSM (isolated sub)</text>
-          <rect x="490" y="124" width="180" height="34" rx="6" fill="#fff" stroke="#475569"/><text x="580" y="145" text-anchor="middle" font-size="10" fill="#0d1b2a">Defender + Sentinel</text>
-          <rect x="490" y="168" width="180" height="78" rx="6" fill="#fff" stroke="#475569"/><text x="580" y="200" text-anchor="middle" font-size="10" fill="#0d1b2a">Log Analytics →</text><text x="580" y="216" text-anchor="middle" font-size="10" fill="#0d1b2a">WORM 6-yr archive</text>
-        </svg>
-        <div class="diagram-caption">Single WAF ingress · forced-tunnel egress · private endpoints everywhere · isolated key + log custody</div>
-      </div>
+      <h2>Network: one way in, one way out</h2>
+      <p>The rule I start from is simple: nothing that touches PHI has a public endpoint.</p>
+      <ul>
+        <li><strong>Inbound:</strong> a single Application Gateway WAF v2 is the only public entry point. Use the current Default Rule Set (DRS 2.2, which Microsoft now recommends over the older OWASP CRS 3.x sets), start in Detection mode to tune false positives, then switch to Prevention.</li>
+        <li><strong>The spoke:</strong> App Service or containers with VNet integration, and every PaaS service (SQL, Storage, Key Vault, Service Bus, Azure OpenAI) reached through a private endpoint with public network access turned off. Enforce that with Azure Policy so "temporary" exceptions can't appear.</li>
+        <li><strong>Outbound:</strong> a route table sends all egress to Azure Firewall in the hub, which only allows the destinations you've listed.</li>
+        <li><strong>DNS:</strong> keep the private DNS zones central in the hub and link them, so every spoke resolves private endpoints the same way.</li>
+        <li><strong>Admin access:</strong> Azure Bastion, never public RDP or SSH. DDoS Network Protection goes on the virtual network that holds the public IP.</li>
+      </ul>
 
-      <h2 id="risk">The Risk Register — Threat, Blast Radius, Mitigation</h2>
-      <p>"Right architecture" means designing against failure, not just for the happy path. Every PHI control below earns its place by reducing a specific blast radius. This is the table I bring to design reviews:</p>
+      <h2>Encryption and keys</h2>
+      <p>Azure encrypts storage at rest by default with Microsoft-managed keys. For PHI I use <strong>customer-managed keys (CMK)</strong> in Key Vault. The main benefit is control: if you disable or revoke the key, the data becomes unreadable, which is also a clean way to end access when a customer leaves.</p>
+      <ul>
+        <li>Put the key vaults in a separate security subscription, so someone with full rights on the workload subscription still can't touch the keys.</li>
+        <li>Turn on soft delete and purge protection. Storage CMK requires both anyway, and they stop a key from being destroyed by accident or on purpose.</li>
+        <li>Automate key rotation instead of relying on a calendar reminder.</li>
+        <li>In transit, require TLS 1.2 or later everywhere and HTTPS only on web apps, with certificates from Key Vault.</li>
+      </ul>
+
+      <h2>Identity: least privilege, and no standing admin</h2>
+      <ul>
+        <li>Applications use managed identities with <strong>data-plane</strong> roles, such as Storage Blob Data Reader, not Contributor or Owner.</li>
+        <li>People get admin rights through Microsoft Entra Privileged Identity Management, just in time and with approval, not permanently.</li>
+        <li>For any remaining VMs, use just-in-time VM access from Defender for Servers so management ports are closed by default.</li>
+        <li>Run access reviews on everything that touches PHI. HITRUST assessors will ask for the evidence.</li>
+        <li>Keep two cloud-only break-glass accounts protected with FIDO2 keys, and alert on every sign-in from them.</li>
+      </ul>
+
+      <h2>Audit logging and how long to keep it</h2>
+      <p>HIPAA expects you to be able to show who accessed PHI and what changed. In Azure that means collecting:</p>
+      <ul>
+        <li>The Azure activity log for every subscription.</li>
+        <li>Microsoft Entra sign-in and audit logs.</li>
+        <li>Resource logs for everything that touches PHI: SQL auditing, Storage access logs, Key Vault audit events, App Service HTTP logs, Azure Firewall and WAF logs. Remember that resource logs aren't collected until you create diagnostic settings.</li>
+        <li>Network flow logs for the PHI virtual networks.</li>
+      </ul>
+      <p>On retention, a correction to something I see repeated a lot: HIPAA requires you to keep required documentation, such as policies and records of required actions, for six years. It doesn't set a specific number of days for every log. Many organizations keep audit logs for six years to be safe, and that's what I usually plan for. Agree the actual number with your compliance team and write down why. I keep recent data queryable in Log Analytics and send a long-term copy to blob storage with an immutability policy, so nobody can quietly edit or delete it.</p>
+
+      <h2>Backup and disaster recovery</h2>
+      <p>HIPAA requires a contingency plan, and an untested plan isn't one. The building blocks:</p>
+      <ul>
+        <li><strong>Azure SQL failover groups</strong> for regional failover. Microsoft documents a typical recovery time under 60 seconds. Data loss depends on how much hadn't replicated yet when the region failed, so don't promise zero.</li>
+        <li><strong>Geo-redundant storage</strong> (RA-GRS or RA-GZRS) for critical blobs, so they're readable from the secondary region.</li>
+        <li><strong>Azure Backup</strong> with soft delete and immutable vaults for VMs and databases, so backups survive a compromised admin account.</li>
+        <li><strong>A DR drill</strong> at least once a year, with written results. Fail the whole application over, not just the database.</li>
+      </ul>
+
+      <h2>Mapping controls for the auditor</h2>
+      <p>Auditors want to see the line from a requirement to something you built. This is the kind of table I keep in the design document:</p>
       <table class="arch-table">
-        <thead><tr><th>Threat</th><th>Blast radius if unmitigated</th><th>Mitigation</th></tr></thead>
+        <thead><tr><th>Requirement</th><th>HIPAA Security Rule</th><th>Azure implementation</th></tr></thead>
         <tbody>
-          <tr><td>Public endpoint on SQL/Storage</td><td>Internet-wide PHI exposure; reportable breach</td><td>Private Endpoints + public access disabled by policy</td></tr>
-          <tr><td>Stolen app credentials</td><td>Lateral movement, bulk PHI exfiltration</td><td>Managed identity, data-plane-only RBAC, no secrets in code</td></tr>
-          <tr><td>Compromised workload subscription</td><td>Attacker reads encryption keys</td><td>Key Vault HSM in isolated subscription; CMK revoke kills data access</td></tr>
-          <tr><td>Insider tampering with logs</td><td>Undetectable breach, failed audit</td><td>WORM immutable 6-yr log archive; Sentinel alerts</td></tr>
-          <tr><td>Region outage</td><td>Platform down, RTO breach</td><td>Failover Groups (RPO &lt;5s) + ASR; tested DR drills</td></tr>
+          <tr><td>Access control</td><td>§164.312(a)(1)</td><td>Microsoft Entra ID, PIM, data-plane RBAC, just-in-time access</td></tr>
+          <tr><td>Encryption</td><td>§164.312(a)(2)(iv), (e)(2)(ii)</td><td>Customer-managed keys in Key Vault, TLS 1.2+</td></tr>
+          <tr><td>Audit controls</td><td>§164.312(b)</td><td>Diagnostic settings, Sentinel, immutable log archive</td></tr>
+          <tr><td>Integrity</td><td>§164.312(c)(1)</td><td>Immutable storage, change tracking, Defender for Cloud</td></tr>
+          <tr><td>Transmission security</td><td>§164.312(e)(1)</td><td>Private endpoints, WAF, TLS everywhere</td></tr>
+          <tr><td>Contingency plan</td><td>§164.308(a)(7)</td><td>Failover groups, Azure Backup, tested DR drills</td></tr>
         </tbody>
       </table>
+      <p>Map the matching HITRUST CSF requirements from your assessment scope, since the exact control references depend on the CSF version and the assessment type you're pursuing.</p>
 
-      <h2 id="encryption">Encryption Strategy — Defense in Depth at Every Layer</h2>
- id="identity"
-      <h3>Data at Rest</h3>
-      <p>All Azure storage services encrypt at rest by default using Azure-managed keys (256-bit AES). For PHI workloads, you must go further with <strong>Customer Managed Keys (CMK)</strong> stored in Azure Key Vault backed by hardware (HSM). CMK gives you cryptographic control: if you revoke the key, access to the data is immediately terminated. This is both a compliance tool and a powerful data destruction mechanism for contract offboarding scenarios.</p>
+      <h2>Bake it into code</h2>
+      <p>If you can't redeploy it, you can't really defend it. Here's a storage account baseline for PHI in Terraform. Note the identity block: the customer-managed key needs an identity that can read the key, and leaving it out is a common reason this fails.</p>
+      <pre class="code"><code>resource "azurerm_storage_account" "phi" {
+  name                              = var.storage_account_name
+  resource_group_name               = var.resource_group_name
+  location                          = var.location
+  account_tier                      = "Standard"
+  account_replication_type          = "RAGRS"
+  min_tls_version                   = "TLS1_2"
+  https_traffic_only_enabled        = true
+  allow_nested_items_to_be_public   = false
+  public_network_access_enabled     = false  # private endpoints only
+  infrastructure_encryption_enabled = true   # second layer of encryption
 
-      <h3>Data in Transit</h3>
-      <p>Enforce TLS 1.2 or higher via Azure Policy across all services. Assign the built-in "Secure transfer to storage accounts should be enabled" policy. Set the minimum TLS version at the SQL Server level. For web applications, configure HTTPS-only with HSTS headers. Never allow self-signed certificates in production environments — use certificates issued by a trusted CA, managed through Key Vault.</p>
-
-      <h3>Key Hierarchy</h3>
-      <p>Store Key Vault in a dedicated subscription separate from the workload subscriptions. If a workload subscription is compromised, the encryption keys remain protected in the isolated Key Vault subscription. Enable soft delete (90-day retention) and purge protection on all Key Vaults. Automate key rotation on a 90–180 day schedule — manual rotation is an audit finding waiting to happen.</p>
-
-      <h2>Network Architecture — Isolation by Design</h2>
- id="audit"
-      <p>PHI workloads must never be directly reachable from the public internet. Every component of the architecture is designed around complete network isolation and controlled egress.</p>
-
-      <h3>PHI VNet Design</h3>
-      <ul>
-        <li>Dedicated spoke VNet for PHI workloads, peered to a security hub</li>
-        <li>All subnets protected with NSGs — deny-all inbound baseline, permit only required flows</li>
-        <li>No public IP addresses on any resource that touches PHI data</li>
-        <li>Private Endpoints for all PaaS services: Azure SQL, Storage, Key Vault, Service Bus, Event Hub, Container Registry</li>
-        <li>Forced tunneling: all outbound traffic routed through Azure Firewall in the hub</li>
-        <li>Azure Firewall application rules whitelist only required outbound destinations (e.g., specific update endpoints, partner APIs)</li>
-      </ul>
-
-      <h3>Inbound Traffic</h3>
-      <ul>
-        <li>Application Gateway WAF v2 as the single ingress point for all HTTP/S traffic</li>
-        <li>TLS termination with certificate managed in Key Vault</li>
-        <li>OWASP Core Rule Set 3.2 in Prevention mode</li>
-        <li>Azure DDoS Protection Standard on the public-facing VNet</li>
-      </ul>
-
-      <div class="callout callout-arch">
-        <div class="callout-title">🏗 Architecture Pattern</div>
-        <p>Centralise Private DNS Zones in the connectivity (hub) subscription and link them to the hub VNet. Use DNS forwarding rules to resolve private endpoint FQDNs from all spoke VNets. This prevents DNS management sprawl as your environment scales to multiple spokes.</p>
-      </div>
-
-      <h2>Identity and Access Governance</h2>
-
-      <h3>Least Privilege RBAC</h3>
-      <p>Define custom roles with the minimum permissions required for each job function. Application managed identities should hold data-plane roles only (e.g., <em>Storage Blob Data Reader</em>, not <em>Contributor</em>). No Owner or Contributor at the subscription level for application identities — ever. Use Entra ID Privileged Identity Management for all management-plane access.</p>
-
-      <h3>Just-In-Time VM Access</h3>
-      <p>Microsoft Defender for Cloud's JIT feature locks down RDP and SSH management ports by default and requires approved, time-limited access requests (e.g., 2-hour windows). This eliminates the exposure of management ports to the internet and creates an audit trail for every VM access event.</p>
-
-      <h3>Access Reviews and Governance</h3>
-      <p>Schedule quarterly Entra ID Access Reviews for all role assignments to PHI resources. Configure automatic removal of stale access. This is a HITRUST audit requirement and a critical control — stale access accounts for a significant proportion of insider threat incidents. For emergency access, maintain two break-glass accounts (cloud-only, no CA policies, FIDO2 hardware keys stored in a physical safe) and alert immediately on any sign-in via Sentinel.</p>
-
-      <h2>Audit Logging — The Non-Negotiable</h2>
-
-      <p>HIPAA requires audit controls documenting who accessed what PHI and when. Azure provides the tooling — the architect's job is to ensure complete coverage with no gaps.</p>
-
-      <h3>What to Collect</h3>
-      <ul>
-        <li><strong>Azure Activity Logs</strong>: subscription-level control plane operations (who created, modified, deleted resources)</li>
-        <li><strong>Entra ID audit and sign-in logs</strong>: all identity events, MFA outcomes, Conditional Access decisions</li>
-        <li><strong>Diagnostic logs</strong> on every PHI-touching resource: Azure SQL (audit logs), Storage (access logs), Key Vault (access logs), App Service (HTTP access logs), Azure Firewall</li>
-        <li><strong>NSG flow logs</strong>: sent to Storage, analysed via Traffic Analytics for network behaviour baseline</li>
-      </ul>
-
-      <h3>Retention Requirements</h3>
-      <p>Log Analytics Workspace: 90 days minimum for active querying (HIPAA floor). Archive to immutable Azure Blob Storage with a WORM (Write Once Read Many) retention lock for the HIPAA-required 6-year retention period. The immutability policy prevents log tampering — a critical requirement for legally defensible audit records.</p>
-
-      <h2 id="dr">Backup, DR, and Business Continuity</h2>
-
-      <p>HIPAA requires a documented contingency plan with defined Recovery Time Objective (RTO) and Recovery Point Objective (RPO). These must be validated, not theoretical.</p>
-
-      <ul>
-        <li><strong>Azure Backup</strong> for all VMs and databases — enable soft delete (14-day protection) and geo-redundancy</li>
-        <li><strong>Azure SQL Active Geo-Replication</strong> or Failover Groups for database DR (RPO under 5 seconds for business-critical tiers)</li>
-        <li><strong>Read-Access Geo-Redundant Storage (RA-GRS)</strong> for all critical blob data — readable from secondary region during primary outage</li>
-        <li><strong>Azure Site Recovery</strong> for VM replication to a secondary region with automated failover</li>
-        <li><strong>Regular DR drills</strong>: at minimum annually, with documented test results. An untested recovery plan is just a document.</li>
-      </ul>
-
-      <h2 id="compliance">Compliance Mapping — HIPAA &amp; HITRUST Controls</h2>
-      <p>Auditors want the line from control to architecture. This is the mapping I hand them — every safeguard ties to a concrete Azure design decision:</p>
-      <table class="arch-table">
-        <thead><tr><th>Requirement</th><th>HIPAA / HITRUST</th><th>Azure implementation</th></tr></thead>
-        <tbody>
-          <tr><td>Access control</td><td>§164.312(a)(1) · HITRUST 01.c</td><td>Entra ID, PIM, custom RBAC, JIT</td></tr>
-          <tr><td>Encryption</td><td>§164.312(a)(2)(iv), (e)(2)(ii) · 06.d</td><td>CMK in Key Vault HSM, TLS 1.2+ enforced</td></tr>
-          <tr><td>Audit controls</td><td>§164.312(b) · HITRUST 09.aa</td><td>Diagnostic logs, Sentinel, WORM 6-yr archive</td></tr>
-          <tr><td>Integrity</td><td>§164.312(c)(1) · 10.b</td><td>Immutable blob, change tracking, Defender</td></tr>
-          <tr><td>Transmission security</td><td>§164.312(e)(1) · 09.m</td><td>Private endpoints, WAF, forced tunneling</td></tr>
-          <tr><td>Contingency plan</td><td>§164.308(a)(7) · 12.c</td><td>Failover Groups, ASR, tested DR drills</td></tr>
-        </tbody>
-      </table>
-
-      <h2 id="iac">IaC Baseline (Terraform)</h2>
-      <p>Compliance you can't redeploy is compliance you can't defend. Bake the controls into Terraform so every environment is identical and policy-enforced:</p>
-      <pre class="code"><span class="c"># Storage account: PHI-grade baseline</span>
-resource "azurerm_storage_account" "phi" {
-  name                          = var.sa_name
-  resource_group_name           = var.rg
-  location                      = var.location
-  account_tier                  = "Standard"
-  account_replication_type      = "RAGRS"
-  min_tls_version               = "TLS1_2"
-  https_traffic_only_enabled    = true
-  allow_nested_items_to_be_public = false
-  public_network_access_enabled = false  <span class="c"># private endpoints only</span>
+  identity {
+    type         = "UserAssigned"
+    identity_ids = [azurerm_user_assigned_identity.storage.id]
+  }
 
   customer_managed_key {
     key_vault_key_id          = azurerm_key_vault_key.cmk.id
-    user_assigned_identity_id = azurerm_user_assigned_identity.sa.id
+    user_assigned_identity_id = azurerm_user_assigned_identity.storage.id
   }
-  tags = { "data-classification" = "PHI" }
-}</pre>
 
-      <h2 id="mistakes">Common Architecture Mistakes to Avoid</h2>
+  tags = { "data-classification" = "phi" }
+}</code></pre>
+      <p>Two notes on that example. Microsoft says most workloads don't need infrastructure encryption, so include it only if your compliance requirements ask for double encryption. And it can only be turned on when the account is created, so decide before the first deployment. Also, when you set up a customer-managed key at creation time, Azure requires a user-assigned identity, which is why the example uses one.</p>
 
+      <h2>Mistakes I see most often</h2>
       <ul class="mistakes-list">
-        <li>Allowing public endpoints on Azure SQL or Storage accounts "temporarily" — they become permanent within weeks</li>
-        <li>Storing database connection strings or CMK references in application code, environment variables, or deployment pipelines</li>
-        <li>Using a single Log Analytics workspace for PHI and non-PHI data without workspace-level RBAC to segregate access</li>
-        <li>Skipping NSG flow logs — they are the first thing HITRUST auditors request, and they take time to backfill</li>
-        <li>Not testing disaster recovery — define RTO/RPO targets, then validate them with actual failover exercises</li>
-        <li>Assigning broad RBAC roles (Contributor, Owner) to application managed identities or service principals</li>
-        <li>Incomplete PHI data flow mapping — build a full data flow diagram before finalising the architecture; unknown PHI stores are the source of most compliance gaps</li>
+        <li>A public endpoint on SQL or Storage "just for the migration" that's still there a year later.</li>
+        <li>Connection strings and keys in app settings or pipelines instead of managed identities.</li>
+        <li>PHI in application logs that are stored and shared as if they were harmless.</li>
+        <li>No diagnostic settings on Key Vault or SQL, discovered during the audit.</li>
+        <li>Contributor or Owner on application identities.</li>
+        <li>A DR plan nobody has ever run.</li>
+        <li>No data-flow diagram, so nobody knows every place PHI ends up.</li>
       </ul>
 
-      <h2>Key Takeaway</h2>
+      <h2>Where to start</h2>
+      <ol>
+        <li>Draw the data flow and classify every store as PHI, de-identified or operational.</li>
+        <li>Assign the HITRUST/HIPAA initiative and the Defender for Cloud HIPAA standard, and read the gaps.</li>
+        <li>Remove public endpoints from everything that holds PHI and enforce it with policy.</li>
+        <li>Move keys and logs into a separate security subscription, with CMK and diagnostic settings everywhere.</li>
+        <li>Run a DR drill and write down what happened.</li>
+      </ol>
+      <p>Get classification and network isolation right first. Most of the other controls fall into place around them.</p>
 
-      <p>The healthcare compliance controls described here are not obstacles — they are the architecture. When you design with PHI isolation, encryption, audit logging, and least-privilege access as first principles rather than afterthoughts, you build a system that is simultaneously more secure, more reliable, and far easier to audit. The compliance certification becomes a validation of good engineering, not a remediation project.</p>
-
-      <p>Start with data classification and network isolation. Get those right and every other control falls into a coherent pattern.</p>
+      <section class="sources">
+        <h2>Sources</h2>
+        <ol>
+          <li><a href="https://learn.microsoft.com/azure/compliance/offerings/offering-hipaa-us" target="_blank" rel="noopener">HIPAA (US) compliance offering</a> (Microsoft Learn)</li>
+          <li><a href="https://learn.microsoft.com/azure/governance/policy/samples/hipaa-hitrust" target="_blank" rel="noopener">Details of the HIPAA HITRUST Regulatory Compliance built-in initiative</a> (Microsoft Learn)</li>
+          <li><a href="https://learn.microsoft.com/azure/defender-for-cloud/concept-regulatory-compliance-standards" target="_blank" rel="noopener">Regulatory compliance standards in Microsoft Defender for Cloud</a> (Microsoft Learn)</li>
+          <li><a href="https://learn.microsoft.com/azure/web-application-firewall/ag/application-gateway-crs-rulegroups-rules" target="_blank" rel="noopener">Application Gateway WAF CRS and DRS rule groups and rules</a> (Microsoft Learn)</li>
+          <li><a href="https://learn.microsoft.com/azure/azure-sql/database/business-continuity-high-availability-disaster-recover-hadr-overview" target="_blank" rel="noopener">Business continuity in Azure SQL Database</a> (Microsoft Learn)</li>
+          <li><a href="https://learn.microsoft.com/azure/azure-monitor/platform/diagnostic-settings" target="_blank" rel="noopener">Diagnostic settings in Azure Monitor</a> (Microsoft Learn)</li>
+        </ol>
+      </section>
 
     </div>
   </section>

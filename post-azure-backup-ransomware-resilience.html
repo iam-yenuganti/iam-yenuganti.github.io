@@ -3,11 +3,11 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="description" content="Design Azure Backup against ransomware with soft delete, locked immutable vaults, separated authorization, monitoring, and rehearsed restores." />
-  <title>Ransomware-Resilient Backup Architecture on Azure | Srinivas Yenuganti</title>
+  <meta name="description" content="How I protect Azure Backup against a compromised admin: always-on soft delete, locked immutability, Resource Guard approval and restore drills." />
+  <title>Ransomware-Resilient Backups on Azure | Srinivas Yenuganti</title>
   <meta property="og:type" content="article" />
-  <meta property="og:title" content="Ransomware-Resilient Backup Architecture on Azure" />
-  <meta property="og:description" content="A practical Azure Backup architecture that combines protected recovery points, independent approval, detection, and restore evidence." />
+  <meta property="og:title" content="Ransomware-Resilient Backups on Azure" />
+  <meta property="og:description" content="How I protect Azure Backup against a compromised admin: always-on soft delete, locked immutability, Resource Guard approval and restore drills." />
   <meta property="og:url" content="https://yenuganti.in/post-azure-backup-ransomware-resilience.html" />
   <meta property="article:published_time" content="2026-09-28" />
   <meta name="twitter:card" content="summary" />
@@ -52,74 +52,86 @@
   <header class="post-header">
     <div class="post-header-inner">
       <div class="post-breadcrumb"><a href="blog.html">&larr; Blog</a> &middot; Security &amp; Identity</div>
-      <h1 class="post-title">Ransomware-Resilient Backup Architecture on Azure</h1>
-      <div class="post-meta">11 min read &middot; 28 September 2026</div>
+      <h1 class="post-title">Ransomware-Resilient Backups on Azure</h1>
+      <div class="post-meta">6 min read &middot; 28 September 2026</div>
     </div>
   </header>
 
   <main class="article-section">
     <article class="article-body">
       <figure class="architecture-diagram" aria-labelledby="architecture-flow-title">
-        <figcaption id="architecture-flow-title">Backup resilience: separate production, protection, and approval</figcaption>
-        <p class="diagram-subtitle">Conceptual control boundaries; verify workload support and vault settings before adopting this pattern.</p>
+        <figcaption id="architecture-flow-title">Four boundaries, four owners</figcaption>
+        <p class="diagram-subtitle">Each layer is owned by a different team, so one stolen account can't remove all of them.</p>
         <div class="diagram-lanes">
-          <div class="diagram-lane"><strong>Production workload · application owner</strong><span>Protected VM, database, or supported service sends scheduled backups to an Azure Backup vault.</span></div>
-          <div class="diagram-lane"><strong>Vaulted recovery points · backup platform team</strong><span>Soft delete delays permanent removal; vault immutability blocks destructive operations when enabled and locked.</span></div>
-          <div class="diagram-lane"><strong>Independent authorization · security team</strong><span>Resource Guard and multi-user authorization gate protected operations; monitoring signals unusual changes.</span></div>
-          <div class="diagram-lane"><strong>Restore environment · recovery team</strong><span>Validate a selected recovery point and application behavior before reconnecting restored systems.</span></div>
+          <div class="diagram-lane"><strong>Production workload · application team</strong><span>VMs, databases and other supported services send scheduled backups to a vault.</span></div>
+          <div class="diagram-lane"><strong>Vaulted recovery points · backup team</strong><span>Soft delete keeps deleted backups recoverable. Locked immutability blocks operations that would destroy recovery points.</span></div>
+          <div class="diagram-lane"><strong>Resource Guard · security team</strong><span>Multi-user authorization means critical vault operations need approval from someone outside the backup team.</span></div>
+          <div class="diagram-lane"><strong>Isolated restore environment · recovery team</strong><span>Restores land somewhere safe first, and get checked before anything reconnects to production.</span></div>
         </div>
-        <p class="diagram-flow"><strong>Recovery path:</strong> detect an incident → authorize response → select a viable recovery point → restore into a controlled environment → validate data and service.</p>
+        <p class="diagram-flow"><strong>Recovery path:</strong> detect the incident, pick a recovery point from before the compromise, restore into isolation, validate, then reconnect.</p>
       </figure>
 
-      <h2>Executive Context</h2>
-      <p>A backup job reporting success does not prove that a business service can survive ransomware. An attacker who gains administrative access might stop protection, shorten retention, delete data, or simply wait until compromised data replaces useful recovery points. A resilient design must preserve an earlier recovery point, make destructive changes difficult, tell responders when protection changes, and demonstrate that restoration actually works. Azure Backup offers several complementary controls, but none independently establishes a recovery-time or recovery-point objective.</p>
-      <p>This article focuses on <em>vaulted</em> Azure Backup recovery points, not every operational backup or snapshot. Microsoft describes vaulted backup data as isolated from the production environment in Microsoft-managed storage. That boundary is valuable, but it does not replace access governance or a response plan. The pattern below is an architectural proposal: adapt its retention, vault type, supported workloads, and approval process to your own recovery requirements. See Microsoft's <a href="https://learn.microsoft.com/azure/backup/security-overview">security overview</a> for the underlying controls.</p>
+<p>A green "backup succeeded" tile tells you very little about whether you'd survive ransomware. Attackers who get admin rights know where the backups are. They stop protection, shorten retention, delete recovery points, or simply wait until encrypted data has rolled into every copy you keep.</p>
 
-      <h2>Constraints and Assumptions</h2>
-      <h3>Start with the recovery contract</h3>
-      <p>Inventory applications, dependencies, data stores, and their owners before creating vault policies. For each service, document the most data it can afford to lose, the time allowed to restore it, the minimum clean history required to outlast detection delays, and who declares data safe to use. A long retention period cannot compensate for infrequent backups; frequent backups cannot compensate for retained copies that an attacker can erase. Choose schedules and retention against those distinct requirements, and account for the possibility that the most recent recovery point contains encrypted or otherwise corrupted data.</p>
-      <p>Group backup items by recovery needs rather than imposing one policy across all workloads. Separate the question “does this vault hold enough history?” from “could an operator destroy that history?” The first is a policy and capacity decision; the second calls for protection controls. Record which recovery method each workload supports and whether the test environment has the networking, keys, identities, and application dependencies needed for a meaningful restore. Treat those prerequisites as part of the recovery design, not a detail to discover during an incident.</p>
+<p>So I design backup protection around one question: if someone holds a fully privileged account in this subscription, can they still destroy my ability to recover? Azure Backup gives you the pieces to answer "no", but only if you put them together deliberately. This post covers vaulted backups in Recovery Services vaults and Backup vaults, not snapshots or operational backups, which behave differently.</p>
 
-      <h2>Target Architecture</h2>
-      <h3>Use soft delete as a recovery window, not a permanent lock</h3>
-      <p>Soft delete delays permanent deletion so a responder can recover deleted backup data during the configured window. Microsoft's <a href="https://learn.microsoft.com/azure/backup/backup-azure-security-feature-cloud">secure-by-default guidance</a> documents a default 14-day soft-delete retention period and a configurable range up to 180 days. It also notes that the first 14 days have no additional charge while longer periods can incur charges. Choose a window that covers likely detection and escalation time; do not assume the default is long enough for an organization that discovers attacks weeks later.</p>
-      <p>Check the actual region, vault type, and workload instead of treating “on by default” as a universal compatibility claim. The same guidance distinguishes general availability from preview for Backup vaults by region and describes exceptions for operational backups: operational blob and Azure Files backups do not have this soft-delete coverage, while VM instant-restore snapshots can be directly accessed and deleted before their soft-delete period expires. That is why the diagram identifies the protected boundary as vaulted recovery points. Document precisely what is and is not inside it.</p>
-      <p>Soft delete is a second chance after deletion, not authorization to make destructive changes. A privileged user may still attempt to alter protection, and an incident that goes undetected beyond the window can exhaust that chance. Assign responders the task of checking for soft-deleted items after suspicious activity and practicing recovery of one in a non-production drill. Couple this control with immutable retention and independent approval rather than presenting it as “ransomware-proof.”</p>
+<h2>Start with what each system can lose</h2>
+<p>Before touching a vault policy, write down three numbers for each application: how much data it can afford to lose, how long a restore can take, and how far back you need clean history. That last one gets skipped. If it takes you three weeks to notice an intrusion, a two-week retention window means every recovery point you have may already be compromised.</p>
+<p>Frequent backups and long retention solve different problems. Frequent backups limit data loss. Long retention outlasts slow detection. Neither helps if an attacker can delete the copies, which is what the next three controls are for.</p>
 
-      <h2>Key Architecture Decisions</h2>
-      <h3>Lock immutability only after testing its consequences</h3>
-      <p>Azure Backup's <a href="https://learn.microsoft.com/azure/backup/backup-azure-immutable-vault-concept">immutable vault guidance</a> explains that immutability blocks operations that could cause loss of recovery points, including stopping protection while deleting data and reducing retention under the documented rules. The setting has three states: disabled; enabled but reversible; and enabled and locked. Only the locked state makes the setting irreversible and enables WORM-backed storage where available. “Enabled” and “locked” are therefore not interchangeable evidence in an audit.</p>
-      <p>Decide which retention behavior is appropriate before locking. Microsoft documents both immutability based on backup-policy retention and a specific immutable duration independent of overall policy retention. With a specific duration, recovery points can remain under ordinary policy retention after immutability expires; with policy-based immutability, policy retention governs the protection interval. Do not equate a longer policy with a longer immutable period without checking the selected mode. Test policy changes, decommissioning, and exception handling on representative items first. Because locking cannot be reversed, require a documented review of retention obligations, storage cost, and operational consequences before approval.</p>
-      <p>Scope matters here too: immutability applies to all data in the vault, but Microsoft's support matrix differs by vault and workload, and the guidance explicitly excludes operational backups of blobs, files, and disks. Build a coverage register showing each protected item, vault type, configured state, and immutable duration. If an application depends on an excluded operational copy, design an appropriate separate protection route rather than assuming the vault setting extends to it.</p>
+<h2>Soft delete: your safety net, now always on</h2>
+<p>Soft delete keeps deleted backup data recoverable for a retention window. The default is 14 days, you can extend it to 180, and the first 14 days cost nothing extra. Beyond that you pay normal backup rates for the extra days.</p>
+<p>The good news is that Microsoft now enforces soft delete by default. For Recovery Services vaults it's generally available, and you can't switch it off through the portal, CLI, PowerShell or API. For Backup vaults it's generally available in a few regions and in preview in the rest, where it can still be disabled in the portal. Check which one you have rather than assuming.</p>
+<p>Two limits matter. Soft delete doesn't cover operational backups of blobs or Azure Files shares. And while it does apply to VM instant-restore snapshots and operational disk backups, those can still be accessed and deleted directly before the window ends. That's why I treat the vaulted copy as the one that counts.</p>
+<p>My advice: raise the window above 14 days for anything important. The extra storage cost is small next to discovering an attack on day 20.</p>
 
-      <h2>DevSecOps Control Model</h2>
-      <h3>Separate routine backup work from destructive authority</h3>
-      <p>Microsoft's <a href="https://learn.microsoft.com/azure/backup/security-overview">Azure Backup security overview</a> describes Azure role-based access control and multi-user authorization (MUA). MUA uses a separate Azure Resource Guard so selected critical operations require applicable authorization. Design the Resource Guard ownership boundary so the same person or automation identity cannot both operate the backup vault and unilaterally approve its most consequential changes. Review access at the resource scope and confirm the exact operations protected by your vault's configuration.</p>
-      <p>Give backup operators only the permissions necessary to run and troubleshoot backups; reserve changes to retention, security settings, and destructive workflows for reviewed roles. Protect emergency access without letting it become a standing shortcut around approval. An access review should include service principals and deployment identities, not just human users. Rotation and offboarding matter because an unused but privileged identity remains a possible path to disable protections. MUA complements immutability: approval slows or stops sensitive changes, while locked immutability constrains destructive outcomes even after credentials are compromised.</p>
+<h2>Immutability: test it, then lock it</h2>
+<p>An immutable vault blocks operations that would lose recovery points: deleting data when you stop protection, and reducing retention in a policy. It has three states:</p>
+<ul>
+  <li><strong>Disabled:</strong> nothing is blocked.</li>
+  <li><strong>Enabled:</strong> destructive operations are blocked, but anyone with enough rights can turn it off again.</li>
+  <li><strong>Enabled and locked:</strong> the setting can never be reversed, and backups move to WORM storage.</li>
+</ul>
+<p>Only the locked state actually protects you from a compromised admin. "Enabled" is useful for testing, but an attacker can simply disable it first. If an audit asks whether your vault is immutable, the honest answer depends on whether it's locked.</p>
+<p>You also choose how long recovery points stay immutable. The default ties immutability to the policy's retention. The alternative is a fixed number of days, after which recovery points still exist under normal retention but can be deleted. A fixed duration keeps storage costs down, but be clear that a 180-day policy with 30 days of immutability only gives you 30 days of real protection.</p>
+<p>Because locking is irreversible, I always try it on a pilot vault first: change policies, decommission a test VM, and make sure the restrictions don't break any routine operation. Then I lock.</p>
 
-      <h2>Operational Evidence and SLOs</h2>
-      <h3>Make changes and missing backups visible</h3>
-      <p>Monitor both the assets that <em>are</em> protected and those that should be protected but are not. Microsoft's overview points to Azure Backup's built-in monitoring, alerts, and Backup Reports for backup and restore activity. Give someone ownership of failed or missing jobs, changed policies, stopped protection, deleted items, and suspicious vault operations. Route actionable signals into the incident process with the application owner, backup operator, and security responder identified in advance. An alert with no accountable receiver is not a recovery control.</p>
-      <p>Use a daily coverage check against the workload inventory and periodically reconcile the list of vault-protected items. Record the last successful backup and the last successful <em>tested</em> restore separately. During an incident, preserve the timeline of jobs and configuration changes so responders can identify when recovery points might have become untrustworthy. Monitoring detects drift; it does not itself preserve data or confirm application correctness. Those jobs belong to retention safeguards and restore exercises.</p>
+<h2>Resource Guard: a second person for critical changes</h2>
+<p>Immutability stops data from being destroyed. Multi-user authorization (MUA) stops someone from quietly weakening the vault in the first place. It works through a separate Azure resource called Resource Guard. Critical operations on the vault, such as disabling protection features or changing policies, only succeed if the person also has rights on the Resource Guard.</p>
+<p>The whole point is separation, so placement matters:</p>
+<ul>
+  <li>Same subscription as the vault: the weakest option.</li>
+  <li>Different subscription, same tenant: better.</li>
+  <li>Different tenant: the strongest, because credentials stolen in your main tenant can't approve anything.</li>
+</ul>
+<p>The Resource Guard has to be in the same region as the vault. Most importantly, backup admins must not hold Contributor, Backup MUA Admin or Backup MUA Operator on the Resource Guard. If they do, MUA protects nothing. Microsoft's own guidance pairs this with Privileged Identity Management so approvers get just-in-time access rather than standing rights.</p>
 
-      <h2>Implementation Blueprint</h2>
-      <h3>Exercise the complete restore, not just the button</h3>
-      <p>A restore drill should begin with a specific incident scenario: a deleted backup item, compromised application data, or loss of a production environment. Select a recovery point from before the simulated compromise, restore to a controlled non-production location when supported, then test application-level consistency and access. Do not reconnect restored systems to production until they have passed security and data checks. Document the steps to recover associated secrets, identity dependencies, networking, and downstream services without exposing the restored copy to the original threat.</p>
-      <p>Time the exercise from declaration through service validation. Compare observed recovery time and the age of the usable recovery point with the agreed objectives; record blockers and repeat until they are fixed. Also rehearse escalation for any protected operation that needs Resource Guard authorization, and confirm the approver is reachable when the primary team is unavailable. A successful file restore is useful evidence, but it cannot by itself certify a multi-tier service. Keep a small evidence packet: selected recovery point, job outcome, integrity checks, elapsed time, and approved exceptions.</p>
+<h2>Watch for what's missing, not just what failed</h2>
+<p>Built-in Backup alerts and Backup Reports will tell you about failed jobs. The more dangerous signal is silence: a VM that was never added to a policy, or protection that was stopped last Tuesday. I run a regular coverage check against the application inventory and alert on stopped protection, policy changes and soft-deleted items, all routed to someone who will actually act.</p>
+<p>Track two dates per application: the last successful backup and the last successful <em>tested</em> restore. They tell you different things.</p>
 
-      <h2>Adoption Roadmap</h2>
-      <p>Start by identifying vault-backed versus operational copies and measuring current protection coverage. Next, review soft-delete retention against detection time and cost; then test immutability in a pilot vault with realistic retention changes. Establish the independent Resource Guard approval path, review role assignments, and only then lock immutability after the irreversible decision has been explicitly accepted. Add alerts and an owned coverage review, followed by scheduled restore drills for representative applications. Revisit policy whenever a workload, threat model, or compliance requirement changes.</p>
-      <h2>Failure Modes and Trade-offs</h2>
-      <p>The principal trade-off is intentional friction: long-lived, locked recovery points reduce destructive flexibility and can increase storage costs. Independent approval can slow emergency changes if its owners and break-glass process are poorly designed. Conversely, omitting those controls to speed routine operations leaves the backup estate dependent on the security of a single administrative identity. A quiet backup failure can erase the value of every configured safeguard; a restore that succeeds technically but fails application checks can be just as disruptive.</p>
-      <h2>Conclusion</h2>
-      <p>No single Azure Backup setting promises immunity from ransomware. The defensible outcome is a set of independently owned boundaries—recoverable deleted data, appropriately locked vaulted recovery points, reviewed critical operations, visible coverage, and exercised recovery—plus evidence that an authorized team can restore a clean service within its agreed objectives.</p>
+<h2>Practise the restore, not just the button</h2>
+<p>A restore drill should start from a scenario, like "this database was encrypted three days ago." Pick a recovery point from before that, restore into an isolated environment, and check the application actually works: data consistent, users can sign in, dependencies connect. Restored systems shouldn't touch production until they pass.</p>
+<p>Time the whole thing, from declaring the incident to a working service, and compare it with the objectives you wrote down at the start. Include the awkward parts: getting Resource Guard approval out of hours, recovering secrets and keys, and rebuilding network access. The first drill usually finds a dependency nobody documented. Better then than during a real attack.</p>
+
+<h2>Where to start</h2>
+<ol>
+  <li>List which workloads have vaulted backups and which only have snapshots or operational copies.</li>
+  <li>Raise soft-delete retention to cover your realistic detection time.</li>
+  <li>Enable immutability on a pilot vault, test your routine changes, then lock it.</li>
+  <li>Put a Resource Guard in a separate subscription or tenant, and check nobody on the backup team has rights on it.</li>
+  <li>Run a restore drill for one important application and fix what it finds.</li>
+</ol>
+<p>None of these controls is ransomware-proof on its own. Together, owned by different people, they make it very hard for one compromised account to take away your way back.</p>
 
       <section class="sources">
         <h2>Sources</h2>
         <ol>
-          <li><a href="https://learn.microsoft.com/azure/backup/security-overview">Microsoft Learn: Overview of security features in Azure Backup</a></li>
-          <li><a href="https://learn.microsoft.com/azure/backup/backup-azure-security-feature-cloud">Microsoft Learn: Secure by default with soft delete for Azure Backup</a></li>
-          <li><a href="https://learn.microsoft.com/azure/backup/backup-azure-immutable-vault-concept">Microsoft Learn: Immutable vault for Azure Backup</a></li>
+          <li><a href="https://learn.microsoft.com/azure/backup/backup-azure-security-feature-cloud" target="_blank" rel="noopener">Secure by default with soft delete for Azure Backup</a> (Microsoft Learn)</li>
+          <li><a href="https://learn.microsoft.com/azure/backup/backup-azure-immutable-vault-concept" target="_blank" rel="noopener">Immutable vault for Azure Backup</a> (Microsoft Learn)</li>
+          <li><a href="https://learn.microsoft.com/azure/backup/multi-user-authorization-concept" target="_blank" rel="noopener">Multiuser authorization using Resource Guard</a> (Microsoft Learn)</li>
+          <li><a href="https://learn.microsoft.com/azure/backup/azure-backup-data-protection-best-practices" target="_blank" rel="noopener">Azure Backup security best practices to safeguard backup data</a> (Microsoft Learn)</li>
+          <li><a href="https://learn.microsoft.com/azure/backup/security-overview" target="_blank" rel="noopener">Overview of security features in Azure Backup</a> (Microsoft Learn)</li>
         </ol>
       </section>
       <aside class="author-card">
