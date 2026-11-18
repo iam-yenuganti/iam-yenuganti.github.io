@@ -1,0 +1,73 @@
+<mxfile host="drawio">
+  <diagram id="hardened" name="Hardened storage account">
+    <mxGraphModel dx="1100" dy="500" grid="1" gridSize="5" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1060" pageHeight="420" math="0" shadow="0">
+      <root>
+        <mxCell id="0"/>
+        <mxCell id="1" parent="0"/>
+
+        <mxCell id="vnet" value="Workload virtual network" style="rounded=1;arcSize=3;whiteSpace=wrap;html=1;fillColor=#F2F8FD;strokeColor=#9CC3E6;verticalAlign=top;align=left;spacingLeft=12;spacingTop=8;fontStyle=1;fontSize=14;fontColor=#1F2328;" vertex="1" parent="1">
+          <mxGeometry x="20" y="40" width="360" height="340" as="geometry"/>
+        </mxCell>
+        <mxCell id="sec" value="Protection services" style="rounded=1;arcSize=3;whiteSpace=wrap;html=1;fillColor=#F7F7F7;strokeColor=#D6D6D6;verticalAlign=top;align=left;spacingLeft=12;spacingTop=8;fontStyle=1;fontSize=14;fontColor=#1F2328;" vertex="1" parent="1">
+          <mxGeometry x="740" y="40" width="300" height="340" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="app" value="App Service&lt;br&gt;with a managed identity" style="image;aspect=fixed;html=1;points=[];align=center;fontSize=12;image=img/lib/azure2/app_services/App_Services.svg;labelPosition=right;verticalLabelPosition=middle;align=left;verticalAlign=middle;spacingLeft=6;" vertex="1" parent="1">
+          <mxGeometry x="90" y="85" width="64" height="64" as="geometry"/>
+        </mxCell>
+        <mxCell id="pesub" value="Private endpoint subnet" style="rounded=1;arcSize=5;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#8C959F;dashed=1;verticalAlign=top;align=center;fontSize=11;fontColor=#4B5563;" vertex="1" parent="1">
+          <mxGeometry x="45" y="225" width="310" height="135" as="geometry"/>
+        </mxCell>
+        <mxCell id="peBlob" value="blob" style="image;aspect=fixed;html=1;points=[];align=center;fontSize=11;image=img/lib/azure2/networking/Private_Endpoint.svg;" vertex="1" parent="1">
+          <mxGeometry x="100" y="262" width="54" height="50" as="geometry"/>
+        </mxCell>
+        <mxCell id="peDfs" value="dfs" style="image;aspect=fixed;html=1;points=[];align=center;fontSize=11;image=img/lib/azure2/networking/Private_Endpoint.svg;" vertex="1" parent="1">
+          <mxGeometry x="246" y="262" width="54" height="50" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="sa" value="&lt;b&gt;Storage account&lt;/b&gt;&lt;br&gt;public network access: off&lt;br&gt;shared key access: off&lt;br&gt;TLS 1.2 minimum&lt;br&gt;customer-managed key" style="image;aspect=fixed;html=1;points=[];align=center;fontSize=12;image=img/lib/azure2/storage/Storage_Accounts.svg;" vertex="1" parent="1">
+          <mxGeometry x="528" y="185" width="80" height="64" as="geometry"/>
+        </mxCell>
+        <mxCell id="inet" value="Internet" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FEF2F2;strokeColor=#DC2626;fontColor=#B91C1C;fontStyle=1;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="518" y="40" width="100" height="40" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="kv" value="Key Vault&lt;br&gt;purge protection on" style="image;aspect=fixed;html=1;points=[];align=center;fontSize=12;image=img/lib/azure2/security/Key_Vaults.svg;" vertex="1" parent="1">
+          <mxGeometry x="790" y="85" width="56" height="56" as="geometry"/>
+        </mxCell>
+        <mxCell id="def" value="Defender&lt;br&gt;for Storage" style="image;aspect=fixed;html=1;points=[];align=center;fontSize=12;image=img/lib/azure2/security/Security_Center.svg;" vertex="1" parent="1">
+          <mxGeometry x="950" y="85" width="48" height="58" as="geometry"/>
+        </mxCell>
+        <mxCell id="bv" value="Backup vault&lt;br&gt;vaulted copy, immutable" style="image;aspect=fixed;html=1;points=[];align=center;fontSize=12;image=img/lib/azure2/other/Backup_Vault.svg;" vertex="1" parent="1">
+          <mxGeometry x="856" y="250" width="68" height="58" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="e1" value="Entra ID auth&lt;br&gt;data-plane RBAC" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#24292F;strokeWidth=1.5;endArrow=block;endFill=1;fontSize=11;labelBackgroundColor=#F2F8FD;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.25;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="1" source="app" target="pesub">
+          <mxGeometry relative="1" as="geometry"><Array as="points"><mxPoint x="122" y="190"/></Array></mxGeometry>
+        </mxCell>
+        <mxCell id="e2" value="Private Link" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#0078D4;strokeWidth=1.5;endArrow=block;endFill=1;fontSize=11;labelBackgroundColor=#FFFFFF;exitX=1;exitY=0.4;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="pesub" target="sa">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e3" value="blocked" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#DC2626;strokeWidth=1.5;dashed=1;endArrow=cross;endFill=0;fontSize=11;fontColor=#B91C1C;labelBackgroundColor=#FFFFFF;" edge="1" parent="1" source="inet" target="sa">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e4" value="wrap / unwrap key" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#6B7280;dashed=1;endArrow=open;fontSize=11;labelBackgroundColor=#FFFFFF;exitX=1;exitY=0.25;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="sa" target="kv">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="700" y="201"/>
+              <mxPoint x="700" y="113"/>
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e5" value="daily backup" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#6B7280;dashed=1;endArrow=open;fontSize=11;labelBackgroundColor=#FFFFFF;exitX=1;exitY=0.75;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="sa" target="bv">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="700" y="233"/>
+              <mxPoint x="700" y="279"/>
+            </Array>
+          </mxGeometry>
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
