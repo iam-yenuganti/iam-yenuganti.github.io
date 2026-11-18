@@ -1,0 +1,85 @@
+<mxfile host="drawio">
+  <diagram id="waf" name="Application Gateway WAF">
+    <mxGraphModel dx="1200" dy="700" grid="1" gridSize="5" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1160" pageHeight="640" math="0" shadow="0">
+      <root>
+        <mxCell id="0"/>
+        <mxCell id="1" parent="0"/>
+
+        <mxCell id="laneNet" value="Internet" style="rounded=1;arcSize=3;whiteSpace=wrap;html=1;fillColor=#F6F8FA;strokeColor=#D0D7DE;verticalAlign=top;align=left;spacingLeft=12;spacingTop=8;fontStyle=1;fontSize=14;fontColor=#1F2328;" vertex="1" parent="1">
+          <mxGeometry x="20" y="40" width="170" height="400" as="geometry"/>
+        </mxCell>
+        <mxCell id="laneAgw" value="Application Gateway subnet" style="rounded=1;arcSize=3;whiteSpace=wrap;html=1;fillColor=#F2F8FD;strokeColor=#C7DDF2;verticalAlign=top;align=left;spacingLeft=12;spacingTop=8;fontStyle=1;fontSize=14;fontColor=#1F2328;" vertex="1" parent="1">
+          <mxGeometry x="210" y="40" width="470" height="400" as="geometry"/>
+        </mxCell>
+        <mxCell id="laneBe" value="Private backends (no public access)" style="rounded=1;arcSize=3;whiteSpace=wrap;html=1;fillColor=#F2F8FD;strokeColor=#C7DDF2;verticalAlign=top;align=left;spacingLeft=12;spacingTop=8;fontStyle=1;fontSize=14;fontColor=#1F2328;" vertex="1" parent="1">
+          <mxGeometry x="700" y="40" width="440" height="400" as="geometry"/>
+        </mxCell>
+        <mxCell id="laneOps" value="Certificates and logs" style="rounded=1;arcSize=3;whiteSpace=wrap;html=1;fillColor=#F7F7F7;strokeColor=#D6D6D6;verticalAlign=top;align=left;spacingLeft=12;spacingTop=8;fontStyle=1;fontSize=14;fontColor=#1F2328;" vertex="1" parent="1">
+          <mxGeometry x="20" y="465" width="1120" height="140" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="users" value="Browsers, SSO&lt;br&gt;callbacks, API clients" style="image;aspect=fixed;html=1;points=[];align=center;fontSize=12;image=img/lib/azure2/identity/Users.svg;labelBackgroundColor=#F6F8FA;" vertex="1" parent="1">
+          <mxGeometry x="73" y="190" width="64" height="70" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="agw" value="&lt;b&gt;Application Gateway WAF_v2&lt;/b&gt;&lt;br&gt;TLS 1.2+ · autoscale · one public IP" style="image;aspect=fixed;html=1;points=[];align=center;fontSize=12;image=img/lib/azure2/networking/Application_Gateways.svg;labelBackgroundColor=#F2F8FD;verticalLabelPosition=top;verticalAlign=bottom;" vertex="1" parent="1">
+          <mxGeometry x="263" y="185" width="64" height="64" as="geometry"/>
+        </mxCell>
+        <mxCell id="polGlobal" value="&lt;b&gt;WAF policy: baseline&lt;/b&gt; (whole gateway)&lt;br&gt;DRS 2.2 · Prevention&lt;br&gt;geo and rate-limit custom rules" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#0078D4;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="420" y="85" width="240" height="70" as="geometry"/>
+        </mxCell>
+        <mxCell id="polApi" value="&lt;b&gt;WAF policy: /api listener only&lt;/b&gt;&lt;br&gt;baseline + scoped exclusions&lt;br&gt;each with an owner and expiry" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#0078D4;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="420" y="180" width="240" height="70" as="geometry"/>
+        </mxCell>
+        <mxCell id="nsg" value="&lt;b&gt;NSG on the subnet&lt;/b&gt;&lt;br&gt;allow 443 in and the&lt;br&gt;required gateway ports" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#8C959F;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="420" y="285" width="240" height="70" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="app" value="App Service&lt;br&gt;(private endpoint)" style="image;aspect=fixed;html=1;points=[];align=center;fontSize=11;image=img/lib/azure2/app_services/App_Services.svg;labelBackgroundColor=#F2F8FD;verticalLabelPosition=top;verticalAlign=bottom;" vertex="1" parent="1">
+          <mxGeometry x="760" y="140" width="56" height="56" as="geometry"/>
+        </mxCell>
+        <mxCell id="aks" value="AKS internal&lt;br&gt;load balancer" style="image;aspect=fixed;html=1;points=[];align=center;fontSize=11;image=img/lib/azure2/compute/Kubernetes_Services.svg;labelBackgroundColor=#F2F8FD;verticalLabelPosition=top;verticalAlign=bottom;" vertex="1" parent="1">
+          <mxGeometry x="900" y="140" width="56" height="56" as="geometry"/>
+        </mxCell>
+        <mxCell id="st" value="Static site in Storage&lt;br&gt;(private endpoint)" style="image;aspect=fixed;html=1;points=[];align=center;fontSize=11;image=img/lib/azure2/storage/Storage_Accounts.svg;labelBackgroundColor=#F2F8FD;verticalLabelPosition=top;verticalAlign=bottom;" vertex="1" parent="1">
+          <mxGeometry x="1030" y="144" width="60" height="48" as="geometry"/>
+        </mxCell>
+        <mxCell id="e2eNote" value="HTTPS to every backend (end-to-end TLS).&lt;br&gt;Backends accept traffic only from the gateway." style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#0078D4;dashed=1;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="740" y="290" width="380" height="60" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="kv" value="&lt;b&gt;Key Vault&lt;/b&gt;&lt;br&gt;TLS certificate, auto-renewed,&lt;br&gt;read by the gateway's managed identity" style="image;aspect=fixed;html=1;points=[];align=left;fontSize=12;image=img/lib/azure2/security/Key_Vaults.svg;labelPosition=right;verticalLabelPosition=middle;verticalAlign=middle;spacingLeft=6;" vertex="1" parent="1">
+          <mxGeometry x="60" y="510" width="56" height="56" as="geometry"/>
+        </mxCell>
+        <mxCell id="law" value="&lt;b&gt;Log Analytics&lt;/b&gt;&lt;br&gt;AGWFirewallLogs, AGWAccessLogs&lt;br&gt;log scrubbing for sensitive fields" style="image;aspect=fixed;html=1;points=[];align=left;fontSize=12;image=img/lib/azure2/analytics/Log_Analytics_Workspaces.svg;labelPosition=right;verticalLabelPosition=middle;verticalAlign=middle;spacingLeft=6;" vertex="1" parent="1">
+          <mxGeometry x="440" y="506" width="64" height="64" as="geometry"/>
+        </mxCell>
+        <mxCell id="sentinel" value="&lt;b&gt;Microsoft Sentinel&lt;/b&gt;&lt;br&gt;block spikes, new rule hits,&lt;br&gt;correlation with sign-ins" style="image;aspect=fixed;html=1;points=[];align=left;fontSize=12;image=img/lib/azure2/security/Azure_Sentinel.svg;labelPosition=right;verticalLabelPosition=middle;verticalAlign=middle;spacingLeft=6;" vertex="1" parent="1">
+          <mxGeometry x="820" y="504" width="56" height="68" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="e1" value="HTTPS" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#0078D4;strokeWidth=1.5;endArrow=block;endFill=1;fontSize=11;labelBackgroundColor=#FFFFFF;exitX=1;exitY=0.4;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="users" target="agw">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e2" value="only inspected requests reach a backend" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#0078D4;strokeWidth=1.5;endArrow=block;endFill=1;fontSize=11;labelBackgroundColor=#F2F8FD;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="agw" target="e2eNote">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="295" y="400"/>
+              <mxPoint x="715" y="400"/>
+              <mxPoint x="715" y="320"/>
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="b1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#0078D4;strokeWidth=1.5;endArrow=block;endFill=1;exitX=0.1;exitY=0;exitDx=0;exitDy=0;" edge="1" parent="1" source="e2eNote" target="app">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="b2" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#0078D4;strokeWidth=1.5;endArrow=block;endFill=1;exitX=0.5;exitY=0;exitDx=0;exitDy=0;" edge="1" parent="1" source="e2eNote" target="aks">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="b3" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#0078D4;strokeWidth=1.5;endArrow=block;endFill=1;exitX=0.9;exitY=0;exitDx=0;exitDy=0;" edge="1" parent="1" source="e2eNote" target="st">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

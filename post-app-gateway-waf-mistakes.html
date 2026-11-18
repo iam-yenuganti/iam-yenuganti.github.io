@@ -3,11 +3,11 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="description" content="A solution architect's playbook for Azure Application Gateway with WAF v2 — common mistakes, the disciplined Detection → tune → Prevention rollout, HIPAA §164.312 and HITRUST control mapping for healthcare SaaS, FHIR / claims API tuning, PHI-in-logs gotcha, risk register, and Terraform baseline." />
-  <title>Azure Application Gateway: Common Mistakes &amp; The Right WAF Rollout (Healthcare-Ready) | Srinivas Yenuganti</title>
+  <meta name="description" content="The Application Gateway WAF mistakes I see most, the design I aim for, and a step-by-step path from Detection to Prevention, with notes for healthcare workloads." />
+  <title>Azure Application Gateway WAF: Common Mistakes and a Safer Rollout | Srinivas Yenuganti</title>
   <meta property="og:type" content="article" />
-  <meta property="og:title" content="Azure Application Gateway: Common Mistakes & The Right WAF Rollout (Healthcare-Ready)" />
-  <meta property="og:description" content="From day-1 Prevention mode blocking real users to silent Detection mode forever — the mistakes I see most often, the disciplined Detection → tune → Prevention playbook, and the mandatory healthcare addendum (HIPAA §164.312, HITRUST, FHIR APIs, PHI-in-logs)." />
+  <meta property="og:title" content="Azure Application Gateway WAF: Common Mistakes and a Safer Rollout" />
+  <meta property="og:description" content="The Application Gateway WAF mistakes I see most, the design I aim for, and a step-by-step path from Detection to Prevention, with notes for healthcare workloads." />
   <meta property="og:url" content="https://yenuganti.in/post-app-gateway-waf-mistakes.html" />
   <meta property="article:published_time" content="2026-06-27" />
   <meta name="twitter:card" content="summary" />
@@ -76,6 +76,11 @@
     .author-name{font-size:.97rem;font-weight:700;color:#0d1b2a;margin-bottom:.15rem}
     .author-role{font-size:.78rem;color:#64748b;margin-bottom:.5rem}
     .author-bio{font-size:.85rem;color:#64748b;line-height:1.6;margin-bottom:.5rem}
+    .architecture-diagram{max-width:100%;margin:1.5rem 0 2rem;padding:1rem;background:#fff;border:1px solid #c8c6c4;border-top:4px solid #0078d4;border-radius:4px;box-shadow:0 2px 8px rgba(0,0,0,.08)}
+    .architecture-diagram figcaption{font-size:1.05rem;font-weight:760;color:#201f1e;margin-bottom:.3rem}
+    .diagram-subtitle{font-size:.82rem!important;color:#605e5c!important;margin-bottom:.85rem!important}
+    .architecture-diagram img{display:block;width:100%;height:auto;border:1px solid #d2d0ce;border-radius:3px}
+    .diagram-note{margin-top:.65rem!important;font-size:.72rem!important;color:#605e5c!important}
   </style>
 </head>
 <body>
@@ -96,9 +101,9 @@
     <div class="post-breadcrumb">
       <a href="blog.html">← Blog</a> &nbsp;·&nbsp; Security Architecture
     </div>
-    <h1 class="post-title">Azure Application Gateway: Common Mistakes &amp; The Right WAF Rollout <span style="font-size:.55em;font-weight:600;opacity:.75;display:block;margin-top:.4rem;">— with a mandatory healthcare addendum (HIPAA · HITRUST · FHIR)</span></h1>
+    <h1 class="post-title">Azure Application Gateway WAF: Common Mistakes and a Safer Rollout</h1>
     <div class="post-meta">
-      <span>⏱ 16 min read</span>
+      <span>⏱ 11 min read</span>
       <span>📅 June 27, 2026</span>
       <span>✍️ Srinivas Yenuganti</span>
     </div>
@@ -117,280 +122,158 @@
   <section class="article-section">
     <div class="article-body">
 
-      <p>Azure Application Gateway with WAF v2 is the front door for most SaaS workloads I review. It is also the single most consistently mis-deployed component in those reviews. The pattern repeats across organisations of every size:</p>
+      <p>Application Gateway with WAF is the front door for most Azure SaaS apps I look at, and it's also the component I most often find misconfigured. The story is nearly always the same:</p>
 
       <ol>
-        <li>CloudOps stands up Application Gateway with WAF in <strong>Prevention</strong> mode on day one to "tick the security box."</li>
-        <li>Within days, the WAF blocks legitimate traffic — JSON bodies, file uploads, customer SSO callbacks, the marketing team's redirect chains.</li>
-        <li>Engineers respond by flipping WAF into <strong>Detection</strong> mode "temporarily."</li>
-        <li>Six months later, Detection is still on. The platform has compliance signage that says WAF, and protection that is purely cosmetic.</li>
+        <li>Someone deploys the WAF in Prevention mode on day one to tick the security box.</li>
+        <li>Within days it blocks real traffic: JSON bodies, file uploads, SSO callbacks.</li>
+        <li>Someone switches it to Detection mode "for now".</li>
+        <li>A year later it's still in Detection. The architecture diagram says WAF; nothing is actually being blocked.</li>
       </ol>
 
-      <p>I have walked into too many environments where this is the steady state. The fix is not a product — it is a disciplined rollout. This article catalogs the mistakes I see most often and lays out the playbook I use to take SaaS apps from no WAF to full Prevention without breaking real users.</p>
+      <p>The fix isn't a different product. It's a rollout that's slow at the start so it can be strict at the end. Here are the mistakes I see most, the design I aim for, and the steps I use to get from no WAF to Prevention without breaking users. At the end there's a section for healthcare workloads, where a WAF mistake is also a compliance problem.</p>
 
-      <p><strong>Who this is for:</strong> solution architects responsible for the front door of a SaaS platform — and especially those of us working on <strong>healthcare</strong>, where WAF mis-configuration is not just a security gap, it is a HIPAA <em>and</em> HITRUST control failure. The general playbook applies to every workload; the <a href="#healthcare">healthcare addendum (§9)</a> is mandatory reading if any byte of ePHI flows through the gateway.</p>
-
-      <div class="kpi-row">
-        <div class="kpi-card"><div class="kpi-value">2–4 wk</div><div class="kpi-label">Detection baseline</div></div>
-        <div class="kpi-card"><div class="kpi-value">95%+</div><div class="kpi-label">False positives tuned</div></div>
-        <div class="kpi-card"><div class="kpi-value">0</div><div class="kpi-label">PHI in WAF logs</div></div>
-        <div class="kpi-card"><div class="kpi-value">6 yr</div><div class="kpi-label">HIPAA log retention</div></div>
-      </div>
-
-      <div class="toc">
-        <div class="toc-title">What's inside</div>
-        <ol>
-          <li><a href="#mistakes">The 10 mistakes I see most often</a></li>
-          <li><a href="#reference">Reference architecture — WAF in front of SaaS</a></li>
-          <li><a href="#playbook">The rollout playbook: Detection → tune → Prevention</a></li>
-          <li><a href="#tuning">Tuning the false positives without weakening the WAF</a></li>
-          <li><a href="#risk">Risk register — threat, blast radius, mitigation</a></li>
-          <li><a href="#monitoring">Monitoring &amp; alerting that actually works</a></li>
-          <li><a href="#iac">Terraform baseline (App Gateway + WAF Policy)</a></li>
-          <li><a href="#healthcare"><strong>Healthcare addendum — HIPAA · HITRUST · FHIR (mandatory)</strong></a></li>
-          <li><a href="#checklist">Architect's checklist</a></li>
-          <li><a href="#docs">Further reading — official documentation</a></li>
-        </ol>
-      </div>
-
-      <h2 id="mistakes">1. The 10 Mistakes I See Most Often</h2>
-
-      <p>Before the design pattern, the anti-patterns. If you recognise three or more of these in your environment, your WAF is not doing what your compliance team thinks it is doing.</p>
-
+      <h2 id="mistakes">The mistakes I see most often</h2>
       <ul class="mistakes-list">
-        <li><strong>Prevention mode on day one</strong> with no traffic baseline — guaranteed to block legitimate users and force a panicked rollback.</li>
-        <li><strong>Detection mode left on indefinitely</strong> after the rollback "for now." There is no protection — only logs no one reads.</li>
-        <li><strong>Disabling entire OWASP rule groups</strong> (e.g. all of RuleGroup 942 SQL Injection) instead of excluding the specific noisy rule.</li>
-        <li><strong>Wildcard exclusions like <code>RequestArgNames</code> = <code>*</code></strong> that effectively turn off whole inspection categories for every request.</li>
-        <li><strong>No diagnostic logs sent to Log Analytics</strong> — you cannot tune what you cannot see.</li>
-        <li><strong>WAF Policy attached at the gateway level only</strong>, with no per-listener or per-URI overrides, so tuning for one app weakens protection for all of them.</li>
-        <li><strong>SKU sprawl</strong> — using Standard_v2 (no WAF) in lower environments, WAF_v2 in production. The tuning never transfers.</li>
-        <li><strong>Backend HTTP and no end-to-end TLS</strong> — TLS terminates at the gateway and traffic flows unencrypted to the backend over the private subnet.</li>
-        <li><strong>Public IP with no NSG / no private endpoint backend</strong> — bypassing the gateway is one misconfigured DNS record away.</li>
-        <li><strong>No autoscaling, fixed two instances</strong> — first marketing campaign fills the gateway and customers see 502s.</li>
+        <li><strong>Prevention on day one</strong> with no idea what normal traffic looks like.</li>
+        <li><strong>Detection forever</strong> after the first bad day. That's logging, not protection.</li>
+        <li><strong>Turning off whole rule groups</strong>, such as all SQL injection rules, instead of excluding one field from one rule.</li>
+        <li><strong>Broad global exclusions</strong> that skip inspection of every argument for every rule.</li>
+        <li><strong>No diagnostic logs</strong>, so nobody can tune anything.</li>
+        <li><strong>One policy for every app</strong> on the gateway, so tuning one app weakens all of them.</li>
+        <li><strong>Different SKUs per environment</strong>: Standard_v2 without WAF in test, WAF_v2 in production. Nothing you learn in test carries over.</li>
+        <li><strong>HTTP to the backend</strong>, so traffic is unencrypted after the gateway.</li>
+        <li><strong>Backends still reachable directly</strong>, which makes the WAF optional for anyone who finds the other address.</li>
+        <li><strong>No autoscaling</strong>, so the first busy day turns into 502 errors.</li>
       </ul>
 
-      <h2 id="reference">2. Reference Architecture — WAF in Front of SaaS</h2>
+      <h2 id="reference">What good looks like</h2>
+      <figure class="architecture-diagram" aria-labelledby="waf-title">
+        <figcaption id="waf-title">One inspected way in, private backends behind it</figcaption>
+        <p class="diagram-subtitle">A baseline WAF policy for the whole gateway, a tuned policy only where an app needs it, end-to-end TLS, and logs with sensitive fields scrubbed.</p>
+        <img src="assets/diagrams/app-gateway-waf.svg" alt="Diagram: browsers, SSO callbacks and API clients connect over HTTPS to an Application Gateway WAF_v2 with one public IP, TLS 1.2 or later and autoscaling. A baseline WAF policy using DRS 2.2 in Prevention mode applies to the whole gateway, and a separate policy with scoped exclusions applies only to the /api listener. An NSG protects the gateway subnet. Only inspected requests reach private backends: App Service and a static site in Storage through private endpoints, and AKS through an internal load balancer, all over HTTPS. Key Vault supplies the TLS certificate, and logs go to Log Analytics with log scrubbing and on to Microsoft Sentinel." loading="lazy" />
+        <p class="diagram-note">Editable source: assets/diagrams/app-gateway-waf.drawio</p>
+      </figure>
 
-      <p>The right architecture is single-ingress, private backends, end-to-end TLS, and one WAF Policy per application surface. Diagram first, then the playbook for getting there safely.</p>
+      <p>The pieces that matter:</p>
+      <ul>
+        <li><strong>One ingress.</strong> The gateway is the only way in. Backends use private endpoints or internal load balancers and accept traffic only from the gateway subnet.</li>
+        <li><strong>The current ruleset.</strong> Microsoft recommends Default Rule Set (DRS) 2.2 for new deployments. It's based on OWASP CRS 3.3.4 plus Microsoft's own threat intelligence rules. CRS 3.2 is still supported, but I wouldn't start a new policy on it.</li>
+        <li><strong>Policies at the right scope.</strong> A WAF policy can be attached to the whole gateway, to a listener, or to a path rule. Exclusions in a policy apply to everything that policy covers. If the API needs an exclusion, put it in a policy for the API listener, not in the gateway-wide one.</li>
+        <li><strong>End-to-end TLS</strong> with the certificate in Key Vault, read by the gateway's managed identity.</li>
+        <li><strong>Autoscaling</strong> with a sensible minimum, so you're not caught out by a traffic spike.</li>
+      </ul>
 
-      <div class="arch-diagram">
-        <svg viewBox="0 0 720 290" role="img" aria-label="Application Gateway WAF reference architecture">
-          <rect x="10" y="20" width="700" height="250" rx="10" fill="#fff" stroke="#cbd5e1"/>
-          <text x="360" y="42" text-anchor="middle" font-size="12" font-weight="700" fill="#7b2f00">Single ingress · WAF v2 · private backends</text>
-
-          <rect x="30" y="115" width="110" height="55" rx="8" fill="#fff3e0" stroke="#b3541e"/><text x="85" y="140" text-anchor="middle" font-size="10" fill="#0d1b2a">User /</text><text x="85" y="155" text-anchor="middle" font-size="10" fill="#0d1b2a">SSO / API</text>
-
-          <rect x="170" y="80" width="180" height="125" rx="10" fill="#ffe0b2" stroke="#7b2f00"/>
-          <text x="260" y="103" text-anchor="middle" font-size="11" font-weight="700" fill="#7b2f00">App Gateway WAF v2</text>
-          <rect x="185" y="112" width="150" height="22" rx="4" fill="#fff" stroke="#b3541e"/><text x="260" y="127" text-anchor="middle" font-size="9" fill="#0d1b2a">TLS 1.2+ · cert from KV</text>
-          <rect x="185" y="138" width="150" height="22" rx="4" fill="#fff" stroke="#b3541e"/><text x="260" y="153" text-anchor="middle" font-size="9" fill="#0d1b2a">WAF Policy (CRS 3.2)</text>
-          <rect x="185" y="164" width="150" height="22" rx="4" fill="#fff" stroke="#b3541e"/><text x="260" y="179" text-anchor="middle" font-size="9" fill="#0d1b2a">Autoscale 2 → 10</text>
-
-          <rect x="390" y="55" width="135" height="55" rx="8" fill="#e8f5e9" stroke="#388e3c"/><text x="457" y="80" text-anchor="middle" font-size="10" fill="#0d1b2a">App Service /</text><text x="457" y="95" text-anchor="middle" font-size="10" fill="#0d1b2a">AKS (private)</text>
-          <rect x="390" y="125" width="135" height="55" rx="8" fill="#e8f5e9" stroke="#388e3c"/><text x="457" y="150" text-anchor="middle" font-size="10" fill="#0d1b2a">API Backend</text><text x="457" y="165" text-anchor="middle" font-size="10" fill="#0d1b2a">(Private EP)</text>
-          <rect x="390" y="195" width="135" height="55" rx="8" fill="#e8f5e9" stroke="#388e3c"/><text x="457" y="220" text-anchor="middle" font-size="10" fill="#0d1b2a">Static portal</text><text x="457" y="235" text-anchor="middle" font-size="10" fill="#0d1b2a">(Storage PE)</text>
-
-          <rect x="560" y="80" width="135" height="55" rx="8" fill="#e3f2fd" stroke="#1565c0"/><text x="627" y="105" text-anchor="middle" font-size="10" fill="#0d1b2a">Log Analytics +</text><text x="627" y="120" text-anchor="middle" font-size="10" fill="#0d1b2a">Sentinel</text>
-          <rect x="560" y="150" width="135" height="55" rx="8" fill="#fff" stroke="#475569"/><text x="627" y="175" text-anchor="middle" font-size="10" fill="#0d1b2a">Key Vault</text><text x="627" y="190" text-anchor="middle" font-size="10" fill="#0d1b2a">(TLS cert)</text>
-
-          <line x1="140" y1="142" x2="168" y2="142" stroke="#7b2f00" stroke-width="2" marker-end="url(#w)"/>
-          <line x1="350" y1="120" x2="388" y2="82" stroke="#7b2f00" stroke-width="2" marker-end="url(#w)"/>
-          <line x1="350" y1="152" x2="388" y2="152" stroke="#7b2f00" stroke-width="2" marker-end="url(#w)"/>
-          <line x1="350" y1="184" x2="388" y2="222" stroke="#7b2f00" stroke-width="2" marker-end="url(#w)"/>
-          <line x1="350" y1="105" x2="558" y2="105" stroke="#1565c0" stroke-width="1.5" stroke-dasharray="4 3" marker-end="url(#b)"/>
-          <line x1="350" y1="170" x2="558" y2="170" stroke="#475569" stroke-width="1.5" stroke-dasharray="4 3" marker-end="url(#k)"/>
-
-          <defs>
-            <marker id="w" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6" fill="#7b2f00"/></marker>
-            <marker id="b" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6" fill="#1565c0"/></marker>
-            <marker id="k" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6" fill="#475569"/></marker>
-          </defs>
-        </svg>
-        <div class="diagram-caption">One public IP, one WAF, multiple private backends. Diagnostics to Sentinel; certificates from Key Vault.</div>
-      </div>
-
-      <h2 id="playbook">3. The Rollout Playbook — Detection → Tune → Prevention</h2>
-
-      <p>This is the four-phase rollout I use every time. It is boring, it works, and it keeps both the security team and the application owners on side.</p>
-
+      <h2 id="playbook">The rollout, step by step</h2>
       <div class="phase-grid">
         <div class="phase-card">
-          <div class="phase-num">Phase 1 · Week 0</div>
+          <div class="phase-num">Step 1</div>
           <div class="phase-title">Deploy in Detection</div>
-          <div class="phase-desc">WAF v2 enabled, OWASP CRS 3.2, mode = Detection. Diagnostic logs to Log Analytics from minute one.</div>
+          <div class="phase-desc">DRS 2.2, Detection mode, diagnostic logs flowing to Log Analytics from the first minute.</div>
         </div>
         <div class="phase-card">
-          <div class="phase-num">Phase 2 · Weeks 1–3</div>
-          <div class="phase-title">Baseline the traffic</div>
-          <div class="phase-desc">Daily KQL review of <code>AzureDiagnostics</code>. Cluster matches by rule ID, host, URI. Catch every real-traffic anomaly.</div>
+          <div class="phase-num">Step 2</div>
+          <div class="phase-title">Watch real traffic</div>
+          <div class="phase-desc">Two to four weeks, so you see month-end jobs, releases and unusual clients. Review the top rule hits regularly.</div>
         </div>
         <div class="phase-card">
-          <div class="phase-num">Phase 3 · Weeks 3–4</div>
-          <div class="phase-title">Tune surgically</div>
-          <div class="phase-desc">Add scoped exclusions per rule ID + selector (never wildcard, never disable groups). Re-test in a staging gateway.</div>
+          <div class="phase-num">Step 3</div>
+          <div class="phase-title">Tune narrowly</div>
+          <div class="phase-desc">For each false positive, exclude the one field from the one rule, in the policy for that app only. Test in a non-production gateway.</div>
         </div>
         <div class="phase-card">
-          <div class="phase-num">Phase 4 · Week 4+</div>
-          <div class="phase-title">Flip to Prevention</div>
-          <div class="phase-desc">Per-listener cutover, smallest blast radius first. Alert on every block for 7 days. Then steady-state.</div>
+          <div class="phase-num">Step 4</div>
+          <div class="phase-title">Switch to Prevention</div>
+          <div class="phase-desc">One listener at a time, lowest risk first. Watch blocks closely for the first week.</div>
         </div>
       </div>
+      <p>Put the Prevention date in the change record when you start. "Detection for now" without a date is how step 4 never happens.</p>
+      <p>It also helps to understand anomaly scoring. With DRS, a matching rule doesn't block on its own; it adds to a score, and a request is blocked in Prevention mode once the score reaches 5. That's why the logs show rules as "Matched", followed by a separate "Blocked" or "Detected" entry for the request as a whole.</p>
 
-      <div class="callout callout-tip">
-        <div class="callout-title">💡 Architect's Tip</div>
-        <p>"Whitelist" is the wrong mental model. You are <strong>excluding specific WAF rules for specific request attributes on specific URIs</strong> — never permitting traffic. Frame every exclusion request to the security team that way and the conversation gets a lot easier.</p>
-      </div>
+      <h2 id="tuning">Tuning without weakening the WAF</h2>
+      <p>Start with data. If you send logs to resource-specific tables, which I recommend, this shows what's firing:</p>
+      <pre class="code"><span class="c">// Top WAF rule hits over the last 7 days</span>
+AGWFirewallLogs
+| where TimeGenerated &gt; ago(7d)
+| where Action in ("Matched", "Detected", "Blocked")
+| summarize hits = count() by RuleId, RequestUri, Action
+| top 50 by hits</pre>
 
-      <h2 id="tuning">4. Tuning Without Weakening the WAF</h2>
-
-      <p>Most WAF horror stories trace back to a single bad habit: when something gets blocked, the team disables the whole rule group. That converts a precision instrument into a placebo. The right pattern is targeted exclusions.</p>
-
-      <h3>KQL to baseline blocks before you tune</h3>
-      <pre class="code"><span class="c">// Top WAF rule IDs triggering, by host + URI</span>
-AzureDiagnostics
-| where ResourceType == "APPLICATIONGATEWAYS" and Category == "ApplicationGatewayFirewallLog"
-| where action_s in ("Matched","Blocked")
-| summarize hits = count() by ruleId_s, hostname_s, requestUri_s, action_s
-| order by hits desc
-| take 50</pre>
-
-      <h3>Scoped exclusion (right way)</h3>
-      <p>Exclude rule <code>942100</code> only for the JSON field <code>filter</code> on the search API — not everywhere:</p>
-      <pre class="code"><span class="c"># Terraform: per-rule, per-selector exclusion</span>
+      <p>Then exclude as little as possible. Here, rule 942100 fires on a JSON search field called <code>filter</code>, so I exclude only that argument from only that rule:</p>
+      <pre class="code"><span class="c"># Terraform (azurerm): one argument, one rule, in the API listener's policy</span>
 managed_rules {
+  managed_rule_set {
+    type    = "Microsoft_DefaultRuleSet"
+    version = "2.2"
+  }
+
   exclusion {
     match_variable          = "RequestArgNames"
     selector                = "filter"
     selector_match_operator = "Equals"
     excluded_rule_set {
-      type    = "OWASP"
-      version = "3.2"
+      type    = "Microsoft_DefaultRuleSet"
+      version = "2.2"
       rule_group {
-        rule_group_name = "REQUEST-942-APPLICATION-ATTACK-SQLI"
+        rule_group_name = "SQLI"
         excluded_rules  = ["942100"]
       }
     }
   }
 }</pre>
+      <p>What I don't approve: switching off a whole rule group, or an exclusion with no rule set attached, which skips that field for every rule. Both make the false positive go away by making the WAF stop looking.</p>
+      <p>I also stop people calling exclusions "whitelisting". You're not allowing traffic. You're telling one rule to ignore one field. Framing it that way makes the security review much shorter.</p>
 
-      <h3>Anti-pattern (do not ship this)</h3>
-      <pre class="code"><span class="c"># Disables the entire SQLi rule group for every request - do NOT do this</span>
-disabled_rule_group {
-  rule_group_name = "REQUEST-942-APPLICATION-ATTACK-SQLI"
-}</pre>
-
-      <h2 id="risk">5. Risk Register — Threat, Blast Radius, Mitigation</h2>
-
-      <p>Every WAF mistake maps to a specific risk. This is the table I bring to architecture reviews:</p>
-
-      <table class="arch-table">
-        <thead><tr><th>Threat / mistake</th><th>Blast radius</th><th>Mitigation</th></tr></thead>
-        <tbody>
-          <tr><td>Detection left on indefinitely</td><td>WAF is a logger, not a control. SQLi, XSS, RFI reach the app.</td><td>Time-boxed rollout with a Prevention date in the change record</td></tr>
-          <tr><td>Whole rule group disabled</td><td>Entire OWASP category off — silent over-permission</td><td>Scoped exclusions per rule ID + selector; weekly review</td></tr>
-          <tr><td>Day-one Prevention, no baseline</td><td>Legitimate traffic blocked; emergency rollback erodes security mandate</td><td>Mandatory 2–4 week Detection baseline gate</td></tr>
-          <tr><td>Backend reachable directly</td><td>Attacker bypasses the WAF</td><td>Private Endpoint backends; NSG deny from internet; policy enforce</td></tr>
-          <tr><td>TLS terminates at gateway only</td><td>Plaintext between gateway and backend</td><td>End-to-end TLS, backend HTTPS settings with pinned root CA</td></tr>
-          <tr><td>No diagnostics</td><td>No tuning possible; incident forensics blind</td><td>Diagnostic setting to LA on day one; 90-day retention minimum</td></tr>
-          <tr><td>Fixed instance count</td><td>Capacity saturation under marketing spike; 502s to customers</td><td>Autoscale 2 → 10 minimum on WAF_v2</td></tr>
-          <tr><td><strong>PHI in WAF diagnostic logs</strong> (URI / body capture)</td><td>HIPAA breach: ePHI written to Log Analytics and downstream Sentinel/SIEM with broader access scope than the application database</td><td>Disable <code>request_body_check</code> capture on PHI endpoints OR scrub at ingestion; segregate WAF workspace; RBAC + customer-managed keys</td></tr>
-          <tr><td><strong>No geo-filter on US-only healthcare SaaS</strong></td><td>Expands HIPAA threat surface; non-US recon traffic inflates WAF noise and complicates BAA scope</td><td>WAF Policy <code>geo_match</code> custom rule — allow only contracted geographies; alert on denied geos</td></tr>
-        </tbody>
-      </table>
-
-      <h2 id="monitoring">6. Monitoring &amp; Alerting That Actually Works</h2>
-
-      <p>Detection mode is useless without someone watching. Set these alerts on day one — Detection or Prevention:</p>
-
+      <h2 id="monitoring">Monitoring that's worth having</h2>
+      <p>Detection mode is only useful if someone reads the results. The alerts I set up first:</p>
       <ul>
-        <li><strong>Spike in matched rules</strong> for any single rule ID (&gt;3x rolling 24h baseline) — early signal of a real attack or a deploy that introduced false positives.</li>
-        <li><strong>Blocked requests above threshold per backend</strong> — anything above ~0.1% of total traffic in steady state deserves investigation.</li>
-        <li><strong>Backend health probe failures</strong> — these are routinely mistaken for WAF blocks during incidents; correlate the two.</li>
-        <li><strong>Certificate expiry &lt; 30 days</strong> — alert from Key Vault, not from production failure.</li>
-        <li><strong>Gateway autoscale ceiling hit</strong> — your sizing assumption was wrong; investigate before the next traffic peak.</li>
+        <li>A sudden jump in hits for a single rule. Either someone's probing you or a release introduced a false positive.</li>
+        <li>Blocked requests above a small percentage of traffic for a backend.</li>
+        <li>Backend health probe failures, which are easy to mistake for WAF blocks during an incident.</li>
+        <li>Certificate expiry inside 30 days.</li>
+        <li>The gateway hitting its autoscale maximum.</li>
       </ul>
+      <p>Send the logs to Microsoft Sentinel or your SIEM, where they can be correlated with sign-in logs and application logs. On their own they're mostly noise.</p>
 
-      <p>Wire all of these into Microsoft Sentinel or your existing SIEM. WAF logs without correlation are noise; correlated with sign-in logs, NSG flow logs, and backend app logs, they are gold.</p>
+      <h3>Exclusions need to expire</h3>
+      <p>Every exclusion is a gap in the ruleset. One added two years ago for an endpoint that no longer exists is just a gap. I keep exclusions in code, each with an owner and a review date. At each quarterly review, anything past its date is removed unless someone shows it's still needed. If the false positive comes back, it gets added again with fresh evidence.</p>
 
-      <h3>Continuous tuning lifecycle — review, exclude, <em>delete</em></h3>
-
-      <p>A WAF is not a “deploy once” control. Traffic shifts, applications ship new endpoints, ruleset versions change, and attackers probe what worked yesterday. Without a continuous loop the exclusions you added in week three quietly become permanent over-permissions — and that is precisely where attackers find the gap. The discipline I run on every healthcare gateway:</p>
-
-      <div class="phase-grid">
-        <div class="phase-card">
-          <div class="phase-num">Daily · SOC</div>
-          <div class="phase-title">Triage blocks &amp; matches</div>
-          <div class="phase-desc">Sentinel workbook: top rule IDs, new host/URI combinations, geo anomalies. Anything new gets a ticket the same day.</div>
-        </div>
-        <div class="phase-card">
-          <div class="phase-num">Weekly · AppOps</div>
-          <div class="phase-title">Tune false positives</div>
-          <div class="phase-desc">Add scoped exclusions in IaC (rule ID + selector + URI). Every exclusion ships with a <strong>review date</strong> and an owner.</div>
-        </div>
-        <div class="phase-card">
-          <div class="phase-num">Monthly · SecOps</div>
-          <div class="phase-title">Hunt &amp; rule-version diff</div>
-          <div class="phase-desc">Threat-hunt across 30 days of WAF logs. Diff managed-ruleset version notes and update custom rules to cover newly published CVEs.</div>
-        </div>
-        <div class="phase-card">
-          <div class="phase-num">Quarterly · Architect</div>
-          <div class="phase-title">Delete stale exclusions</div>
-          <div class="phase-desc">Any exclusion past its review date is <strong>removed by default</strong>. If the false positive comes back, it gets re-added with fresh evidence. No silent permanent allowances.</div>
-        </div>
-      </div>
-
-      <div class="callout callout-warn">
-        <div class="callout-title">⚠️ Stale exclusions are an attack surface</div>
-        <p>Every exclusion is, by definition, a hole in the managed ruleset. An exclusion added two years ago for an endpoint that no longer exists is a free pass for an attacker who finds a way to reach a matching URI or argument name. Treat the exclusion list like firewall rules — reviewed quarterly, deleted aggressively, owned by a named engineer, and tracked in Git so every change is auditable.</p>
-      </div>
-
-      <p>KQL to flag exclusions that have not been hit in 90 days — strong candidates for deletion:</p>
-      <pre class="code"><span class="c">// Find recently "matched but not blocked" rules - candidates whose exclusions may be unnecessary</span>
-AzureDiagnostics
-| where ResourceType == "APPLICATIONGATEWAYS" and Category == "ApplicationGatewayFirewallLog"
-| where TimeGenerated &gt; ago(90d)
-| summarize last_hit = max(TimeGenerated), hits = count() by ruleId_s, hostname_s, requestUri_s
-| where datetime_diff('day', now(), last_hit) &gt; 60
-| order by last_hit asc</pre>
-
-      <h2 id="iac">7. Terraform Baseline — App Gateway + WAF Policy</h2>
-
-      <p>Deploy the same baseline to every environment. Tuning that happens only in production never gets validated, and exclusions that live only in the portal disappear at the next redeploy.</p>
-
-      <pre class="code"><span class="c"># WAF Policy: start in Detection, flip to Prevention via variable</span>
-resource "azurerm_web_application_firewall_policy" "this" {
+      <h2 id="iac">A Terraform baseline</h2>
+      <p>Deploy the same policy to every environment. Tuning done only in production is never tested, and exclusions added in the portal disappear at the next deployment.</p>
+      <pre class="code"><span class="c"># WAF policy: start in Detection, switch with a variable</span>
+resource "azurerm_web_application_firewall_policy" "baseline" {
   name                = "wafp-${var.app}"
   resource_group_name = var.rg
   location            = var.location
 
   policy_settings {
     enabled                     = true
-    mode                        = var.waf_mode    <span class="c"># "Detection" until baseline complete</span>
+    mode                        = var.waf_mode   <span class="c"># "Detection" until the baseline is done</span>
     request_body_check          = true
-    file_upload_limit_in_mb     = 100
     max_request_body_size_in_kb = 128
+    file_upload_limit_in_mb     = 100
   }
 
   managed_rules {
     managed_rule_set {
-      type    = "OWASP"
-      version = "3.2"
+      type    = "Microsoft_DefaultRuleSet"
+      version = "2.2"
     }
   }
 }
 
-<span class="c"># Application Gateway WAF v2 with autoscale + Key Vault cert</span>
+<span class="c"># Gateway: WAF_v2 SKU, autoscale, certificate from Key Vault</span>
 resource "azurerm_application_gateway" "this" {
   name                = "agw-${var.app}"
   resource_group_name = var.rg
   location            = var.location
-  firewall_policy_id  = azurerm_web_application_firewall_policy.this.id
+  firewall_policy_id  = azurerm_web_application_firewall_policy.baseline.id
 
   sku {
     name = "WAF_v2"
     tier = "WAF_v2"
   }
+
   autoscale_configuration {
     min_capacity = 2
     max_capacity = 10
@@ -398,147 +281,85 @@ resource "azurerm_application_gateway" "this" {
 
   ssl_certificate {
     name                = "tls-cert"
-    key_vault_secret_id = azurerm_key_vault_certificate.tls.secret_id
+    key_vault_secret_id = azurerm_key_vault_certificate.tls.versionless_secret_id
   }
-  <span class="c"># ... listeners, backend pools, end-to-end TLS settings ...</span>
+
+  <span class="c"># ... identity, listeners, backend pools, HTTPS backend settings ...</span>
 }</pre>
+      <p>Using the versionless secret ID lets the gateway pick up a renewed certificate on its own. Pair this with an Azure Policy assignment at the management group that requires WAF on every Application Gateway, so a gateway without one can't be deployed.</p>
 
-      <p>Pair this with an Azure Policy assignment at the management group that <em>denies</em> creation of Application Gateways without an attached WAF Policy. That single guardrail prevents 90% of the day-one mistakes from ever shipping.</p>
+      <h2 id="healthcare">If the gateway carries health data</h2>
+      <p>For healthcare APIs, everything above still applies, and a few things become compliance questions rather than good practice.</p>
 
-      <h2 id="healthcare">8. Healthcare Addendum — HIPAA · HITRUST · FHIR (Mandatory)</h2>
+      <h3>Watch what ends up in your logs</h3>
+      <p>WAF logs include the request URI and the piece of the request that matched a rule. If identifiers sit in the URL, like <code>/Patient/12345</code>, or matched data contains patient details, that information is now in Log Analytics and every system that log feeds. That's a new copy of sensitive data with its own access model.</p>
+      <p>Two things help:</p>
+      <ul>
+        <li><strong>Log scrubbing</strong> on the WAF policy. It replaces values with asterisks for named request headers, cookies, query arguments, form fields and JSON fields, and it can remove client IP addresses. It doesn't scrub values inside the URL path, so identifiers in the path still get logged.</li>
+        <li><strong>Treat the workspace as sensitive</strong> whatever you scrub: tight RBAC, private access where you can, and retention set by your compliance policy. Long-term retention in the workspace covers multi-year requirements without exporting logs elsewhere.</li>
+      </ul>
 
-      <p>If your gateway terminates traffic for a healthcare SaaS — a payer portal, a provider app, a claims API, a FHIR endpoint — every architectural decision above gets a compliance dimension on top of the security one. Skipping this section in a healthcare design review is, in my experience, the single fastest way to fail a HITRUST audit on a perfectly good Azure platform.</p>
-
-      <div class="callout callout-warn">
-        <div class="callout-title">⚠️ The PHI-in-logs gotcha</div>
-        <p>Application Gateway WAF logs the <strong>request URI in full</strong> and, when <code>request_body_check</code> is enabled, can capture the matched portion of the request body. On a healthcare API where the URI carries identifiers (<code>/Patient/12345</code>, <code>/claims/MRN/...</code>) or the body carries ePHI, those values land in <strong>Log Analytics, Sentinel, and any downstream SIEM</strong>. That is an unintended PHI store with its own access model. Plan for it before you turn WAF on, not after the auditor finds it.</p>
-      </div>
-
-      <h3>HIPAA §164.312 — how the gateway satisfies each technical safeguard</h3>
+      <h3>How the gateway supports HIPAA technical safeguards</h3>
       <table class="arch-table">
-        <thead><tr><th>HIPAA control</th><th>Gateway / WAF implementation</th></tr></thead>
+        <thead><tr><th>Safeguard</th><th>What the gateway setup contributes</th></tr></thead>
         <tbody>
-          <tr><td>§164.312(a)(1) Access Control</td><td>Private Endpoint backends; NSG deny-from-internet; gateway is the only ingress; Front Door or App Gateway WAF — not both bypassed</td></tr>
-          <tr><td>§164.312(a)(2)(iv) Encryption &amp; Decryption</td><td>TLS 1.2+ at the listener; end-to-end TLS to backend; cipher suite policy restricted (no TLS 1.0/1.1, no legacy ciphers)</td></tr>
-          <tr><td>§164.312(b) Audit Controls</td><td>Diagnostic settings → Log Analytics → Sentinel; <strong>6-year retention minimum</strong>; immutable archive tier after 90 days</td></tr>
-          <tr><td>§164.312(c)(1) Integrity</td><td>WAF Prevention mode enforces request integrity (no tampered headers/bodies passed to backend); OWASP CRS 3.2 + bot manager</td></tr>
-          <tr><td>§164.312(d) Person / Entity Authentication</td><td>Gateway enforces mTLS / OAuth at the listener where required; AAD-backed SSO for admin plane; never anonymous to backend</td></tr>
-          <tr><td>§164.312(e)(1) Transmission Security</td><td>End-to-end TLS — terminating at the gateway and sending plaintext to a private subnet still fails this control; pin backend root CA</td></tr>
+          <tr><td>Access control (§164.312(a))</td><td>Single ingress, private backends, nothing reachable around the WAF</td></tr>
+          <tr><td>Audit controls (§164.312(b))</td><td>Access and firewall logs in a protected workspace, retained per policy</td></tr>
+          <tr><td>Transmission security (§164.312(e))</td><td>TLS 1.2 or later at the listener and HTTPS to every backend</td></tr>
         </tbody>
       </table>
+      <p>The gateway doesn't make you compliant on its own; it's one part of the evidence. But "WAF in Detection mode" or "plaintext to the backend" are the kinds of findings that are easy to avoid.</p>
 
-      <h3>HITRUST CSF — the controls auditors actually look at</h3>
-      <ul>
-        <li><strong>01.j Network Access Control</strong> — gateway is the documented ingress; backend cannot be reached directly (proven by an explicit deny rule, not by absence).</li>
-        <li><strong>09.s On-line Transactions</strong> — WAF inspects and protects every online PHI transaction in Prevention mode; Detection-only is a finding.</li>
-        <li><strong>09.aa Audit Logging</strong> — WAF + backend logs correlated in Sentinel; retention ≥ 6 years for HIPAA, with documented review cadence.</li>
-        <li><strong>10.f Cryptographic Key Management</strong> — TLS certificate sourced from Key Vault with auto-rotation and HSM-backed keys; no certs on the gateway file system.</li>
-        <li><strong>10.m Control of Technical Vulnerabilities</strong> — managed ruleset version pinned and reviewed quarterly; CVE-driven custom rules added between releases.</li>
-      </ul>
-
-      <h3>FHIR &amp; claims API tuning patterns</h3>
-      <p>These are the exclusions I add early in every healthcare WAF rollout — they show up in the baseline within hours and they are safe when scoped tightly:</p>
-      <ul>
-        <li><strong>FHIR <code>_search</code> with complex query parameters</strong> — exclude rule <code>942100</code> (SQLi) for <code>RequestArgNames</code> selectors <code>filter</code>, <code>_filter</code>, <code>composite</code> on <code>/fhir/*/_search</code> only.</li>
-        <li><strong>Bulk export job IDs</strong> — exclude <code>920420</code> (request content type) for the <code>application/fhir+ndjson</code> path; do not disable the rule globally.</li>
-        <li><strong>X12 / EDI claim payloads</strong> — large bodies trigger <code>920170</code> / <code>920270</code>; raise <code>max_request_body_size_in_kb</code> only for the claims listener, not platform-wide.</li>
-        <li><strong>OAuth callback URLs</strong> from payer / provider IdPs — exclude <code>931130</code> (RFI) for <code>RequestArgNames</code>=<code>redirect_uri</code>, scoped to the <code>/oauth/callback</code> URI.</li>
-      </ul>
-
-      <h3>Geo-restriction is a compliance lever, not just security</h3>
-      <p>For US-only healthcare SaaS the WAF policy should explicitly allow only the contracted geographies. It shrinks the noise the SOC tunes against, and it reduces the BAA threat surface you must defend. A 5-line custom rule:</p>
-      <pre class="code"><span class="c"># Allow US + service-account geos; everything else blocked at WAF</span>
+      <h3>Limit where traffic can come from</h3>
+      <p>If the service only serves one country, a custom geo rule cuts out a lot of noise before the managed rules even run. Custom rules are evaluated first:</p>
+      <pre class="code"><span class="c"># Block everything not from the US</span>
 custom_rules {
-  name      = "geo-allow-us-only"
+  name      = "geoAllowUsOnly"
   priority  = 10
   rule_type = "MatchRule"
   action    = "Block"
+
   match_conditions {
-    match_variables { variable_name = "RemoteAddr" }
+    match_variables {
+      variable_name = "RemoteAddr"
+    }
     operator           = "GeoMatch"
     negation_condition = true
     match_values       = ["US"]
   }
 }</pre>
+      <p>Check your partners and integrations before you turn this on. A payment provider or identity provider calling back from another region will be blocked too.</p>
 
-      <div class="callout callout-arch">
-        <div class="callout-title">🏥 Healthcare design rule</div>
-        <p>For any listener carrying ePHI: <strong>Prevention mode is the only acceptable steady state</strong>, end-to-end TLS is non-negotiable, the WAF Log Analytics workspace is treated as a regulated data store (CMK, private link, RBAC, 6-year retention), and every exclusion has an expiry date that re-validates against current FHIR / X12 traffic.</p>
-      </div>
-
-      <h2 id="checklist">9. Architect's Checklist</h2>
-
+      <h2 id="checklist">Checklist</h2>
       <ul>
-        <li>WAF v2 (not Standard_v2). OWASP CRS 3.2 attached.</li>
-        <li>Mode = Detection at launch. Calendar entry for the Prevention cutover.</li>
-        <li>Diagnostic logs to Log Analytics — day one, every environment.</li>
-        <li>Per-rule, per-selector exclusions in IaC. No disabled rule groups.</li>
-        <li>Private Endpoint backends. Public access disabled by policy.</li>
-        <li>End-to-end TLS. Cert from Key Vault, auto-rotation enabled.</li>
-        <li>Autoscale 2 → 10 minimum. Alert on ceiling reached.</li>
-        <li>Sentinel rules for block-spike, rule-spike, backend health, cert expiry.</li>
-        <li>Azure Policy: deny App Gateway without WAF Policy attached.</li>
-        <li>Quarterly WAF tuning review. Exclusions expire if not re-validated.</li>
+        <li>WAF_v2 in every environment, DRS 2.2 on new policies.</li>
+        <li>Detection at launch, with a Prevention date in the change record.</li>
+        <li>Diagnostic logs to Log Analytics from day one, in resource-specific tables.</li>
+        <li>Exclusions scoped to one field and one rule, in the narrowest policy, kept in code with an owner and review date.</li>
+        <li>No disabled rule groups and no broad global exclusions.</li>
+        <li>Private backends that accept traffic only from the gateway.</li>
+        <li>End-to-end TLS, certificate from Key Vault.</li>
+        <li>Autoscaling, with an alert when the maximum is reached.</li>
+        <li>Azure Policy requiring WAF on every Application Gateway.</li>
+        <li>For sensitive data: log scrubbing, a protected workspace, and no identifiers in URL paths where you can avoid it.</li>
       </ul>
 
-      <p><strong>Healthcare workloads — add these to the checklist:</strong></p>
-      <ul>
-        <li>HIPAA §164.312 mapping documented per listener (access, encryption, audit, integrity, transmission).</li>
-        <li>WAF diagnostic workspace treated as PHI: CMK-encrypted, Private Link, RBAC-locked, 6-year retention.</li>
-        <li>PHI scrubbing or body-capture suppression on endpoints whose URI or body carries identifiers.</li>
-        <li>Geo-allow list (custom rule) restricted to contracted countries; alert on denied geos.</li>
-        <li>FHIR / X12 exclusions are scoped per-URI, per-selector, with expiry dates.</li>
-        <li>TLS 1.2+ minimum, modern cipher policy; TLS 1.0/1.1 explicitly denied.</li>
-        <li>BAA scope diagram includes the gateway, the WAF policy, the diagnostic workspace, and Key Vault.</li>
-        <li>HITRUST controls 01.j, 09.s, 09.aa, 10.f, 10.m have named evidence owners.</li>
-      </ul>
+      <h2>The short version</h2>
+      <p>Start in Detection, watch real traffic for a few weeks, tune narrowly, and switch to Prevention on a date you set at the start. Then keep pruning exclusions. A WAF that's been tuned and then left alone slowly turns back into a WAF that isn't doing much.</p>
 
-      <h2 id="docs">10. Further Reading — Official Documentation</h2>
-
-      <p>Everything in this article is grounded in current Microsoft guidance. These are the primary references I keep open during a WAF review — follow them for the authoritative configuration details and the latest version notes:</p>
-
-      <h3>Application Gateway &amp; WAF — core</h3>
-      <ul>
-        <li><a href="https://learn.microsoft.com/azure/application-gateway/overview" target="_blank" rel="noopener">Application Gateway overview</a> — service model, SKUs, listeners, backend pools.</li>
-        <li><a href="https://learn.microsoft.com/azure/web-application-firewall/ag/ag-overview" target="_blank" rel="noopener">WAF on Application Gateway — overview</a> — Detection vs Prevention, modes, policy model.</li>
-        <li><a href="https://learn.microsoft.com/azure/web-application-firewall/ag/application-gateway-waf-configuration" target="_blank" rel="noopener">Configure WAF rules and exclusions</a> — the authoritative reference for per-rule, per-selector exclusions.</li>
-        <li><a href="https://learn.microsoft.com/azure/web-application-firewall/ag/application-gateway-crs-rulegroups-rules" target="_blank" rel="noopener">OWASP CRS rule groups &amp; rules</a> — every managed rule ID and its purpose (3.2, 3.1, 3.0).</li>
-        <li><a href="https://learn.microsoft.com/azure/web-application-firewall/ag/custom-waf-rules-overview" target="_blank" rel="noopener">Custom WAF rules</a> — syntax for geo, IP, rate-limit, match-condition custom rules.</li>
-        <li><a href="https://learn.microsoft.com/azure/web-application-firewall/ag/best-practices" target="_blank" rel="noopener">WAF best practices</a> — Microsoft's own deployment guidance; aligns with the Detection → Prevention pattern above.</li>
-      </ul>
-
-      <h3>Operations — logging, monitoring, troubleshooting</h3>
-      <ul>
-        <li><a href="https://learn.microsoft.com/azure/application-gateway/application-gateway-diagnostics" target="_blank" rel="noopener">Diagnostic settings &amp; logs</a> — enabling access, performance, and firewall logs to Log Analytics.</li>
-        <li><a href="https://learn.microsoft.com/azure/web-application-firewall/ag/application-gateway-waf-metrics" target="_blank" rel="noopener">WAF metrics &amp; alerts</a> — metrics to alert on for the monitoring section above.</li>
-        <li><a href="https://learn.microsoft.com/azure/web-application-firewall/ag/web-application-firewall-troubleshoot" target="_blank" rel="noopener">WAF troubleshooting</a> — the official runbook for diagnosing false positives before you add an exclusion.</li>
-        <li><a href="https://learn.microsoft.com/azure/web-application-firewall/ag/application-gateway-waf-request-size-limits" target="_blank" rel="noopener">Request size &amp; body limits</a> — essential reading before tuning for X12 / FHIR bulk payloads.</li>
-      </ul>
-
-      <h3>Security &amp; TLS</h3>
-      <ul>
-        <li><a href="https://learn.microsoft.com/azure/application-gateway/ssl-overview" target="_blank" rel="noopener">TLS / SSL on Application Gateway</a> — listener-side cipher policy.</li>
-        <li><a href="https://learn.microsoft.com/azure/application-gateway/end-to-end-ssl-portal" target="_blank" rel="noopener">End-to-end TLS</a> — step-by-step for backend re-encryption.</li>
-        <li><a href="https://learn.microsoft.com/azure/application-gateway/key-vault-certs" target="_blank" rel="noopener">Key Vault certificates with Application Gateway</a> — the documented pattern for the Terraform baseline above.</li>
-        <li><a href="https://learn.microsoft.com/azure/sentinel/data-connectors-reference" target="_blank" rel="noopener">Microsoft Sentinel data connectors</a> — the WAF connector for correlated detection.</li>
-      </ul>
-
-      <h3>Compliance — HIPAA &amp; HITRUST</h3>
-      <ul>
-        <li><a href="https://learn.microsoft.com/azure/compliance/offerings/offering-hipaa-hitech" target="_blank" rel="noopener">Azure HIPAA / HITECH offering</a> — Microsoft's published mapping of Azure services to HIPAA Security Rule controls.</li>
-        <li><a href="https://learn.microsoft.com/azure/compliance/offerings/offering-hitrust" target="_blank" rel="noopener">Azure HITRUST CSF offering</a> — HITRUST scope and Microsoft's shared-responsibility statement.</li>
-        <li><a href="https://learn.microsoft.com/azure/architecture/example-scenario/apps/healthcare-apps-mlz" target="_blank" rel="noopener">Healthcare landing zone reference architecture</a> — broader pattern the WAF sits inside.</li>
-      </ul>
-
-      <h3>Infrastructure-as-Code</h3>
-      <ul>
-        <li><a href="https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/web_application_firewall_policy" target="_blank" rel="noopener">Terraform <code>azurerm_web_application_firewall_policy</code></a> — every argument in the policy snippet above.</li>
-        <li><a href="https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/application_gateway" target="_blank" rel="noopener">Terraform <code>azurerm_application_gateway</code></a> — listeners, backend settings, autoscale, Key Vault certs.</li>
-      </ul>
-
-      <h2>Key Takeaway</h2>
-
-      <p>Application Gateway WAF is not a checkbox — it is an operational discipline. Stand it up in Detection, baseline real traffic for weeks, tune surgically, then flip to Prevention with a date you committed to in advance. For <strong>healthcare</strong> that discipline becomes a compliance obligation: Prevention is the only acceptable steady state for ePHI listeners, every exclusion is scoped and expires, every diagnostic byte is treated as PHI, and HIPAA §164.312 / HITRUST evidence is generated by the architecture — not added by the audit team six months later. Do that and you ship a WAF that protects the application <em>and</em> the BAA.</p>
+      <section class="sources" style="margin-top:2.5rem;padding-top:1.5rem;border-top:1px solid #e2e8f0">
+        <h2>Sources</h2>
+        <ol>
+          <li><a href="https://learn.microsoft.com/azure/web-application-firewall/ag/ag-overview" target="_blank" rel="noopener">What is Azure Web Application Firewall on Azure Application Gateway?</a> (Microsoft Learn)</li>
+          <li><a href="https://learn.microsoft.com/azure/web-application-firewall/ag/application-gateway-crs-rulegroups-rules" target="_blank" rel="noopener">Application Gateway WAF CRS and DRS rule groups and rules</a> (Microsoft Learn)</li>
+          <li><a href="https://learn.microsoft.com/azure/web-application-firewall/ag/application-gateway-waf-configuration" target="_blank" rel="noopener">Web Application Firewall exclusion lists</a> (Microsoft Learn)</li>
+          <li><a href="https://learn.microsoft.com/azure/web-application-firewall/ag/waf-sensitive-data-protection-configure" target="_blank" rel="noopener">How to mask sensitive data on Azure Web Application Firewall</a> (Microsoft Learn)</li>
+          <li><a href="https://learn.microsoft.com/azure/application-gateway/secure-application-gateway" target="_blank" rel="noopener">Secure your Azure Application Gateway</a> (Microsoft Learn)</li>
+          <li><a href="https://learn.microsoft.com/azure/azure-monitor/reference/tables/agwfirewalllogs" target="_blank" rel="noopener">AGWFirewallLogs table reference</a> (Microsoft Learn)</li>
+          <li><a href="https://learn.microsoft.com/azure/application-gateway/key-vault-certs" target="_blank" rel="noopener">TLS termination with Key Vault certificates</a> (Microsoft Learn)</li>
+          <li><a href="https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/web_application_firewall_policy" target="_blank" rel="noopener">azurerm_web_application_firewall_policy</a> (Terraform Registry)</li>
+        </ol>
+      </section>
 
     </div>
   </section>

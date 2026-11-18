@@ -3,11 +3,11 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="description" content="Design an enterprise Azure access-governance pattern using Microsoft Entra PIM. Engineers retain standing read access and activate narrowly scoped write roles via MFA..." />
-  <title>Just-in-Time Azure Write Access: A Governance Pattern for Multi-Environment Engineering | Srinivas Yenuganti</title>
+  <meta name="description" content="Give engineers Reader all the time and write access for a few hours: how I set up PIM eligible roles, approvals and Conditional Access across dev, test and production." />
+  <title>Just-in-Time Write Access to Azure with PIM | Srinivas Yenuganti</title>
   <meta property="og:type" content="article" />
-  <meta property="og:title" content="Just-in-Time Azure Write Access: A Governance Pattern for Multi-Environment Engineering" />
-  <meta property="og:description" content="Design an enterprise Azure access-governance pattern using Microsoft Entra PIM. Engineers retain standing read access and activate narrowly scoped write roles via MFA..." />
+  <meta property="og:title" content="Just-in-Time Write Access to Azure with PIM" />
+  <meta property="og:description" content="Give engineers Reader all the time and write access for a few hours: how I set up PIM eligible roles, approvals and Conditional Access across dev, test and production." />
   <meta property="og:url" content="https://yenuganti.in/post-pim-developer-write-access.html" />
   <meta property="article:published_time" content="2026-09-21" />
   <meta name="twitter:card" content="summary" />
@@ -56,116 +56,97 @@
   <header class="post-header">
     <div class="post-header-inner">
       <div class="post-breadcrumb"><a href="blog.html">&larr; Blog</a> &middot; Security &amp; Identity</div>
-      <h1 class="post-title">Just-in-Time Azure Write Access: A Governance Pattern for Multi-Environment Engineering</h1>
-      <div class="post-meta">12 min read &middot; 21 September 2026</div>
+      <h1 class="post-title">Just-in-Time Write Access to Azure with PIM</h1>
+      <div class="post-meta">7 min read &middot; 21 September 2026</div>
     </div>
   </header>
 
   <main class="article-section">
     <article class="article-body">
-      
-      <figure class="architecture-diagram" aria-labelledby="architecture-flow-title">
-        <figcaption id="architecture-flow-title">Just-in-time access flow across Azure environments</figcaption>
-        <div class="diagram-flow">
-          <div class="diagram-step">
-            <span class="diagram-number">1</span>
-            <span>Engineer has scoped Reader access</span>
-          </div>
-          <span class="diagram-arrow" aria-hidden="true">&rarr;</span>
-          <div class="diagram-step">
-            <span class="diagram-number">2</span>
-            <span>Select dev, test, staging, or production scope</span>
-          </div>
-          <span class="diagram-arrow" aria-hidden="true">&rarr;</span>
-          <div class="diagram-step">
-            <span class="diagram-number">3</span>
-            <span>Request the least-privileged eligible role</span>
-          </div>
-          <span class="diagram-arrow" aria-hidden="true">&rarr;</span>
-          <div class="diagram-step">
-            <span class="diagram-number">4</span>
-            <span>MFA, justification, ticket, and approval</span>
-          </div>
-          <span class="diagram-arrow" aria-hidden="true">&rarr;</span>
-          <div class="diagram-step">
-            <span class="diagram-number">5</span>
-            <span>Risk-based activation window</span>
-          </div>
-          <span class="diagram-arrow" aria-hidden="true">&rarr;</span>
-          <div class="diagram-step">
-            <span class="diagram-number">6</span>
-            <span>Azure Activity Log records changes</span>
-          </div>
-          <span class="diagram-arrow" aria-hidden="true">&rarr;</span>
-          <div class="diagram-step">
-            <span class="diagram-number">7</span>
-            <span>PIM records activation and expiry</span>
-          </div>
-        </div>
-      </figure>
-      <h2>Scenario</h2>
-<p>Engineering teams supporting applications across development, test, staging, and production environments face a persistent tension: operational visibility requires broad read access, while security mandates strict control over write operations. Standing Contributor or Owner access increases the blast radius of credential compromise and violates least-privilege principles. Conversely, removing all write access impedes agility, forcing engineers to request temporary access through informal channels that lack auditability.</p>
-<p>This article outlines an architecture where engineering team members retain permanent <strong>Reader</strong> access for operational visibility. Write access is granted as <strong>eligible</strong> assignments via Microsoft Entra Privileged Identity Management (PIM). Activation requires multifactor authentication (MFA), a change-ticket reference, business justification, and approval from a designated group. The activation window is risk-based, shorter for production, and enforced by Conditional Access policies.</p>
 
-<h2>Target Architecture</h2>
-<p>The architecture relies on separating standing access from privileged elevation. Engineers are assigned the <strong>Reader</strong> role permanently at the subscription or resource group scope to ensure they can monitor resource health, view configurations, and troubleshoot without modifying state. Write permissions are never standing; they are eligible assignments configured in PIM.</p>
-<p>Role settings in PIM define the governance rules. These settings are independent per role and per resource, meaning a policy configured at the subscription level does not automatically inherit to resource groups. Therefore, policies must be explicitly configured for each scope where elevation is permitted. The design avoids broad <strong>Contributor</strong> or <strong>Owner</strong> assignments where narrower built-in roles (e.g., <strong>Virtual Machine Contributor</strong>, <strong>Storage Account Contributor</strong>) or custom roles can satisfy the specific task. This reduces the potential impact of a compromised session.</p>
+<p>Engineers need to see everything and change very little. Most days they read metrics, check configuration and look at logs. A few times a week they actually need to change something. Yet the common setup gives them Contributor on every subscription, all day, every day, because that's the easiest way to avoid tickets.</p>
 
-<h2>Request and Approval Flow</h2>
-<p>The flow begins when an engineer identifies a need to modify a resource. Because they hold only standing Reader access, they cannot perform write operations. They navigate to the Microsoft Entra admin center, select <strong>Identity Governance</strong> > <strong>Privileged Identity Management</strong> > <strong>My roles</strong>, and locate their eligible Azure resource role.</p>
-<p>Upon selecting <strong>Activate</strong>, the system enforces the configured role settings:</p>
+<p>The pattern I prefer is simple: everyone gets Reader permanently, and write access is something you switch on for a few hours with Microsoft Entra Privileged Identity Management (PIM). Here's how I set it up across dev, test, staging and production, and the gaps you need to know about.</p>
+
+<h2>The shape of it</h2>
 <ul>
-<li><strong>Authentication:</strong> MFA is required. To ensure strong verification, the architecture uses <strong>On activation, require Microsoft Entra Conditional Access authentication context</strong>. This redirects the user to satisfy Conditional Access policies, such as requiring a compliant device or a specific authentication strength, rather than relying solely on the default MFA prompt which might be satisfied by a previous session token.</li>
-<li><strong>Justification and Ticketing:</strong> The user must enter a business justification and a support ticket number. Note that the ticket field is informational; PIM does not enforce correlation with an external ticketing system.</li>
-<li><strong>Approval:</strong> If the role setting requires approval, the request enters a pending state. A designated approver group reviews the request. The approver does not need to hold any specific Azure role to approve.</li>
-<li><strong>Scope Reduction:</strong> During activation, the user can further scope the request. For example, if eligible at the subscription level, they can select a specific resource group or resource, ensuring the active assignment is as narrow as possible.</li>
+  <li><strong>Standing access:</strong> Reader on the subscriptions or resource groups the team supports. Enough to troubleshoot, not enough to break anything.</li>
+  <li><strong>Eligible access:</strong> a write role, assigned as <em>eligible</em> in PIM rather than active. Engineers activate it when they need it.</li>
+  <li><strong>The narrowest role that does the job.</strong> If the team only restarts web apps, give them Website Contributor, not Contributor. Owner should almost never be eligible for engineers.</li>
 </ul>
-<p>Once approved and authenticated, PIM creates an active assignment within seconds. The user can now perform write operations. When the activation duration expires, or if the user manually deactivates, PIM removes the active assignment within seconds. Applications may cache access tokens, so signing out and back in may be required to reflect the removal of permissions immediately.</p>
 
-<h2>Implementation Steps</h2>
-<p>Implementing this pattern requires configuring PIM role settings and Conditional Access policies.</p>
+<h2>What activation looks like</h2>
+<p>An engineer opens PIM in the Microsoft Entra admin center, goes to <strong>My roles</strong>, finds the eligible Azure resource role and selects <strong>Activate</strong>. Depending on how you configure the role, they then:</p>
 <ol>
-<li><strong>Assign Eligible Roles:</strong> Assign engineers eligible roles in PIM for the target subscriptions or resource groups. Do not assign permanent active roles for write access.</li>
-<li><strong>Configure Role Settings:</strong> In the Microsoft Entra admin center, navigate to <strong>ID Governance</strong> > <strong>Privileged Identity Management</strong> > <strong>Azure resources</strong>. Select the resource and the role, then edit settings. Set the <strong>Activation maximum duration</strong>. For development and test, an organization may configure up to 8 hours. For staging and production, configure shorter durations based on risk assessment. Enable <strong>Require multifactor authentication</strong> and <strong>Require justification</strong> and <strong>Require ticket information</strong>. Enable <strong>Require approval to activate</strong> and select the approver group.</li>
-<li><strong>Configure Conditional Access:</strong> Create a Conditional Access policy targeting the authentication context defined in PIM. Ensure the policy enforces strong authentication methods (e.g., passwordless sign-in) and device compliance. Set the sign-in frequency to <strong>Every time</strong> under Session controls to force reauthentication on every activation. Note that if no Conditional Access policy targets the context, PIM falls back to standard MFA, but this is a backup mechanism, not a primary control.</li>
-<li><strong>Deploy Secure Workstations:</strong> For staging and production, enforce access from protected administrative workstations or Intune-compliant devices via Conditional Access. This ensures the platform attests the identity and device health before granting elevation.</li>
+  <li>Prove who they are, either with MFA or with a Conditional Access authentication context (more on that below).</li>
+  <li>Enter a justification and a ticket number.</li>
+  <li>Optionally narrow the scope. If they're eligible on a subscription, they can activate on just one resource group.</li>
+  <li>Wait for approval, if the role requires it.</li>
 </ol>
+<p>Once approved, the active assignment appears within seconds and disappears when the time runs out or the engineer deactivates early. Some tools cache tokens, so a sign-out and sign-in can be needed before new or removed permissions show up.</p>
 
-<h2>Audit and Evidence</h2>
-<p>Effective governance requires correlating access decisions with resource changes. Two distinct log sources are involved:</p>
+<h2>Settings per environment</h2>
+<p>Role settings in PIM are defined per role <em>and</em> per resource, and they don't inherit. Settings on a subscription don't flow down to its resource groups. That's the detail that catches people out: if you make someone eligible at a resource group but only configured settings at the subscription, the resource group uses its own defaults. Configure settings at every scope where you create eligible assignments, ideally with code.</p>
+<p>This is roughly where I land:</p>
+<table>
+  <thead>
+    <tr><th>Environment</th><th>Max activation</th><th>Verification</th><th>Approval</th></tr>
+  </thead>
+  <tbody>
+    <tr><td>Dev</td><td>8 hours</td><td>MFA</td><td>No</td></tr>
+    <tr><td>Test</td><td>8 hours</td><td>MFA</td><td>No</td></tr>
+    <tr><td>Staging</td><td>4 hours</td><td>Authentication context</td><td>Yes</td></tr>
+    <tr><td>Production</td><td>2 hours</td><td>Authentication context</td><td>Yes, two or more approvers</td></tr>
+  </tbody>
+</table>
+<p>The activation limit can be anywhere from 1 to 24 hours. Shorter isn't always safer. If production work routinely takes three hours and the limit is one, people activate repeatedly and approvers start rubber-stamping. Pick a window that fits real work.</p>
+<p>For approvals, use a group of at least two people. Approvers don't need any Azure role themselves, which is handy: a lead can approve without holding write access.</p>
+
+<h2>Why I use an authentication context instead of plain MFA</h2>
+<p>The plain "require MFA" setting has a weakness. If the user already satisfied MFA earlier in the session, PIM may not ask again. For staging and production I want a fresh, strong check at the moment of activation.</p>
+<p>So I use <strong>On activation, require Microsoft Entra Conditional Access authentication context</strong> and point it at a Conditional Access policy that:</p>
 <ul>
-<li><strong>PIM Audit History:</strong> Records eligibility, requests, approvals, activations, and expiry. It captures the <em>who</em>, <em>when</em>, and <em>why</em> of the privilege elevation. You can view this in the Microsoft Entra admin center under <strong>Resource audit</strong> or <strong>My audit</strong>. It includes the justification and ticket number entered by the user.</li>
-<li><strong>Azure Activity Log:</strong> Records management operations (control plane) such as creating a virtual machine or changing a key vault policy. It captures the <em>what</em> was changed in the resource plane. The activity log does not typically capture read operations.</li>
+  <li>requires a phishing-resistant authentication strength, and</li>
+  <li>sets sign-in frequency to <strong>Every time</strong>, so the user reauthenticates on every activation.</li>
 </ul>
-<p>The monitoring design must correlate these records by identity, scope, and time. For example, if a user activated a role for 2 hours, the Activity Log should only show write operations from that user within that 2-hour window. Any write operation outside the activation window indicates a standing permission leak or a misconfigured role. Azure retains activity log events for 90 days by default; for longer retention, route logs to an Azure storage account via diagnostic settings.</p>
+<p>Create and enable that policy <em>before</em> you reference the context in PIM. If no policy targets the context, PIM falls back to plain MFA, but only in that one case. The fallback doesn't kick in if the policy is turned off, left in report-only mode, or excludes the user. In those cases, activation goes ahead without the extra check. It also means whoever manages Conditional Access effectively controls your production access, so treat those admins as highly privileged.</p>
 
-<h2>Failure Modes and Trade-offs</h2>
-<p>Implementing just-in-time access introduces operational friction. Engineers must plan their work around activation windows. If an activation expires before a task is complete, a new request must be submitted, requiring re-approval and re-authentication. This can delay incident response if the approval chain is not available.</p>
-<p>Another trade-off is the complexity of Conditional Access. If a Conditional Access policy targeting the PIM authentication context is misconfigured or disabled, PIM falls back to standard MFA. However, this backup mechanism is not triggered if the policy is in report-only mode or if the user is excluded. Administrators must ensure that security principals managing Conditional Access policies are highly privileged and protected.</p>
-<p>Additionally, PIM role settings do not inherit. A policy set at the subscription level does not apply to resource groups. Administrators must configure settings at each scope where elevation is allowed, increasing configuration overhead.</p>
+<h2>The gap people miss</h2>
+<p>Conditional Access checks at activation only apply to the activation. Once the role is active, nothing stops the user from signing in on a different, unmanaged device and using the permission there.</p>
+<p>If device compliance matters to you, and for production it should, also apply a Conditional Access policy that requires a compliant device for the eligible users themselves, all the time, not just during activation.</p>
 
-<h2>Implementation Checklist</h2>
+<h2>Evidence: who was allowed, and what they did</h2>
+<p>Two logs, two questions:</p>
 <ul>
-<li><strong>Access Baseline:</strong> Verify all engineering team members have standing <strong>Reader</strong> access only.</li>
-<li><strong>Eligible Assignments:</strong> Confirm write roles are assigned as <strong>eligible</strong> in PIM, not active.</li>
-<li><strong>Role Settings:</strong> Ensure <strong>Activation maximum duration</strong> is set (e.g., &lt;8 hours for prod). Enable MFA, justification, ticketing, and approval.</li>
-<li><strong>Conditional Access:</strong> Deploy policies targeting the PIM authentication context with <strong>Every time</strong> sign-in frequency.</li>
-<li><strong>Device Compliance:</strong> Enforce Intune-compliant devices or secure workstations for staging and production activations.</li>
-<li><strong>Audit Correlation:</strong> Validate that PIM activation logs correlate with Azure Activity Log entries for write operations.</li>
-<li><strong>Review:</strong> Conduct regular access reviews to remove eligible assignments for personnel who no longer need them.</li>
+  <li><strong>PIM audit history</strong> answers "who was allowed to do this, when, and why?" It records eligibility, requests, approvals, activations and expiry, including the justification and ticket number.</li>
+  <li><strong>Azure Activity Log</strong> answers "what changed?" It records control-plane write operations against resources.</li>
+</ul>
+<p>Joining them by user and time is the useful part. Every write in the Activity Log from an engineer should fall inside one of their activation windows. A write outside any window means someone still has standing access you didn't know about. That single check finds more problems than any access review I've run.</p>
+<p>The Activity Log keeps 90 days by default. Send it to a Log Analytics workspace if you want to query it alongside PIM data or keep it longer.</p>
+
+<h2>The cost</h2>
+<p>This does slow people down. An activation that expires mid-task means another request, and an approver who's asleep can block an incident fix. Plan for that: make sure the approver group covers your on-call hours, and keep a break-glass process for real emergencies that's tested and monitored, not a standing Owner assignment someone forgot about.</p>
+
+<h2>Checklist</h2>
+<ul>
+  <li>Engineers hold Reader only as standing access.</li>
+  <li>Write roles are eligible in PIM, never active, and as narrow as possible.</li>
+  <li>Role settings exist at every scope with eligible assignments.</li>
+  <li>Staging and production use an authentication context with "Every time" sign-in frequency.</li>
+  <li>A Conditional Access policy requires compliant devices for eligible users at all times.</li>
+  <li>Approver groups have at least two people and cover on-call hours.</li>
+  <li>Activity Log writes are regularly matched against PIM activation windows.</li>
+  <li>Eligible assignments are reviewed and expire, so people who changed teams lose them.</li>
 </ul>
 
-<h2>Conclusion</h2>
-<p>Just-in-time access transforms privilege from a static state to a dynamic, auditable event. By combining standing Reader access with eligible PIM roles, organizations can maintain engineering agility while enforcing strict least-privilege controls. The key is rigorous configuration of role settings, Conditional Access policies, and audit correlation to ensure that every write operation is authorized, authenticated, and recorded.</p>
       <section class="sources">
         <h2>Sources</h2>
         <ol>
-          <li><a href="https://learn.microsoft.com/entra/id-governance/privileged-identity-management/pim-resource-roles-configure-role-settings" target="_blank" rel="noopener">Microsoft Learn source 1</a></li>
-          <li><a href="https://learn.microsoft.com/entra/id-governance/privileged-identity-management/pim-resource-roles-activate-your-roles" target="_blank" rel="noopener">Microsoft Learn source 2</a></li>
-          <li><a href="https://learn.microsoft.com/entra/id-governance/privileged-identity-management/azure-pim-resource-rbac" target="_blank" rel="noopener">Microsoft Learn source 3</a></li>
-          <li><a href="https://learn.microsoft.com/azure/azure-monitor/essentials/activity-log" target="_blank" rel="noopener">Microsoft Learn source 4</a></li>
-          <li><a href="https://learn.microsoft.com/entra/architecture/secure-best-practices" target="_blank" rel="noopener">Microsoft Learn source 5</a></li>
-          <li><a href="https://learn.microsoft.com/security/benchmark/azure/mcsb-v2-privileged-access" target="_blank" rel="noopener">Microsoft Learn source 6</a></li>
+          <li><a href="https://learn.microsoft.com/entra/id-governance/privileged-identity-management/pim-resource-roles-configure-role-settings" target="_blank" rel="noopener">Configure Azure resource role settings in Privileged Identity Management</a> (Microsoft Learn)</li>
+          <li><a href="https://learn.microsoft.com/entra/id-governance/privileged-identity-management/pim-resource-roles-activate-your-roles" target="_blank" rel="noopener">Activate my Azure resource roles in Privileged Identity Management</a> (Microsoft Learn)</li>
+          <li><a href="https://learn.microsoft.com/entra/id-governance/privileged-identity-management/azure-pim-resource-rbac" target="_blank" rel="noopener">View activity and audit history for Azure resource roles in Privileged Identity Management</a> (Microsoft Learn)</li>
+          <li><a href="https://learn.microsoft.com/entra/identity/conditional-access/concept-conditional-access-cloud-apps" target="_blank" rel="noopener">Conditional Access: Target resources (authentication context)</a> (Microsoft Learn)</li>
+          <li><a href="https://learn.microsoft.com/azure/azure-monitor/essentials/activity-log" target="_blank" rel="noopener">Azure Monitor activity log</a> (Microsoft Learn)</li>
         </ol>
       </section>
       <aside class="author-card">

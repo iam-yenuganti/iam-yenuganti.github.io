@@ -3,11 +3,11 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="description" content="Learn how platform teams can transition from audit-only visibility to safe enforcement using Azure Policy initiatives, exemptions, remediation, and measurable rollout gates." />
-  <title>From Audit to Enforcement: Scaling Azure Policy Guardrails for Platform Teams | Srinivas Yenuganti</title>
+  <meta name="description" content="How I move Azure Policy from audit to deny without breaking releases: small initiatives, policy as code, resource selectors, expiring exemptions and remediation." />
+  <title>Moving Azure Policy from Audit to Enforcement | Srinivas Yenuganti</title>
   <meta property="og:type" content="article" />
-  <meta property="og:title" content="From Audit to Enforcement: Scaling Azure Policy Guardrails for Platform Teams" />
-  <meta property="og:description" content="Learn how platform teams can transition from audit-only visibility to safe enforcement using Azure Policy initiatives, exemptions, remediation, and measurable rollout gates." />
+  <meta property="og:title" content="Moving Azure Policy from Audit to Enforcement" />
+  <meta property="og:description" content="How I move Azure Policy from audit to deny without breaking releases: small initiatives, policy as code, resource selectors, expiring exemptions and remediation." />
   <meta property="og:url" content="https://yenuganti.in/post-azure-policy-platform-guardrails.html" />
   <meta property="article:published_time" content="2026-09-20" />
   <meta name="twitter:card" content="summary" />
@@ -50,49 +50,92 @@
   <header class="post-header">
     <div class="post-header-inner">
       <div class="post-breadcrumb"><a href="blog.html">&larr; Blog</a> &middot; Compliance &amp; Governance</div>
-      <h1 class="post-title">From Audit to Enforcement: Scaling Azure Policy Guardrails for Platform Teams</h1>
-      <div class="post-meta">8 min read &middot; 20 September 2026</div>
+      <h1 class="post-title">Moving Azure Policy from Audit to Enforcement</h1>
+      <div class="post-meta">7 min read &middot; 20 September 2026</div>
     </div>
   </header>
 
   <main class="article-section">
     <article class="article-body">
-      <p>For enterprise platform teams, the transition from audit-only visibility to active enforcement is rarely a binary switch. It is a carefully orchestrated migration that balances security requirements with operational continuity. Azure Policy provides the mechanisms to enforce organizational standards at scale, but successful implementation requires a strategy that leverages initiatives, exemptions, remediation tasks, and policy-as-code practices to minimize disruption.</p>
 
-<h2>Structuring Governance with Initiatives</h2>
-<p>To simplify management and reduce complexity, platform teams should group related business rules into policy initiatives, also known as policy sets. This approach allows for the assignment of multiple policy definitions to a scope—such as a management group, subscription, or resource group—in a single operation. Azure Policy evaluates resources by comparing their properties to these JSON-based business rules, determining compliance based on defined conditions and logical operators.</p>
-<p>Initiatives enable a holistic view of compliance. By assigning an initiative rather than individual policies, teams can ensure consistent governance across diverse resource types. The compliance dashboard provides an aggregated view of the environment’s state, allowing architects to drill down from the initiative level to per-resource granularity. This structure is critical for maintaining visibility while enforcing standards for resource consistency, regulatory compliance, security, and cost management.</p>
+<p>Every platform team I've worked with has a pile of Azure Policy assignments in audit mode. The compliance dashboard is red, everyone agrees it should be green, and nobody wants to be the person who flips a policy to <code>deny</code> and breaks a release on a Friday.</p>
 
-<h2>Implementing Safe Enforcement with Exemptions</h2>
-<p>One of the most significant challenges in moving from audit to enforcement is handling legacy resources or specific workloads that cannot immediately comply with new standards. Azure Policy exemptions allow platform teams to grant temporary waivers or mitigate non-compliance without disabling the policy for the entire scope. Exemptions are created as child objects on the resource hierarchy or individual resource, ensuring that the policy remains active for other resources.</p>
-<p>There are two primary exemption categories: <strong>Mitigated</strong>, where the policy intent is met through another method, and <strong>Waiver</strong>, where non-compliance is temporarily accepted. Exemptions can include metadata for tracking, such as approval details and ticket references, and can be set to expire on a specific date using ISO 8601 format. Crucially, exemptions support resource selectors, which allow for gradual rollout or rollback based on resource type, location, or identity. For example, a team can exempt resources in a specific region or those managed by a particular service principal, enabling a controlled transition to enforcement.</p>
+<p>Moving from audit to enforcement doesn't have to be a leap. Here's how I do it in small, reversible steps.</p>
 
-<h2>Automating Compliance with Remediation</h2>
-<p>Enforcement is not limited to blocking new deployments; it also involves bringing existing resources into compliance. Azure Policy supports remediation tasks for policies with <code>deployIfNotExists</code> or <code>modify</code> effects. These tasks deploy templates or modify resources to align them with policy definitions. Remediation is executed using a managed identity associated with the policy assignment, which must be granted the minimum Azure RBAC roles required to perform the necessary actions.</p>
-<p>Platform teams can choose between system-assigned and user-assigned managed identities for remediation. When using the Azure portal, the system can automatically grant roles to the managed identity, but when using SDKs or CLI, roles must be manually assigned. It is essential to define the required roles in the policy definition’s <code>roleDefinitionIds</code> property. This ensures that the managed identity has the precise permissions needed to remediate resources without over-privileging the identity. Remediation tasks can be triggered manually or scheduled, allowing teams to address non-compliance in existing resources without disrupting active workloads.</p>
+<h2>Group policies into initiatives</h2>
+<p>Assigning forty individual policies to a management group is forty things to track. I group related rules into initiatives (policy sets): one for networking, one for identity and keys, one for logging, one for tagging and cost. Each initiative gets assigned once, high in the management group tree, and the compliance view rolls up per initiative so you can see which area is behind.</p>
+<p>Keep each initiative small enough that one team owns it. When an initiative mixes networking, tagging and encryption, nobody feels responsible for its compliance number.</p>
 
-<h2>Policy as Code and Rollout Gates</h2>
-<p>To ensure repeatability and auditability, platform teams should manage Azure Policy definitions and assignments as code. Using JSON to define policies allows for version control, peer review, and automated deployment through CI/CD pipelines. This approach ensures that governance rules are consistent across environments and can be tested before enforcement.</p>
-<p>A measured rollout strategy is critical. Teams should begin by assigning policies in audit mode to assess the impact on existing resources. Once the baseline compliance is understood, exemptions can be applied to non-compliant resources that require mitigation or waiver. Remediation tasks can then be scheduled to bring resources into compliance. Finally, enforcement effects such as <code>deny</code> can be enabled for new resources. This phased approach minimizes risk and ensures that platform teams can respond to unexpected issues without halting operations.</p>
+<h2>Keep everything in code</h2>
+<p>Definitions, initiatives, assignments and exemptions all live in a repository and deploy through a pipeline. Changes go through a pull request, so there's a record of who changed a guardrail and why. The portal is for looking at results, not for editing policy.</p>
 
-<h3>Implementation Checklist</h3>
+<h2>Roll out with resource selectors</h2>
+<p>The feature that made enforcement much less scary for me is <strong>resource selectors</strong> on the assignment. They limit which resources the assignment evaluates, so you can start small and widen the net by editing one property. A selector can match on three things:</p>
 <ul>
-<li><strong>Define Initiatives:</strong> Group related policy definitions into initiatives to simplify assignment and management.</li>
-<li><strong>Configure Managed Identities:</strong> Assign system-assigned or user-assigned managed identities to policy assignments for remediation tasks.</li>
-<li><strong>Grant Minimum Permissions:</strong> Use <code>roleDefinitionIds</code> to specify the exact RBAC roles required for remediation.</li>
-<li><strong>Use Exemptions:</strong> Apply waivers or mitigations for legacy resources, using resource selectors for targeted exemptions.</li>
-<li><strong>Schedule Remediation:</strong> Create remediation tasks to bring existing resources into compliance before enabling strict enforcement.</li>
-<li><strong>Monitor Compliance:</strong> Use the compliance dashboard to track progress and identify non-compliant resources.</li>
+  <li><code>resourceLocation</code>: the region a resource lives in.</li>
+  <li><code>resourceType</code>: for example, only storage accounts.</li>
+  <li><code>resourceWithoutLocation</code>: subscription-level resources that have no region.</li>
+</ul>
+<p>Microsoft's safe deployment guidance uses region as the rollout ring, which works well if your non-production workloads live in a different region from production. If they don't, use separate assignments per environment's management group instead.</p>
+<p>A first-stage assignment looks like this:</p>
+<pre><code>"enforcementMode": "DoNotEnforce",
+"resourceSelectors": [{
+  "name": "rollout-ring",
+  "selectors": [{
+    "kind": "resourceLocation",
+    "in": [ "westus3" ]
+  }]
+}]</code></pre>
+<p><code>DoNotEnforce</code> means the policy evaluates and reports, but doesn't block or change anything. That's how you find out what <em>would</em> break.</p>
+
+<h2>The sequence I follow</h2>
+<ol>
+  <li><strong>Assign in <code>DoNotEnforce</code>, first ring only.</strong> Wait for the compliance scan and read the results. Surprises here are cheap.</li>
+  <li><strong>Fix or exempt what you find.</strong> Some resources need changing. Others have a real reason to be different, and they get an exemption.</li>
+  <li><strong>Switch the first ring to <code>Default</code> enforcement.</strong> Run tests that try to create a non-compliant resource and confirm it's blocked.</li>
+  <li><strong>Widen the selector.</strong> Add the next region or environment, check compliance and application health, then continue.</li>
+  <li><strong>Remove the selector</strong> once enforcement covers everything.</li>
+</ol>
+<p>Each step is one small change to the assignment, and each can be undone the same way.</p>
+
+<h2>Exemptions, done properly</h2>
+<p>An exemption excludes a specific scope or resource from an assignment without weakening the policy for everyone else. There are two categories, and the difference matters in an audit:</p>
+<ul>
+  <li><strong>Mitigated:</strong> the intent is met another way. A storage account without a private endpoint that sits behind a network control you can show the auditor.</li>
+  <li><strong>Waiver:</strong> you're knowingly accepting the risk for now.</li>
+</ul>
+<p>Every exemption I create has three things: an expiry date, metadata pointing to the ticket and approver, and a named owner. Waivers without an expiry turn into permanent holes. Exemptions can use resource selectors too, which is handy when you need to exempt one resource type in one region.</p>
+
+<h2>Remediation for existing resources</h2>
+<p><code>deny</code> only stops new problems. For resources that already exist, policies with <code>deployIfNotExists</code> or <code>modify</code> effects can fix them through remediation tasks. A diagnostic settings policy that sends logs to your workspace is the classic example.</p>
+<p>Remediation runs as the assignment's managed identity, so that identity needs the right roles. List exactly those roles in the policy definition's <code>roleDefinitionIds</code>. The portal assigns them for you; if you deploy with templates or the CLI, you create the role assignments yourself, and forgetting this is the usual reason a remediation task fails.</p>
+<p>Remediation tasks aren't continuous. New non-compliant resources are handled at deployment time by the policy effect, but anything that drifted needs a new task. I trigger them from the pipeline after each policy change.</p>
+
+<h2>Things that go wrong</h2>
+<ul>
+  <li><strong>A <code>deny</code> blocks a platform deployment</strong> because the platform's own resources weren't considered. Run your landing zone deployment against the first ring before enforcing.</li>
+  <li><strong>Remediation can't write</strong> because the managed identity lacks a role at the right scope.</li>
+  <li><strong>Exemptions pile up</strong> and nobody reviews them. Report on expiring and expired exemptions every month.</li>
 </ul>
 
-<h2>Conclusion</h2>
-<p>Transitioning from audit-only visibility to active enforcement in Azure requires a strategic approach that leverages the full capabilities of Azure Policy. By using initiatives to group policies, exemptions to handle exceptions, and remediation tasks to automate compliance, platform teams can enforce governance standards without disrupting operations. Policy as code practices ensure that these guardrails are repeatable, auditable, and scalable. As organizations continue to adopt cloud-native architectures, the ability to enforce governance at scale will remain a critical competency for platform engineering teams.</p>
+<h2>Checklist</h2>
+<ul>
+  <li>Policies grouped into small initiatives with clear owners.</li>
+  <li>Definitions, assignments and exemptions deployed from code.</li>
+  <li>New assignments start in <code>DoNotEnforce</code> with a narrow resource selector.</li>
+  <li>Enforcement widened ring by ring, with tests that prove the policy blocks what it should.</li>
+  <li>Every exemption has a category, expiry, ticket and owner.</li>
+  <li>Remediation identities have only the roles in <code>roleDefinitionIds</code>.</li>
+</ul>
+
       <section class="sources">
         <h2>Sources</h2>
         <ol>
-          <li><a href="https://learn.microsoft.com/azure/governance/policy/overview" target="_blank" rel="noopener">Microsoft Learn source 1</a></li>
-          <li><a href="https://learn.microsoft.com/azure/governance/policy/concepts/exemption-structure" target="_blank" rel="noopener">Microsoft Learn source 2</a></li>
-          <li><a href="https://learn.microsoft.com/azure/governance/policy/how-to/remediate-resources" target="_blank" rel="noopener">Microsoft Learn source 3</a></li>
+          <li><a href="https://learn.microsoft.com/azure/governance/policy/overview" target="_blank" rel="noopener">What is Azure Policy?</a> (Microsoft Learn)</li>
+          <li><a href="https://learn.microsoft.com/azure/governance/policy/how-to/policy-safe-deployment-practices" target="_blank" rel="noopener">Safe deployment of Azure Policy assignments</a> (Microsoft Learn)</li>
+          <li><a href="https://learn.microsoft.com/azure/governance/policy/concepts/assignment-structure" target="_blank" rel="noopener">Azure Policy assignment structure</a> (Microsoft Learn)</li>
+          <li><a href="https://learn.microsoft.com/azure/governance/policy/concepts/exemption-structure" target="_blank" rel="noopener">Azure Policy exemption structure</a> (Microsoft Learn)</li>
+          <li><a href="https://learn.microsoft.com/azure/governance/policy/how-to/remediate-resources" target="_blank" rel="noopener">Remediate non-compliant resources with Azure Policy</a> (Microsoft Learn)</li>
         </ol>
       </section>
       <aside class="author-card">
