@@ -159,7 +159,7 @@
         <li><strong>Outbound access protection</strong> blocks all outbound connections from the workspace by default. You then allow specific destinations with managed private endpoints (for Data Engineering and OneLake) or data connection rules (for Data Factory). It needs an F SKU capacity and a tenant admin to enable the setting.</li>
         <li><strong>Customer-managed keys</strong> encrypt the workspace's data, including OneLake, with your key in Key Vault or Managed HSM. The vault needs soft delete and purge protection. If you revoke the key, access to the data is blocked within about an hour.</li>
       </ul>
-      <p>Check the security feature availability table before you design around these. Support varies by item type. When I last checked, in November 2026, healthcare data solutions supported customer-managed keys but not workspace private links, so the network design has to account for that.</p>
+      <p>Check the security feature availability table before you design around these. Support varies by item type. As of the November 2026 update to this post, healthcare data solutions supported customer-managed keys but not workspace private links, so the network design has to account for that.</p>
 
       <h2>Audit who read what</h2>
       <p>Fabric records user activity in the Microsoft Purview audit log, and you search it from the Purview portal. For HIPAA's audit control requirement, that's the evidence trail: who opened which item, when. I export those events to the SIEM and alert on unusual access, such as someone reading a PHI-labeled dataset they've never touched before, at 3 a.m.</p>

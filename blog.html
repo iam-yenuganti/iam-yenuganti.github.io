@@ -39,49 +39,49 @@
       <!-- AI_POSTS_START -->
 
       <li class="post-item" data-ai-topic="container-apps-platform-pattern">
-        <h2><a href="post-container-apps-platform-pattern.html">Architecting Azure Container Apps: When to Choose It Over AKS or App Service</a></h2>
+        <h2><a href="post-container-apps-platform-pattern.html">Azure Container Apps, AKS or App Service: How I Choose</a></h2>
         <div class="post-date">30 September 2026</div>
-        <p>Evaluate Azure Container Apps against AKS and App Service for enterprise scenarios. This analysis covers architectural fit, DevSecOps controls, and operational trade-offs.</p>
+        <p>When Container Apps beats AKS or App Service, why scale to zero depends on your scale rule, and the RBAC gotcha that lets Operator roles read your secrets.</p>
       </li>
 
       <li class="post-item" data-ai-topic="azure-backup-ransomware-resilience">
-        <h2><a href="post-azure-backup-ransomware-resilience.html">Ransomware-Resilient Backup Architecture on Azure</a></h2>
+        <h2><a href="post-azure-backup-ransomware-resilience.html">Ransomware-Resilient Backups on Azure</a></h2>
         <div class="post-date">28 September 2026</div>
-        <p>Design Azure Backup against ransomware with soft delete, locked immutable vaults, separate authorization, monitoring, and rehearsed restores.</p>
+        <p>How I protect Azure Backup against a compromised admin: always-on soft delete, locked immutability, Resource Guard approval and restore drills.</p>
       </li>
 
 
       <li class="post-item" data-ai-topic="azure-key-vault-zero-trust">
-        <h2><a href="post-azure-key-vault-zero-trust.html">Zero-Trust Operating Model for Azure Key Vault: Architecture and Controls</a></h2>
+        <h2><a href="post-azure-key-vault-zero-trust.html">Locking Down Azure Key Vault</a></h2>
         <div class="post-date">27 September 2026</div>
-        <p>Implement a zero-trust operating model for Azure Key Vault using strict network isolation, Azure RBAC, managed identities, and auditable recovery controls to minimize blast radius.</p>
+        <p>How I set up Azure Key Vault for production: a vault per app, Azure RBAC, private endpoints, managed identities, purge protection and PIM for admin access.</p>
       </li>
 
 
       <li class="post-item" data-ai-topic="azure-cost-governance">
-        <h2><a href="post-azure-cost-governance.html">FinOps Guardrails for Enterprise Azure</a></h2>
+        <h2><a href="post-azure-cost-governance.html">FinOps Guardrails for Azure: Owners First, Dashboards Second</a></h2>
         <div class="post-date">26 September 2026</div>
-        <p>A practical Azure FinOps operating model linking cost allocation, budgets, anomaly triage, commitment decisions, and engineering accountability.</p>
+        <p>Owned subscriptions, tag inheritance, budgets that warn early, anomaly alerts, and commitments last.</p>
       </li>
 
       <li class="post-item" data-ai-topic="defender-for-cloud-devsecops">
-        <h2><a href="post-defender-for-cloud-devsecops.html">Bringing Defender for Cloud into the DevSecOps Loop</a></h2>
+        <h2><a href="post-defender-for-cloud-devsecops.html">Making Defender for Cloud Findings Actually Get Fixed</a></h2>
         <div class="post-date">25 September 2026</div>
-        <p>Connect GitHub repositories to cloud posture, assign findings to the teams that can fix them, gate only credible release risks, and verify remediation in code and Azure.</p>
+        <p>Connect GitHub to Microsoft Defender for Cloud, route every finding to a team that can fix it, gate only on high-confidence risks, and verify fixes in the deployed environment.</p>
       </li>
 
 
       <li class="post-item" data-ai-topic="azure-monitor-observability-baseline">
-        <h2><a href="post-azure-monitor-observability-baseline.html">Designing an Azure Observability Baseline</a></h2>
+        <h2><a href="post-azure-monitor-observability-baseline.html">An Azure Monitoring Baseline That Actually Helps</a></h2>
         <div class="post-date">24 September 2026</div>
-        <p>A practical platform baseline for Azure Monitor: workspace boundaries, intentional diagnostic settings, actionable alerts, and service-level ownership.</p>
+        <p>One workspace, resource logs collected on purpose, and alerts that describe user pain.</p>
       </li>
 
 
       <li class="post-item" data-ai-topic="aks-network-isolation">
-        <h2><a href="post-aks-network-isolation.html">Private AKS: Network Isolation Without Breaking Delivery</a></h2>
+        <h2><a href="post-aks-network-isolation.html">Private AKS Without Breaking Your Deployments</a></h2>
         <div class="post-date">23 September 2026</div>
-        <p>A guide to architecting private AKS clusters that enforce strict network isolation while maintaining developer velocity. Covers private endpoints, egress control, DNS strategies, and operational trade-offs.</p>
+        <p>A private AKS cluster that still upgrades and deploys: private API server, egress through Azure Firewall, network isolated clusters, private endpoints and the DNS problems to expect.</p>
       </li>
 
 
@@ -93,95 +93,95 @@
 
 
       <li class="post-item" data-ai-topic="pim-developer-write-access">
-        <h2><a href="post-pim-developer-write-access.html">Just-in-Time Azure Write Access: A Governance Pattern for Multi-Environment Engineering</a></h2>
+        <h2><a href="post-pim-developer-write-access.html">Just-in-Time Write Access to Azure with PIM</a></h2>
         <div class="post-date">21 September 2026</div>
-        <p>Explore a just-in-time access pattern for Azure engineering teams. Standing Reader access is paired with eligible PIM roles, requiring MFA, approvals, and risk-based activation windows across dev, test, staging, and production.</p>
+        <p>Give engineers Reader all the time and write access for a few hours: PIM eligible roles, approvals and Conditional Access across dev, test and production.</p>
       </li>
 
 
       <li class="post-item" data-ai-topic="azure-policy-platform-guardrails">
-        <h2><a href="post-azure-policy-platform-guardrails.html">From Audit to Enforcement: Scaling Azure Policy Guardrails for Platform Teams</a></h2>
+        <h2><a href="post-azure-policy-platform-guardrails.html">Moving Azure Policy from Audit to Enforcement</a></h2>
         <div class="post-date">20 September 2026</div>
-        <p>Explore how enterprise platform teams can move from audit-only visibility to safe enforcement using Azure Policy initiatives, exemptions, remediation, policy as code, and measurable rollout gates.</p>
+        <p>How I move Azure Policy from audit to deny without breaking releases: small initiatives, policy as code, resource selectors, expiring exemptions and remediation.</p>
       </li>
 
 
       <li class="post-item">
-        <h2><a href="post-ddos-multi-subscription.html">Azure DDoS Protection: One Plan, Many Subscriptions</a></h2>
+        <h2><a href="post-ddos-multi-subscription.html">Azure DDoS Protection: One Plan for Every Subscription</a></h2>
         <div class="post-date">28 June 2026</div>
-        <p>One DDoS Protection Plan covers VNets across every subscription in a tenant. Creating one per subscription burns roughly US$35K a year, per extra plan.</p>
+        <p>You only need one DDoS Network Protection plan per tenant. How to share it across subscriptions with the right permissions, Terraform and Azure Policy.</p>
       </li>
 
       <li class="post-item">
-        <h2><a href="post-app-gateway-waf-mistakes.html">Azure Application Gateway: Common Mistakes and the Right WAF Rollout</a></h2>
+        <h2><a href="post-app-gateway-waf-mistakes.html">Azure Application Gateway WAF: Common Mistakes and a Safer Rollout</a></h2>
         <div class="post-date">27 June 2026</div>
-        <p>The ten mistakes I see most often, a disciplined detection-to-prevention rollout, and what changes when the traffic is healthcare.</p>
+        <p>The Application Gateway WAF mistakes I see most, the design I aim for, and a step-by-step path from Detection to Prevention.</p>
       </li>
 
       <li class="post-item">
-        <h2><a href="post-azure-storage.html">An Architect's Guide to Azure Storage</a></h2>
+        <h2><a href="post-azure-storage.html">Azure Storage, Done Properly: A Practical Guide</a></h2>
         <div class="post-date">4 June 2026</div>
-        <p>Blob, Files, Queues, Tables, and Disks — redundancy, lifecycle, multi-region DR, and cost, with Terraform and Bicep baselines.</p>
+        <p>The Azure Storage decisions that are hard to change later: namespace, tiers, redundancy, data protection, backup, security and DR, with a working Bicep template.</p>
       </li>
 
       <li class="post-item">
-        <h2><a href="post-claude-for-developers.html">Claude for Developers: Using AI Agents Across the Development Lifecycle</a></h2>
+        <h2><a href="post-claude-for-developers.html">Using Claude for Design Work, Not Just Code</a></h2>
         <div class="post-date">17 May 2026</div>
-        <p>Where AI agents genuinely help across planning, coding, review, and deployment — and the security controls worth putting around them.</p>
+        <p>Stress-testing architecture decisions, drafting ADRs and threat models, checking assumptions, and the rules for what never goes in a prompt.</p>
       </li>
 
       <li class="post-item">
-        <h2><a href="post-fabric-ai-foundry.html">Microsoft Fabric and Microsoft Foundry for Healthcare Analytics</a></h2>
+        <h2><a href="post-fabric-ai-foundry.html">Healthcare Analytics on Microsoft Fabric, with AI from Microsoft Foundry</a></h2>
         <div class="post-date">16 May 2026</div>
-        <p>Unifying claims, FHIR, and streaming data in OneLake, then layering AI for denial prediction and document summarisation — HIPAA intact.</p>
+        <p>Healthcare data solutions for FHIR, OMOP and claims, workspace network and key controls, Purview audit, and AI behind de-identification.</p>
       </li>
 
       <li class="post-item">
-        <h2><a href="post-devops-ai-agents.html">DevOps is Dead? How AI Agents Are Rewriting the Pipeline Playbook</a></h2>
+        <h2><a href="post-devops-ai-agents.html">AI Agents in DevOps: Where I Let Them Act and Where I Don't</a></h2>
         <div class="post-date">10 May 2026</div>
-        <p>Incident response, Kubernetes triage, Terraform drift, and security auto-fix — what agents actually do well in a pipeline, and what they don't.</p>
+        <p>A practical trust model for AI agents in operations and delivery on Azure: SRE Agent run modes, coding agents, scoped identities and human gates.</p>
       </li>
 
       <li class="post-item">
-        <h2><a href="post-ai-assistant-ide.html">AI Agents in Every IDE</a></h2>
+        <h2><a href="post-ai-assistant-ide.html">Setting Up an AI Coding Assistant for Infrastructure Work</a></h2>
         <div class="post-date">28 April 2026</div>
-        <p>Setup for VS Code, JetBrains, Visual Studio, Eclipse, and Neovim, with real troubleshooting and deployment scenarios.</p>
+        <p>GitHub Copilot agent mode in VS Code for Terraform and Azure: a repository instructions file, the Azure MCP Server, careful tool approvals, and a plan-first workflow.</p>
       </li>
 
       <li class="post-item">
-        <h2><a href="post-ai-agents-mcp.html">Building Agentic AI Systems: MCP, Orchestration, and Architecture</a></h2>
+        <h2><a href="post-ai-agents-mcp.html">Building AI Agents with MCP on Azure Without Losing Control</a></h2>
         <div class="post-date">18 March 2026</div>
-        <p>The Model Context Protocol, multi-agent patterns, memory architecture, and the enterprise security controls that make them viable.</p>
+        <p>Read and write tools split by identity, API Management in front, approval for writes, and one trace per run.</p>
       </li>
 
       <li class="post-item">
-        <h2><a href="post-genai-enterprise.html">Generative AI in the Enterprise: Patterns for Production LLM Deployments</a></h2>
+        <h2><a href="post-genai-enterprise.html">Running Generative AI in Production on Azure: The Platform Under the Chat App</a></h2>
         <div class="post-date">12 February 2026</div>
-        <p>RAG pipeline design, private model deployment, responsible AI controls, and evaluation-driven development.</p>
+        <p>Hybrid retrieval, an AI gateway in API Management, private networking, guardrails, evaluations and cost control for a production RAG or chat app.</p>
       </li>
 
       <li class="post-item">
-        <h2><a href="post-cloud-trends.html">Cloud Trends Enterprise Architects Must Act On Now</a></h2>
+        <h2><a href="post-cloud-trends.html">Six Cloud Trends Worth Acting On</a></h2>
         <div class="post-date">22 January 2026</div>
-        <p>AI-native infrastructure, platform engineering, confidential computing, and sovereign cloud — what to prioritise, and why.</p>
+        <p>Six cloud shifts worth acting on as of late 2026: AI as a governed platform, platform engineering, FinOps for AI, sovereignty, confidential computing and carbon visibility.</p>
       </li>
 
       <li class="post-item">
-        <h2><a href="post-zero-trust.html">Zero Trust Architecture on Azure: A Practitioner's Blueprint</a></h2>
+        <h2><a href="post-zero-trust.html">Zero Trust on Azure, in the Order I'd Do It</a></h2>
         <div class="post-date">14 November 2025</div>
-        <p>End-to-end Zero Trust — identity and Conditional Access through network micro-segmentation, encryption, and SIEM-driven detection.</p>
+        <p>A practical Zero Trust baseline for Azure: Conditional Access and PIM first, then private endpoints and an inspected hub, then detection with Defender for Cloud and Sentinel.</p>
       </li>
 
       <li class="post-item">
-        <h2><a href="post-healthcare-cloud.html">Healthcare Cloud: Designing for HIPAA and HITRUST</a></h2>
+        <h2><a href="post-healthcare-cloud.html">Healthcare Cloud on Azure: Designing for HIPAA and HITRUST</a></h2>
         <div class="post-date">8 October 2025</div>
-        <p>How a large-scale claims platform reached HITRUST in under six months — reference architecture, risk register, and control mapping.</p>
+        <p>Classify data first, no public endpoints, customer-managed keys, complete audit logs, and DR you've actually tested.</p>
       </li>
 
       <li class="post-item">
-        <h2><a href="post-landing-zone.html">Azure Landing Zone Design</a></h2>
+        <h2><a href="post-landing-zone.html">Azure Landing Zones: The Decisions That Matter Before the First Workload</a></h2>
         <div class="post-date">5 September 2025</div>
-        <p>Getting the foundation right before you build — management group hierarchy, hub-spoke networking, and policy as code.</p>
+        <p>The management group hierarchy, policy in Audit before Deny, subscription vending, hub and spoke networking, and central logging.</p>
       </li>
 
     </ul>
