@@ -1,0 +1,79 @@
+name: Daily blog post
+
+on:
+  schedule:
+    - cron: "30 13 * * *"
+  workflow_dispatch:
+    inputs:
+      topic_slug:
+        description: "Optional topic slug from automation/topics.json"
+        required: false
+        default: ""
+
+permissions:
+  contents: write
+  actions: write
+
+concurrency:
+  group: daily-post
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 60
+    env:
+      DRAWIO_VERSION: "32.6.1"
+      DRAWIO_SHA256: "515a975fbdb982e0d736b6f99248dbbb856a8b07bb72d6d3648a54b850fa33db"
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run checks
+        run: node --test automation/generate-article.test.mjs
+
+      - name: Install draw.io
+        run: |
+          curl -fsSL -o drawio.deb "https://github.com/jgraph/drawio-desktop/releases/download/v${DRAWIO_VERSION}/drawio-amd64-${DRAWIO_VERSION}.deb"
+          echo "${DRAWIO_SHA256}  drawio.deb" | sha256sum -c -
+          sudo apt-get update
+          sudo apt-get install -y ./drawio.deb xvfb
+          rm drawio.deb
+
+      - name: Write and publish today's post
+        id: generate
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          TOPIC_SLUG: ${{ inputs.topic_slug }}
+          DRAWIO_CMD: "xvfb-run -a drawio"
+          DRAWIO_EXTRA_ARGS: "--no-sandbox --disable-gpu"
+        run: |
+          if [ -z "$ANTHROPIC_API_KEY" ]; then
+            echo "::error::Add the ANTHROPIC_API_KEY repository secret first."
+            exit 1
+          fi
+          node automation/generate-article.mjs
+
+      - name: Commit to main
+        if: steps.generate.outputs.published == 'true'
+        env:
+          TITLE: ${{ steps.generate.outputs.title }}
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add post-*.html blog.html sitemap.xml assets/diagrams
+          git commit -m "Add post: ${TITLE}"
+          git push origin HEAD:main
+
+      - name: Deploy the site
+        if: steps.generate.outputs.published == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh workflow run deploy.yml --ref main
