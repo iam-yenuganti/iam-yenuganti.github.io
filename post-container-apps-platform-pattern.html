@@ -3,11 +3,11 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="description" content="A technical comparison of Azure Container Apps, AKS, and App Service for enterprise architects. Analyze fit for APIs, event-driven jobs, and regulated workloads." />
-  <title>Architecting Azure Container Apps: When to Choose It Over AKS or App Service | Srinivas Yenuganti</title>
+  <meta name="description" content="When Azure Container Apps beats AKS or App Service, why scale to zero depends on your scale rule, and the RBAC gotcha that lets &#x27;Operator&#x27; roles read your secrets." />
+  <title>Azure Container Apps, AKS or App Service: How I Choose | Srinivas Yenuganti</title>
   <meta property="og:type" content="article" />
-  <meta property="og:title" content="Architecting Azure Container Apps: When to Choose It Over AKS or App Service" />
-  <meta property="og:description" content="A technical comparison of Azure Container Apps, AKS, and App Service for enterprise architects. Analyze fit for APIs, event-driven jobs, and regulated workloads." />
+  <meta property="og:title" content="Azure Container Apps, AKS or App Service: How I Choose" />
+  <meta property="og:description" content="When Azure Container Apps beats AKS or App Service, why scale to zero depends on your scale rule, and the RBAC gotcha that lets &#x27;Operator&#x27; roles read your secrets." />
   <meta property="og:url" content="https://yenuganti.in/post-container-apps-platform-pattern.html" />
   <meta property="article:published_time" content="2026-09-30" />
   <meta name="twitter:card" content="summary" />
@@ -68,67 +68,96 @@
   <header class="post-header">
     <div class="post-header-inner">
       <div class="post-breadcrumb"><a href="blog.html">&larr; Blog</a> &middot; Cloud Architecture</div>
-      <h1 class="post-title">Architecting Azure Container Apps: When to Choose It Over AKS or App Service</h1>
-      <div class="post-meta">12 min read &middot; 30 September 2026</div>
+      <h1 class="post-title">Azure Container Apps, AKS or App Service: How I Choose</h1>
+      <div class="post-meta">8 min read &middot; 30 September 2026</div>
     </div>
   </header>
 
   <main class="article-section">
     <article class="article-body">
-      
-      <h2>Executive Context</h2>
-<p>Platform teams manage a persistent tension: balancing developer velocity for containerized microservices against the operational overhead of managing Kubernetes clusters. In regulated environments, this tension is amplified by strict requirements for auditability, least-privilege access, and blast-radius containment. Adopting Azure Container Apps is not merely a compute choice; it is a decision to accept a managed abstraction layer that trades direct Kubernetes API access for reduced operational complexity. This analysis evaluates when Container Apps fits APIs, event-driven services, and batch jobs, and when Azure Kubernetes Service (AKS) or Azure App Service remains superior.</p>
 
-<h2>Constraints and Assumptions</h2>
-<p>The scenario assumes a multi-tenant enterprise estate with distinct development, test, staging, and production environments. Workloads include public-facing APIs, internal event-driven processors, and scheduled batch jobs. The organization mandates strict separation of duties between platform engineering, application development, and security operations. Access to underlying infrastructure must be minimized to reduce attack surface, while maintaining full observability and audit trails for compliance. The architecture must support dynamic scaling based on HTTP traffic, event queue depth, or resource utilization, with the ability to scale to zero for cost optimization where applicable.</p>
+<p>"Should this run on AKS?" is one of the most common questions I get from application teams. Most of the time the honest answer is no. Azure Container Apps covers a large share of container workloads without anyone having to run a Kubernetes cluster. It's not the right answer every time, though, and it has one security gotcha that catches people out. Here's how I decide, and what I lock down when Container Apps wins.</p>
 
-<h2>Target Architecture</h2>
-<p>Azure Container Apps is optimized for general-purpose containers, particularly microservices benefiting from serverless scaling and event-driven triggers. It is powered by Kubernetes but abstracts the control plane, leveraging open-source technologies like Dapr for service communication, KEDA for event-driven scaling, and Envoy for ingress management. This makes it suitable for teams requiring Kubernetes-style features such as service discovery, traffic splitting, and revision management without the burden of cluster administration.</p>
-<p>Conversely, AKS is the correct choice when direct access to the Kubernetes API and control plane is required. If workloads depend on custom operators, specific node configurations, or complex storage classes not supported by Container Apps, AKS Standard or Automatic provides the necessary control. Azure App Service remains the ideal option for traditional web applications and web APIs where containerization is not a strict requirement, offering a fully managed hosting experience with integrated Azure services. Azure Container Instances (ACI) serves as a lower-level building block for single-pod scenarios where load balancing and certificate management are handled externally.</p>
+<h2>What Container Apps actually gives you</h2>
+<p>Container Apps runs on Kubernetes, but you never see the cluster. You get the useful parts as managed features:</p>
+<ul>
+  <li>Event-driven scaling through KEDA, including scale to zero for HTTP and queue-driven apps.</li>
+  <li>Revisions and traffic splitting, so a canary release is a setting rather than a project.</li>
+  <li>Built-in ingress with managed certificates, internal-only if you want it.</li>
+  <li>Jobs that run on demand, on a schedule, or when events arrive.</li>
+  <li>Dapr for service-to-service calls and pub/sub, if your teams want it.</li>
+</ul>
+<p>What you give up is the Kubernetes API. No custom operators, no CRDs, no node tuning, no choosing your own storage classes.</p>
 
-<h2>DevSecOps Control Model</h2>
-<p>Security in Container Apps is enforced through a layered control model spanning source, build, artifact provenance, infrastructure as code, and runtime posture. The Container Apps environment acts as a secure boundary, isolating apps and jobs within a shared network and logging infrastructure. Secrets are managed securely within the platform, and access to these secrets is strictly controlled via Azure Role-Based Access Control (RBAC).</p>
-<p>Crucially, the <strong>Container Apps Jobs Contributor</strong> and <strong>Container Apps Jobs Operator</strong> roles include the <code>Microsoft.App/jobs/*/action</code> wildcard permission, which grants access to read secret values in plain text. To adhere to least privilege, custom roles should be defined to restrict access to specific actions such as <code>Microsoft.App/jobs/read</code>, <code>Microsoft.App/jobs/start/action</code>, and <code>Microsoft.App/jobs/stop/action</code>, excluding the wildcard. This prevents unauthorized access to secrets while allowing necessary operational control. Monitoring is centralized via Azure Log Analytics, providing auditable evidence of job executions, scaling events, and access attempts.</p>
+<h2>How I choose</h2>
+<table>
+  <thead><tr><th>If the workload...</th><th>I pick</th><th>Why</th></tr></thead>
+  <tbody>
+    <tr><td>Is an API or microservice with spiky or event-driven traffic</td><td>Container Apps</td><td>Scales on HTTP or queue length, scales to zero, no cluster to patch</td></tr>
+    <tr><td>Is a batch or scheduled task</td><td>Container Apps jobs</td><td>Pay while it runs, no idle replicas</td></tr>
+    <tr><td>Needs operators, CRDs, a service mesh you control, or node-level settings</td><td>AKS</td><td>Only AKS gives you the Kubernetes API</td></tr>
+    <tr><td>Is a classic web app or API that doesn't need to be a container</td><td>App Service</td><td>Deployment slots, mature tooling, least to learn</td></tr>
+    <tr><td>Is a single short-lived container you orchestrate yourself</td><td>Container Instances</td><td>A building block, not a platform</td></tr>
+  </tbody>
+</table>
+<p>One detail changes the cost picture. Scale to zero only works with HTTP, TCP or event-based scale rules. If you scale on CPU or memory, the app can't go below one replica, so an always-on service on Container Apps costs about what you'd expect for always-on compute. For steady workloads, a Dedicated workload profile is often cheaper than Consumption.</p>
 
-<h2>Key Architecture Decisions</h2>
-<p><strong>Decision 1: Adopt Container Apps for Event-Driven Microservices</strong><br>
-<strong>Why:</strong> Container Apps supports scale-to-zero and event-driven scaling via KEDA, reducing costs for intermittent workloads. It abstracts cluster management, allowing developers to focus on application logic.<br>
-<strong>Alternative Rejected:</strong> AKS Standard, which requires ongoing cluster maintenance and node management.<br>
-<strong>Consequence:</strong> Reduced operational overhead but loss of direct Kubernetes API access. Custom operators or specific node configurations are not supported.</p>
-<p><strong>Decision 2: Use Custom RBAC Roles for Job Management</strong><br>
-<strong>Why:</strong> Built-in roles like <strong>Container Apps Jobs Operator</strong> grant broad access to secrets via wildcard permissions. Custom roles restrict access to specific actions, minimizing the blast radius of compromised credentials.<br>
-<strong>Alternative Rejected:</strong> Using built-in Contributor or Operator roles for simplicity.<br>
-<strong>Consequence:</strong> Increased complexity in role definition and management, but significantly improved security posture and compliance with least-privilege principles.</p>
-<p><strong>Decision 3: Separate Environments for Development and Production</strong><br>
-<strong>Why:</strong> Isolation prevents accidental deployment of untested code to production and allows for stricter controls in higher-risk environments. Production environments enforce stricter network policies and access controls.<br>
-<strong>Alternative Rejected:</strong> Single-environment deployment with branch-based isolation.<br>
-<strong>Consequence:</strong> Higher infrastructure costs due to duplicated environments, but improved security, stability, and compliance with regulatory requirements.</p>
+<h2>The RBAC gotcha: "Operator" roles can read your secrets</h2>
+<p>This is the part I'd want every platform team to know. Several built-in roles use wildcard actions, and those wildcards include the <code>listSecrets</code> operation, which returns secret values in plain text:</p>
+<ul>
+  <li><strong>Container Apps Contributor</strong> and <strong>Container Apps Operator</strong>, through <code>Microsoft.App/containerApps/*/action</code></li>
+  <li><strong>Container Apps Jobs Contributor</strong> and <strong>Container Apps Jobs Operator</strong>, through <code>Microsoft.App/jobs/*/action</code></li>
+</ul>
+<p>The role names sound operational. Their permissions are broader than that. So if you hand the Jobs Operator role to a support team so they can restart a job, you've also let them read every secret on it.</p>
+<p>A custom role without the wildcard is better, but it isn't the whole fix. Starting a job accepts an execution template that can override the image, command and environment variables. Anyone who can start a job and knows a secret's name can run their own container, reference that secret and read it, and can use any managed identity available to the job. Microsoft's guidance is to treat "can start this job" as "can use this job's secrets and identities".</p>
+<p>Here's a narrower custom role for people who only need to watch and stop jobs:</p>
+<pre><code>{
+  "Name": "Container Apps Job Viewer and Stopper",
+  "IsCustom": true,
+  "Actions": [
+    "Microsoft.App/jobs/read",
+    "Microsoft.App/jobs/executions/read",
+    "Microsoft.App/jobs/execution/read",
+    "Microsoft.App/jobs/stop/action",
+    "Microsoft.App/jobs/stop/execution/action",
+    "Microsoft.App/managedEnvironments/read"
+  ],
+  "NotActions": [],
+  "AssignableScopes": ["/subscriptions/&lt;subscription-id&gt;/resourceGroups/rg-app-prod"]
+}</code></pre>
+<p>I leave <code>start/action</code> out on purpose. Only identities you'd trust with the job's secrets should be able to start it.</p>
+<p>Two more habits reduce the damage if a role is too broad. Store secrets in Key Vault and reference them from the app through a managed identity, rather than pasting values into Container Apps. And if you discover an overly broad assignment, remove it and rotate the secrets it could reach.</p>
 
-<h2>Implementation Blueprint</h2>
-<p>The implementation begins with defining the Container Apps environment, which serves as the secure boundary for all apps and jobs. Networking is configured to integrate with the enterprise virtual network, ensuring secure communication with internal services. Ingress is managed via HTTPS or TCP, with certificates handled by the platform. For event-driven scenarios, KEDA scalers are configured to trigger scaling based on queue depth or other metrics. Jobs are defined with specific trigger types: manual for on-demand tasks, scheduled for periodic processing, and event-driven for reactive workloads.</p>
-<p>Artifact provenance is ensured by using Azure Container Registry (ACR) for private images, with image pull secrets managed securely. Infrastructure as Code (IaC) templates define the app and job configurations, including resource limits, scaling rules, and environment variables. Release authorization is enforced through pipeline gates, ensuring that only approved images are deployed to production. Runtime posture is monitored via Azure Monitor, with alerts configured for anomalous scaling or access patterns.</p>
+<h2>Environments and networking</h2>
+<p>A Container Apps environment is the boundary for networking and logs, so I use separate environments for production and non-production, never one shared environment with naming conventions. For anything internal, deploy the environment into your own virtual network with internal-only ingress. Workload profile environments also support user-defined routes, so egress can go through the same hub firewall as the rest of your platform.</p>
+<p>Images come from a private Azure Container Registry, pulled with a managed identity rather than registry passwords. Releases go through the pipeline, and a new revision only receives traffic after it passes its health checks.</p>
 
-<h2>Operational Evidence and SLOs</h2>
-<p>Operational health is measured through Service Level Objectives (SLOs) aligned with business requirements. Key indicators include availability, latency, and error rates for APIs, and completion time and success rate for jobs. Scaling behavior is monitored to ensure that scale-to-zero and scale-up events occur within defined thresholds. Audit logs from Azure Activity Log and Log Analytics provide evidence of access changes, deployment events, and security incidents. These logs are retained for compliance purposes and analyzed for anomalies.</p>
-<p>Control health indicators include the frequency of RBAC role reviews, the percentage of secrets rotated within policy, and the time to detect and respond to security incidents. Regular drills are conducted to test failure modes and recovery procedures, ensuring that the platform can withstand disruptions while maintaining security and availability.</p>
+<h2>What to watch in production</h2>
+<ul>
+  <li><strong>Replica counts and scale events.</strong> Slow scale-out during a traffic spike shows up as latency long before it shows up as errors. Set a sensible minimum replica count for latency-sensitive APIs.</li>
+  <li><strong>Job outcomes.</strong> Track failed and long-running executions, not just whether the job started.</li>
+  <li><strong>Role assignments.</strong> Review who holds the Container Apps roles above. It's a quick query and it catches the gotcha before an auditor does.</li>
+</ul>
 
-<h2>Failure Modes and Trade-offs</h2>
-<p>The primary trade-off of Container Apps is the lack of direct Kubernetes API access. Teams requiring custom operators, specific node configurations, or complex storage solutions must use AKS. Additionally, while Container Apps supports scale-to-zero, applications scaling on CPU or memory load cannot scale to zero, leading to potential cost inefficiencies for always-on workloads. Another consideration is the learning curve for KEDA scalers and Dapr integration, which may require additional training for development teams.</p>
-<p>Failure modes include scaling delays during traffic spikes, which can impact latency. Mitigation strategies include configuring appropriate scale rules and monitoring scaling events. Security risks arise from misconfigured RBAC roles, particularly those granting access to secrets. Regular audits and automated compliance checks help mitigate these risks. Network misconfigurations can lead to isolation breaches, emphasizing the need for strict network policies and regular testing.</p>
+<h2>Where to start</h2>
+<ol>
+  <li>Pick one event-driven or batch workload that doesn't need the Kubernetes API.</li>
+  <li>Deploy it into a non-production environment in your own virtual network, with secrets from Key Vault.</li>
+  <li>Replace any broad Container Apps role assignments with narrow custom roles.</li>
+  <li>Move it to production, then decide on the next workload based on what you learned.</li>
+</ol>
 
-<h2>Adoption Roadmap</h2>
-<p>Adoption begins with a pilot program for non-critical workloads, allowing teams to familiarize themselves with Container Apps features and limitations. Training is provided on KEDA scalers, Dapr integration, and RBAC best practices. As confidence grows, more workloads are migrated, starting with event-driven services and batch jobs. Production migration is phased, with rigorous testing and monitoring in staging environments before deployment. Continuous feedback loops ensure that issues are addressed promptly and that the platform evolves to meet changing business needs.</p>
-
-<h2>Conclusion</h2>
-<p>Azure Container Apps offers a compelling option for enterprises seeking to reduce operational overhead while maintaining scalability and security for containerized workloads. By abstracting Kubernetes complexity and providing robust event-driven scaling, it enables developers to focus on application logic. However, it is not a universal solution; AKS remains essential for workloads requiring direct API access, and App Service is ideal for traditional web applications. Careful evaluation of architectural requirements, security controls, and operational trade-offs is essential to determine the right platform choice. The adoption of Container Apps should be guided by a clear understanding of its capabilities and limitations, ensuring that it aligns with the organization's broader cloud strategy and compliance obligations.
       <section class="sources">
         <h2>Sources</h2>
         <ol>
-          <li><a href="https://learn.microsoft.com/azure/container-apps/overview" target="_blank" rel="noopener">Microsoft Learn source 1</a></li>
-          <li><a href="https://learn.microsoft.com/azure/container-apps/compare-options" target="_blank" rel="noopener">Microsoft Learn source 2</a></li>
-          <li><a href="https://learn.microsoft.com/azure/container-apps/jobs" target="_blank" rel="noopener">Microsoft Learn source 3</a></li>
+          <li><a href="https://learn.microsoft.com/azure/container-apps/compare-options" target="_blank" rel="noopener">Comparing Container Apps with other Azure container options</a> (Microsoft Learn)</li>
+          <li><a href="https://learn.microsoft.com/azure/container-apps/manage-secrets" target="_blank" rel="noopener">Manage secrets in Azure Container Apps</a> (Microsoft Learn)</li>
+          <li><a href="https://learn.microsoft.com/azure/container-apps/jobs" target="_blank" rel="noopener">Jobs in Azure Container Apps</a> (Microsoft Learn)</li>
+          <li><a href="https://learn.microsoft.com/azure/container-apps/scale-app" target="_blank" rel="noopener">Set scaling rules in Azure Container Apps</a> (Microsoft Learn)</li>
+          <li><a href="https://learn.microsoft.com/azure/container-apps/workload-profiles-overview" target="_blank" rel="noopener">Workload profiles in Azure Container Apps</a> (Microsoft Learn)</li>
         </ol>
       </section>
+
       <aside class="author-card">
         <strong>Srinivas Yenuganti</strong>
         <p>Cloud engineer with 20+ years in enterprise infrastructure, cloud and security. I design and run Azure platforms for healthcare SaaS, with a focus on Zero Trust, compliance and secure AI.</p>

@@ -3,11 +3,11 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="description" content="The cloud trends enterprise architects must act on now — AI-native infrastructure, platform engineering, FinOps 3.0, sovereign cloud, confidential computing, and more." />
-  <title>Cloud Trends for Architects | Srinivas Yenuganti</title>
+  <meta name="description" content="Six cloud shifts worth acting on, as of late 2026: AI as a governed platform, platform engineering, FinOps for AI, sovereignty, confidential computing and carbon visibility." />
+  <title>Six Cloud Trends Worth Acting On | Srinivas Yenuganti</title>
   <meta property="og:type" content="article" />
-  <meta property="og:title" content="Cloud Trends Enterprise Architects Must Act On Now" />
-  <meta property="og:description" content="AI-native infrastructure, platform engineering, FinOps 3.0, confidential computing, sovereign cloud — what to prioritise and why." />
+  <meta property="og:title" content="Six Cloud Trends Worth Acting On" />
+  <meta property="og:description" content="Six cloud shifts worth acting on, as of late 2026: AI as a governed platform, platform engineering, FinOps for AI, sovereignty, confidential computing and carbon visibility." />
   <meta property="og:url" content="https://yenuganti.in/post-cloud-trends.html" />
   <meta property="article:published_time" content="2026-01-22" />
   <meta name="twitter:card" content="summary" />
@@ -58,6 +58,16 @@
     .arch-diagram{background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;padding:1.5rem;margin:1.75rem 0;overflow-x:auto}
     .arch-diagram svg{display:block;margin:0 auto;max-width:100%;height:auto}
     .diagram-caption{font-size:.78rem;color:#64748b;text-align:center;margin-top:.6rem;font-style:italic}
+    .architecture-diagram{max-width:100%;margin:0 0 2.5rem;padding:1rem;background:#fff;border:1px solid #c8c6c4;border-top:4px solid #0078d4;border-radius:4px;box-shadow:0 2px 8px rgba(0,0,0,.08)}
+    .architecture-diagram figcaption{font-size:1.05rem;font-weight:760;color:#201f1e;margin-bottom:.3rem}
+    .diagram-subtitle{font-size:.82rem!important;color:#605e5c!important;margin-bottom:.85rem!important}
+    .architecture-diagram img{display:block;width:100%;height:auto;border:1px solid #d2d0ce;border-radius:3px}
+    .diagram-note{margin-top:.65rem!important;font-size:.72rem!important;color:#605e5c!important}
+    .article-body pre{background:#0b1f33;color:#e6edf3;padding:1rem;border-radius:8px;overflow:auto;font-size:.82rem;line-height:1.6;margin:1.25rem 0}
+    .article-body code{background:#eef2f7;padding:.1rem .3rem;border-radius:4px;overflow-wrap:anywhere;color:#0d1b2a}
+    .article-body pre code{background:none;padding:0;color:inherit;border-radius:0}
+    .sources{margin-top:2.5rem;padding-top:1.5rem;border-top:1px solid #e2e8f0}
+    .sources h2{border-top:none!important;padding-top:0!important}
   </style>
 </head>
 <body>
@@ -78,9 +88,9 @@
     <div class="post-breadcrumb">
       <a href="blog.html">← Blog</a> &nbsp;·&nbsp; Cloud Strategy
     </div>
-    <h1 class="post-title">Cloud Trends Enterprise Architects Must Act On Now</h1>
+    <h1 class="post-title">Six Cloud Trends Worth Acting On</h1>
     <div class="post-meta">
-      <span>⏱ 10 min read</span>
+      <span>⏱ 8 min read</span>
       <span>📅 January 22, 2026</span>
       <span>✍️ Srinivas Yenuganti</span>
     </div>
@@ -97,144 +107,72 @@
   <section class="article-section">
     <div class="article-body">
 
-      <p>Enterprise cloud architecture has entered a period of rapid structural change. The foundational decisions made in the next 12–24 months — around AI infrastructure, platform engineering, data sovereignty, and security architecture — will define competitive positioning for the rest of the decade. This article examines the trends that are moving from early adopter territory into mainstream enterprise architecture and what architects must do about each one.</p>
+      <figure class="architecture-diagram" aria-labelledby="architecture-flow-title">
+        <figcaption id="architecture-flow-title">Six cloud trends and how soon I'd act on each</figcaption>
+        <p class="diagram-subtitle">Two to start now, two to plan this quarter, two to evaluate.</p>
+        <img src="assets/diagrams/cloud-trends-2026.svg" alt="Six tiles. Act now: AI platform (Microsoft Foundry, model router, agents with guardrails) and platform engineering (golden paths, subscription vending, shared Terraform and Bicep modules). This quarter: FinOps for AI (cost per outcome, provisioned throughput versus pay-as-you-go, model routing) and sovereignty (Microsoft Sovereign Cloud models, data flow maps, residency policy). Evaluate: confidential computing (confidential VMs and GPUs, attestation) and carbon visibility (Azure carbon optimization data alongside cost reports)." loading="lazy" />
+        <p class="diagram-note">Editable source: assets/diagrams/cloud-trends-2026.drawio</p>
+      </figure>
 
-      <div class="arch-diagram">
-        <svg viewBox="0 0 720 200" role="img" aria-label="Six cloud trends to act on">
-          <rect x="10" y="20" width="700" height="160" rx="10" fill="#fff" stroke="#cbd5e1"/>
-          <rect x="30" y="45" width="205" height="50" rx="8" fill="#e8f5e9" stroke="#2e7d32"/><text x="132" y="75" text-anchor="middle" font-size="11" fill="#0d1b2a">AI-Native Infra</text>
-          <rect x="258" y="45" width="205" height="50" rx="8" fill="#e8f5e9" stroke="#2e7d32"/><text x="360" y="75" text-anchor="middle" font-size="11" fill="#0d1b2a">Platform Engineering</text>
-          <rect x="486" y="45" width="204" height="50" rx="8" fill="#e8f5e9" stroke="#2e7d32"/><text x="588" y="75" text-anchor="middle" font-size="11" fill="#0d1b2a">FinOps 3.0</text>
-          <rect x="30" y="105" width="205" height="50" rx="8" fill="#e8f5e9" stroke="#2e7d32"/><text x="132" y="135" text-anchor="middle" font-size="11" fill="#0d1b2a">Confidential Compute</text>
-          <rect x="258" y="105" width="205" height="50" rx="8" fill="#e8f5e9" stroke="#2e7d32"/><text x="360" y="135" text-anchor="middle" font-size="11" fill="#0d1b2a">Sovereign Cloud</text>
-          <rect x="486" y="105" width="204" height="50" rx="8" fill="#e8f5e9" stroke="#2e7d32"/><text x="588" y="135" text-anchor="middle" font-size="11" fill="#0d1b2a">Sustainable Arch</text>
-        </svg>
-        <div class="diagram-caption">Six trends crossing from early-adopter to mainstream — each a board-level architecture decision</div>
-      </div>
+      <p>Most "cloud trends" articles are lists of everything that happened last year. This one is shorter on purpose. These are the six shifts I think enterprise architects should actually do something about, with my view on how soon, and what I'd skip.</p>
 
-      <h2>1. AI-Native Infrastructure</h2>
-
-      <p>Cloud infrastructure is being redesigned around the requirements of AI workloads — GPUs, high-bandwidth interconnects, large-scale vector storage, and real-time inference endpoints. The architect's job has expanded from "provision compute and network" to "provision AI-capable infrastructure at the right cost and performance tier."</p>
-
-      <h3>GPU Infrastructure on Azure</h3>
-      <p>Azure's ND-series (NVIDIA H100, H200) and NC-series VMs are now first-class infrastructure components for enterprises running fine-tuning, embedding generation, and self-hosted inference. Key architectural decisions:</p>
+      <h2>1. AI is now a platform you run, not a project you demo</h2>
+      <p>For most enterprises, the useful decision isn't "which GPU". It's whether you treat AI as a governed platform: shared model access, network isolation, content safety, evaluation and cost tracking, offered to every team the same way. On Azure that platform is Microsoft Foundry (formerly Azure AI Foundry), with Azure OpenAI and other providers' models behind it.</p>
+      <p>My defaults:</p>
       <ul>
-        <li><strong>Reserved Instances vs Spot:</strong> Use Reserved Instances for batch fine-tuning jobs run on a predictable schedule (up to 72% savings vs on-demand). Use Spot VMs for fault-tolerant training jobs with checkpointing.</li>
-        <li><strong>Microsoft Foundry for managed inference:</strong> For most enterprise use cases, managed inference through Microsoft Foundry is more cost-effective than self-hosted GPU VMs — you pay per token and have no idle GPU cost. Self-host only when you need custom models, specific latency SLAs not met by managed services, or data residency requirements that prohibit shared infrastructure.</li>
-        <li><strong>InfiniBand networking:</strong> Azure's HPC VMs use InfiniBand for GPU-to-GPU communication during distributed training. If you are running large-scale fine-tuning or pre-training, place all nodes in the same Availability Zone and use proximity placement groups to maximise InfiniBand utilisation.</li>
+        <li><strong>Use managed models before self-hosting.</strong> You pay per token, with no idle GPUs. Self-host only for custom models, latency you can't get otherwise, or data rules that forbid shared infrastructure.</li>
+        <li><strong>Put model choice behind a router.</strong> Foundry's model router picks a model per request, with Balanced, Cost and Quality modes and a model subset you control. It's the simplest cost lever you have, but compare it against your current baseline before trusting it.</li>
+        <li><strong>Pick a vector store you already run.</strong> Azure AI Search for retrieval-heavy apps, vector search in Azure Cosmos DB for NoSQL if the data already lives there, Azure DocumentDB (the vCore MongoDB-compatible service, formerly Azure Cosmos DB for MongoDB vCore) if your teams use MongoDB tools. Adding a separate vector database is rarely worth it.</li>
       </ul>
 
-      <h3>Vector Infrastructure at Scale</h3>
-      <p>Every enterprise RAG system, recommendation engine, and semantic search implementation requires a high-performance vector store. Azure AI Search with integrated vectorization is the right choice for most enterprise workloads — it handles both keyword and vector search natively and integrates with Azure OpenAI for embedding generation within the same service boundary. For high-throughput, purpose-built vector workloads (billions of vectors, sub-10ms query latency), evaluate Cosmos DB for MongoDB vCore with vector search support.</p>
+      <h2>2. Platform engineering is how cloud scales past a few teams</h2>
+      <p>Once more than a handful of teams deploy to Azure, letting each one assemble its own infrastructure stops working. A platform team builds golden paths instead: an opinionated template for a web API, an event processor or a data pipeline, with security, networking, logging and policy already wired in.</p>
+      <p>On Azure, the building blocks are subscription vending for new landing zones, shared Terraform or Bicep modules, and a self-service front door, which can be as simple as a pipeline with a form. A portal like Backstage is optional and can come later. If you built self-service on Azure Deployment Environments, plan your move now: it retires on February 22, 2027.</p>
+      <p>The failure mode is building too much too early. Ship one golden path, get real teams using it, and only then add the second. A platform nobody uses is worse than no platform.</p>
 
-      <h2>2. Platform Engineering — The New Cloud Operating Model</h2>
-
-      <p>Platform Engineering has emerged as the operational model that scales cloud adoption across large organisations. Instead of each development team directly managing cloud resources, a Platform Engineering team builds and operates an Internal Developer Platform (IDP) — a curated, self-service abstraction layer over cloud infrastructure that gives application teams what they need without exposing the full complexity of the underlying cloud.</p>
-
-      <h3>What a Mature IDP Provides</h3>
+      <h2>3. FinOps has to learn AI costs</h2>
+      <p>Tagging and budgets still matter, but AI adds cost lines that behave differently: tokens, provisioned throughput, embeddings, vector storage and GPU time. What I'd put in place this quarter:</p>
       <ul>
-        <li><strong>Golden paths:</strong> Pre-built, opinionated templates for common workload patterns (web app, microservice, data pipeline, ML model) that embed security, compliance, and operational best practices automatically</li>
-        <li><strong>Self-service provisioning:</strong> Developers request infrastructure through a portal or CLI; the platform provisions via Terraform/Bicep pipelines with guardrails — no direct Azure portal access for developers in production environments</li>
-        <li><strong>Shared services:</strong> Centralised observability (Log Analytics, Application Insights), secret management (Key Vault), service mesh, and CI/CD — available to all teams without each team reinventing these capabilities</li>
-        <li><strong>Compliance by default:</strong> Every environment provisioned through the IDP is automatically compliant with the organisation's security baseline — no separate compliance review needed for standard workloads</li>
+        <li><strong>Cost per outcome.</strong> Track cost per document processed or per question answered, not just total token spend. It tells you whether a change made things better.</li>
+        <li><strong>Provisioned throughput only with evidence.</strong> Provisioned throughput units give predictable capacity and cost for steady production traffic. Decide on them from a few months of real usage, not from a forecast.</li>
+        <li><strong>Model routing.</strong> Covered above. It's the cost lever most teams leave on the table.</li>
+        <li><strong>Idle GPUs.</strong> If you do run GPU VMs, watch their utilization. A mostly idle GPU VM is a sign the workload belongs on managed inference.</li>
       </ul>
 
-      <div class="callout callout-arch">
-        <div class="callout-title">🏗 Architecture Insight</div>
-        <p>The most common failure mode in Platform Engineering is building too much too early. Start with one golden path (e.g., containerised web application), get 10 teams using it successfully, then expand. An IDP nobody uses because it doesn't fit real workloads is worse than no IDP at all.</p>
-      </div>
+      <h2>4. Sovereignty is now a set of deployment choices</h2>
+      <p>Data residency used to be a region drop-down. It's now a product decision. Microsoft Sovereign Cloud (formerly Microsoft Cloud for Sovereignty) offers three models: Sovereign Public Cloud, which adds residency, customer-managed keys and operator oversight to public Azure regions; Sovereign Private Cloud on Azure Local, connected or disconnected; and National Partner Clouds run by a local partner in a few countries.</p>
+      <p>Most organizations should start in Sovereign Public Cloud and move only specific workloads further. The work that pays off no matter which model you pick is mapping your data flows, including logs, backups and anything sent to an AI model. You can't prove where data stays if you don't know where it goes.</p>
 
-      <h3>Backstage as the IDP Foundation</h3>
-      <p>Spotify's open-source Backstage platform has become the de facto IDP frontend. It provides a service catalogue, software templates (scaffolding for new services), TechDocs (automated documentation), and a plugin ecosystem for integrating with Azure DevOps, GitHub Actions, Kubernetes, and cost dashboards. Azure has a growing set of Backstage plugins for native integration with Azure services.</p>
+      <h2>5. Confidential computing is ready for regulated AI</h2>
+      <p>Confidential computing protects data while it's being processed, using hardware trusted execution environments. On Azure it's generally available on confidential VMs with AMD SEV-SNP or Intel TDX, on confidential AKS worker nodes, and on confidential GPU VMs with NVIDIA H100 GPUs, where the protected environment spans the CPU and the GPU.</p>
+      <p>That last one matters for healthcare and finance: you can run model inference on sensitive data with hardware attestation that the environment is what you expect. I'd evaluate it now for regulated AI workloads and for multi-party data sharing. For everything else, encryption at rest, in transit and with customer-managed keys is still the baseline to get right first.</p>
 
-      <h2>3. FinOps 3.0 — AI Cost Governance</h2>
+      <h2>6. Put carbon next to cost</h2>
+      <p>Azure carbon optimization shows emissions by subscription, resource group and resource for the past twelve months, with recommendations that mostly overlap with cost savings, such as shutting down idle resources and rightsizing. Reporting rules vary a lot by country and are still changing, so I won't predict them. The practical step is cheap: export the data and look at it next to your cost reports. Most of the time the same change helps both.</p>
 
-      <p>FinOps matured from "tag your resources and set budgets" (FinOps 1.0) through "unit economics and chargeback" (FinOps 2.0) to its current evolution: governing the new cost categories created by AI workloads. Token consumption, GPU reservations, vector storage, and embedding calls require fundamentally different tracking and optimisation approaches than traditional compute and storage costs.</p>
+      <h2>What I'd do first</h2>
+      <ol>
+        <li>Stand up a governed AI platform on Microsoft Foundry before teams build their own.</li>
+        <li>Ship one golden path and measure who uses it.</li>
+        <li>Add cost per outcome to your AI reporting.</li>
+        <li>Start a data flow map for your most sensitive workload.</li>
+      </ol>
+      <p>Pick the two that matter most to your organization and do them properly. Knowing about all six is the easy part.</p>
 
-      <h3>AI-Specific FinOps Practices</h3>
-      <ul>
-        <li><strong>Cost per outcome:</strong> Track cost per completed AI task (per document summarised, per query answered, per anomaly detected) — not just total token spend. Cost per outcome reveals efficiency and drives the right optimisation conversations.</li>
-        <li><strong>Model cost tiers:</strong> Implement model routing that selects the cheapest model capable of satisfying each request's quality requirement. This single practice typically reduces LLM costs by 40–60%.</li>
-        <li><strong>GPU utilisation tracking:</strong> GPU VMs are expensive. Monitor utilisation via Azure Monitor GPU metrics; a GPU VM at 20% utilisation for batch workloads should be replaced with spot instances or managed inference.</li>
-        <li><strong>Commitment planning:</strong> Azure OpenAI PTU commitments (Provisioned Throughput Units) provide predictable cost and guaranteed capacity for production workloads. Model commitment decisions quarterly based on trailing 90-day consumption data.</li>
-      </ul>
+      <section class="sources">
+        <h2>Sources</h2>
+        <ol>
+          <li><a href="https://learn.microsoft.com/azure/foundry/what-is-foundry" target="_blank" rel="noopener">What is Microsoft Foundry?</a> (Microsoft Learn)</li>
+          <li><a href="https://learn.microsoft.com/azure/foundry/openai/concepts/model-router" target="_blank" rel="noopener">Model router for Microsoft Foundry</a> (Microsoft Learn)</li>
+          <li><a href="https://learn.microsoft.com/azure/documentdb/overview" target="_blank" rel="noopener">What is Azure DocumentDB (with MongoDB compatibility)?</a> (Microsoft Learn)</li>
+          <li><a href="https://learn.microsoft.com/azure/cloud-adoption-framework/ready/landing-zone/design-area/subscription-vending" target="_blank" rel="noopener">Subscription vending</a> (Microsoft Learn, Cloud Adoption Framework)</li>
+          <li><a href="https://learn.microsoft.com/azure/deployment-environments/deployment-environments-retirement-guide" target="_blank" rel="noopener">Azure Deployment Environments retirement guide</a> (Microsoft Learn)</li>
+          <li><a href="https://learn.microsoft.com/azure/azure-sovereign-clouds/microsoft-sovereign-cloud" target="_blank" rel="noopener">What is Microsoft Sovereign Cloud?</a> (Microsoft Learn)</li>
+          <li><a href="https://learn.microsoft.com/azure/confidential-computing/overview-azure-products" target="_blank" rel="noopener">Azure confidential computing offerings</a> (Microsoft Learn)</li>
+          <li><a href="https://learn.microsoft.com/azure/carbon-optimization/overview" target="_blank" rel="noopener">What is Carbon optimization in Azure</a> (Microsoft Learn)</li>
+        </ol>
+      </section>
 
-      <h2>4. Confidential Computing</h2>
-
-      <p>Confidential Computing protects data in use — while it is being processed in memory — using hardware-based Trusted Execution Environments (TEEs). This is the final frontier of encryption: data at rest and in transit have been solved for years; data in use is the remaining exposure.</p>
-
-      <p>Azure offers Confidential VMs (AMD SEV-SNP, Intel TDX) and Confidential Containers (AKS confidential node pools). The primary use cases driving enterprise adoption:</p>
-      <ul>
-        <li><strong>Multi-party computation:</strong> Multiple organisations can run joint analytics on combined datasets without any party seeing the other's raw data — each party's data is encrypted in a TEE that neither the cloud provider nor the other parties can inspect</li>
-        <li><strong>Regulated AI inference:</strong> Healthcare and financial services running model inference on sensitive data where the cloud operator must have no access to the plaintext during processing</li>
-        <li><strong>Key management isolation:</strong> Azure Managed HSM with confidential attestation ensures encryption keys are protected from cloud operator access — the customer retains sole cryptographic control</li>
-      </ul>
-
-      <p>Confidential Computing is no longer experimental. Azure offers GA confidential VM SKUs and AKS confidential node pools. Architects building regulated workloads should evaluate it as part of their data protection strategy.</p>
-
-      <h2>5. Sovereign Cloud and Data Residency</h2>
-
-      <p>Data sovereignty requirements — laws requiring data to stay within national or regional boundaries and be accessible only to authorised domestic entities — are expanding globally. The EU's GDPR established the model; similar legislation is now enacted or in progress in 70+ countries.</p>
-
-      <p>Microsoft's response is the <strong>Microsoft Cloud for Sovereignty</strong> initiative and expansion of dedicated national cloud regions (Azure Government, and Azure operated by 21Vianet in China) plus partnerships creating local cloud zones in markets without Azure regions.</p>
-
-      <h3>What Architects Need to Plan For</h3>
-      <ul>
-        <li><strong>Data classification and flow mapping:</strong> Before you can comply with data residency requirements, you need to know exactly where each data classification travels within your architecture — including logs, backups, replication, and AI training data</li>
-        <li><strong>Service availability by region:</strong> Not every Azure service is available in every region or national cloud. Sovereignty-constrained architectures must validate service availability before committing to a design</li>
-        <li><strong>Cross-border transfer controls:</strong> When data must cross borders (e.g., global SOC operations), implement technical controls (pseudonymisation, tokenisation) and legal mechanisms (Standard Contractual Clauses) as required by applicable law</li>
-      </ul>
-
-      <h2>6. Sustainable Cloud Architecture</h2>
-
-      <p>Carbon reporting requirements (SEC climate disclosure rules, CSRD in Europe) are bringing sustainability from a CSR talking point to a board-level compliance obligation. Cloud architects now make decisions with measurable carbon impact.</p>
-
-      <ul>
-        <li><strong>Azure Carbon Optimization:</strong> Microsoft's tooling provides per-resource and per-subscription carbon emissions data. Use this to identify the highest-emission workloads and prioritise right-sizing and region selection improvements.</li>
-        <li><strong>Region selection:</strong> Azure regions vary significantly in carbon intensity based on their energy mix. Moving workloads to low-carbon regions (Sweden, Norway, which run on near-100% renewable) from high-carbon regions can reduce scope 2 emissions by 50–90% with no architectural change.</li>
-        <li><strong>Workload scheduling:</strong> Batch workloads (ML training, data processing, backups) can be scheduled for periods of low grid carbon intensity using Azure's carbon-aware SDK integration. This is a zero-cost optimisation for any workload that is not latency-sensitive.</li>
-      </ul>
-
-      <h2>The Architect's Priority Matrix</h2>
-
-      <div class="trend-grid">
-        <div class="trend-card">
-          <span class="trend-label">Act Now</span>
-          <h4>AI-Native Infrastructure</h4>
-          <p>Every new platform build should include an AI services layer. Retrofitting is expensive.</p>
-        </div>
-        <div class="trend-card">
-          <span class="trend-label">Act Now</span>
-          <h4>Platform Engineering</h4>
-          <p>If you have 10+ development teams, an IDP ROI becomes compelling. Start the golden path.</p>
-        </div>
-        <div class="trend-card">
-          <span class="trend-label">Plan This Quarter</span>
-          <h4>FinOps 3.0</h4>
-          <p>Establish cost-per-outcome tracking before AI spend becomes uncontrollable at scale.</p>
-        </div>
-        <div class="trend-card">
-          <span class="trend-label">Plan This Quarter</span>
-          <h4>Data Sovereignty</h4>
-          <p>Map your data flows now. Retroactive sovereignty compliance is architecturally painful.</p>
-        </div>
-        <div class="trend-card">
-          <span class="trend-label">Evaluate</span>
-          <h4>Confidential Computing</h4>
-          <p>Required for regulated multi-party AI. Evaluate for healthcare and financial workloads.</p>
-        </div>
-        <div class="trend-card">
-          <span class="trend-label">Monitor</span>
-          <h4>Sustainable Architecture</h4>
-          <p>Compliance obligations are arriving. Begin carbon instrumentation now before it's mandated.</p>
-        </div>
-      </div>
-
-      <h2>Key Takeaway</h2>
-
-      <p>The cloud is no longer primarily about migrating on-premises workloads or reducing infrastructure cost. The strategic value of cloud in 2026 is in enabling AI-powered capabilities at scale, with governance, sovereignty, and sustainability built into the architecture from the start. Architects who expand their thinking beyond compute and network — into AI platform design, developer experience, cost intelligence, and regulatory compliance — are the ones whose work will define the next generation of enterprise technology.</p>
-
-      <p>Pick the two trends most relevant to your current organisation and context, build a concrete plan for each, and execute. Broad awareness of all trends is a prerequisite; focused action on the highest-leverage ones is what creates impact.</p>
 
     </div>
   </section>

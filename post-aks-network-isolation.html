@@ -3,11 +3,11 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="description" content="Architecting private AKS clusters with controlled egress, private endpoints, and DNS. Balancing security boundaries, DevSecOps controls, and operational trade-offs for..." />
-  <title>Private AKS: Network Isolation Without Breaking Delivery | Srinivas Yenuganti</title>
+  <meta name="description" content="A private AKS cluster that still upgrades and deploys: private API server, egress through Azure Firewall, network isolated clusters, private endpoints and the DNS problems to expect." />
+  <title>Private AKS Without Breaking Your Deployments | Srinivas Yenuganti</title>
   <meta property="og:type" content="article" />
-  <meta property="og:title" content="Private AKS: Network Isolation Without Breaking Delivery" />
-  <meta property="og:description" content="Architecting private AKS clusters with controlled egress, private endpoints, and DNS. Balancing security boundaries, DevSecOps controls, and operational trade-offs for..." />
+  <meta property="og:title" content="Private AKS Without Breaking Your Deployments" />
+  <meta property="og:description" content="A private AKS cluster that still upgrades and deploys: private API server, egress through Azure Firewall, network isolated clusters, private endpoints and the DNS problems to expect." />
   <meta property="og:url" content="https://yenuganti.in/post-aks-network-isolation.html" />
   <meta property="article:published_time" content="2026-09-23" />
   <meta name="twitter:card" content="summary" />
@@ -56,8 +56,8 @@
   <header class="post-header">
     <div class="post-header-inner">
       <div class="post-breadcrumb"><a href="blog.html">&larr; Blog</a> &middot; Cloud Architecture</div>
-      <h1 class="post-title">Private AKS: Network Isolation Without Breaking Delivery</h1>
-      <div class="post-meta">12 min read &middot; 23 September 2026</div>
+      <h1 class="post-title">Private AKS Without Breaking Your Deployments</h1>
+      <div class="post-meta">9 min read &middot; 23 September 2026</div>
     </div>
   </header>
 
@@ -65,137 +65,83 @@
     <article class="article-body">
 
       <figure class="architecture-diagram" aria-labelledby="architecture-flow-title">
-        <figcaption id="architecture-flow-title">Private AKS production architecture with controlled egress</figcaption>
-        <p class="diagram-subtitle">Reference architecture: private control plane, private dependencies, controlled egress, and observable delivery flow.</p>
-        <img src="assets/diagrams/aks-network-isolation-architecture.png" alt="Private AKS architecture showing software supply chain, Azure subscription hub and spoke VNets, Azure Firewall controlled egress, private DNS and private endpoints, workload boundary, shared Azure services, and end-to-end control flow." loading="lazy" />
-        <p class="diagram-note">Diagram source: curated architecture board for this article.</p>
+        <figcaption id="architecture-flow-title">A private AKS cluster with controlled egress</figcaption>
+        <p class="diagram-subtitle">The API server has no public endpoint, node egress goes through the hub firewall, and Azure dependencies are reached over private endpoints.</p>
+        <img src="assets/diagrams/aks-network-isolation-architecture.svg" alt="Diagram: a spoke virtual network holds a private AKS cluster, its node pools, a route table sending 0.0.0.0/0 to the firewall, and a private endpoint subnet with Container Registry, Key Vault and Azure Monitor. Node egress goes to Azure Firewall in the hub, which only allows required AKS FQDNs and the app's own destinations to the internet. The hub also holds a DNS Private Resolver, the privatelink DNS zones and Bastion. A self-hosted runner in a peered network reaches the API server privately. A note describes the stricter network isolated cluster option." loading="lazy" />
+        <p class="diagram-note">Editable source: assets/diagrams/aks-network-isolation-architecture.drawio</p>
       </figure>
-      <h2>Executive Context</h2>
-<p>Enterprise platform teams manage a persistent tension: strict network isolation to protect critical workloads versus the need for high-velocity software delivery. In regulated environments, unrestricted internet egress from Kubernetes clusters often violates compliance mandates. However, overly restrictive network configurations can break cluster operations, image pulls, and telemetry flows, leading to operational instability. This architecture defines a private Azure Kubernetes Service (AKS) cluster that enforces network isolation without compromising platform reliability or engineering speed.</p>
 
-<h2>Constraints and Assumptions</h2>
-<p>The architecture assumes a multi-tenant platform serving multiple engineering teams across development, test, staging, and production environments. The platform must support:</p>
+<p>Locking down an AKS cluster is easy. Locking it down so it still upgrades, pulls images and lets your pipeline deploy is where teams get stuck. This is the setup I use for production clusters that handle regulated data, and the places it usually breaks.</p>
+
+<h2>Make the API server private</h2>
+<p>A private cluster puts the Kubernetes API server behind a private IP in your network. You have two ways to do that: the original Private Link based private cluster, or API Server VNet Integration, which projects the API server into a delegated subnet so nodes talk to it directly. Both keep node to API server traffic on the private network.</p>
+<p>Even a private cluster gets a public DNS name for the API server by default. It doesn't expose the API, but I still remove it with <code>--disable-public-fqdn</code> when the cluster lives in a hub and spoke network with proper private DNS.</p>
+<pre><code>az aks create \
+  --resource-group rg-app-prod \
+  --name aks-app-prod \
+  --enable-private-cluster \
+  --disable-public-fqdn \
+  --private-dns-zone system \
+  --outbound-type userDefinedRouting \
+  --network-plugin azure \
+  --os-sku AzureLinux \
+  --enable-workload-identity --enable-oidc-issuer</code></pre>
+<p>The first thing that breaks is your pipeline. GitHub-hosted runners and Microsoft-hosted agents can't reach a private API server. Run a self-hosted runner in a network peered to the cluster, or use <code>az aks command invoke</code> for occasional admin work. Command invoke goes through the Azure API, so lock down who holds the <code>runcommand</code> permission.</p>
+
+<h2>Send egress through the firewall</h2>
+<p>By default an AKS cluster has unrestricted outbound internet access. To control it, set the outbound type to <code>userDefinedRouting</code>, put a route table on the node subnet that sends <code>0.0.0.0/0</code> to Azure Firewall, and allow only what the cluster needs.</p>
+<p>You can't do this with network security groups alone. AKS dependencies are defined by FQDN, and the IP addresses behind them change. Azure Firewall application rules can filter by FQDN, and the <code>AzureKubernetesService</code> FQDN tag covers the core set. The required list includes:</p>
 <ul>
-<li>Private AKS clusters with no public API server exposure.</li>
-<li>Controlled egress for cluster management and workload dependencies.</li>
-<li>Private endpoints for shared Azure services (Key Vault, Container Registry, Monitor).</li>
-<li>Strict separation of duties between platform engineering, security, and application teams.</li>
-<li>Compliance with data residency and network isolation policies.</li>
+  <li><code>mcr.microsoft.com</code> and <code>*.data.mcr.microsoft.com</code> for system images</li>
+  <li><code>management.azure.com</code> and <code>login.microsoftonline.com</code> for the Azure API and Entra sign-in</li>
+  <li><code>packages.microsoft.com</code> and <code>packages.aks.azure.com</code> (which is replacing <code>acs-mirror.azureedge.net</code>) for packages and Kubernetes binaries</li>
 </ul>
-<p>Key assumptions include the use of Azure Private Link for service connectivity, Azure Firewall for egress control, and a hub-and-spoke network topology. The platform operates in public Azure regions, excluding Azure Government or 21Vianet regions due to specific retirement announcements for Defender for Cloud in those environments.</p>
+<p>Private clusters don't need the <code>*.hcp.&lt;region&gt;.azmk8s.io</code> rule, because node to API server traffic stays private. Add your workloads' own destinations on top, one rule at a time, with a ticket behind each one.</p>
 
-<h2>Target Architecture</h2>
-<p>The target architecture leverages a private AKS cluster where the control plane API server is accessible only via a private endpoint within the customer's virtual network (VNet). This ensures that all traffic between the API server and node pools remains on the private network. The architecture includes:</p>
+<h2>Or go further: a network isolated cluster</h2>
+<p>If your requirement is "no egress at all unless we say so", AKS now has a better answer than maintaining firewall rules for its own dependencies. A network isolated cluster uses outbound type <code>none</code> (or <code>block</code>, still in preview) and sets the bootstrap artifact source to <code>Cache</code>. AKS then pulls its images and binaries from a private Azure Container Registry cache over a private endpoint. The cache fetches from Microsoft Artifact Registry on its own.</p>
+<p>Creating the cluster, scaling node pools and running upgrades then need no outbound traffic from the cluster. You can let AKS manage the registry or bring your own. You still add egress back for whatever your applications call, through private endpoints where you can and the firewall where you can't.</p>
+
+<h2>Private endpoints and DNS</h2>
+<p>Everything the cluster depends on inside Azure should be reached privately: Container Registry, Key Vault, and Azure Monitor through an Azure Monitor Private Link Scope. Each one needs its private DNS zone, such as <code>privatelink.azurecr.io</code>, <code>privatelink.vaultcore.azure.net</code> and the cluster's own <code>privatelink.&lt;region&gt;.azmk8s.io</code>.</p>
+<p>DNS is where most of my troubleshooting time goes. Keep the zones in the hub, link them to the networks that need them, and point spokes at the DNS Private Resolver. If your spokes use custom DNS, check the private cluster guidance on zone linking before you deploy; AKS needs the right permissions to link its zone, and the failure isn't obvious.</p>
+
+<h2>Inside the cluster</h2>
 <ul>
-<li><strong>Private Cluster:</strong> The API server is assigned a private IP address from the RFC1918 range, accessible only within the VNet.</li>
-<li><strong>Private Endpoints:</strong> Shared services such as Azure Container Registry (ACR), Key Vault, and Azure Monitor are accessed via private endpoints, eliminating public internet exposure.</li>
-<li><strong>Controlled Egress:</strong> Outbound traffic is restricted to specific FQDNs and ports required for cluster health, updates, and telemetry.</li>
-<li><strong>DNS Integration:</strong> Private DNS zones are linked to the cluster VNet to resolve private endpoints and API server FQDNs.</li>
-</ul>
-<p>This design minimizes the attack surface by removing public endpoints and restricting outbound traffic to known, necessary destinations.</p>
-
-<h2>DevSecOps Control Model</h2>
-<p>DevSecOps is treated as an operating model spanning the entire lifecycle of the workload. Controls are implemented at each stage to ensure security and compliance:</p>
-<ul>
-<li><strong>Source and Build:</strong> Code is scanned for vulnerabilities and secrets. Container images are built in a secure CI/CD pipeline with signed artifacts.</li>
-<li><strong>Artifact Provenance:</strong> Images are stored in a private ACR with vulnerability scanning enabled. Only images with a valid signature and no critical vulnerabilities are admitted.</li>
-<li><strong>Infrastructure as Code (IaC):</strong> Cluster and network resources are defined in IaC templates, reviewed, and approved before deployment.</li>
-<li><strong>Release Authorization:</strong> Workloads are deployed to the cluster only after passing admission control policies and security checks.</li>
-<li><strong>Runtime Posture:</strong> Network policies and pod security standards are enforced to limit lateral movement and privilege escalation.</li>
-<li><strong>Observability:</strong> Telemetry is collected and monitored for anomalies. Alerts are triggered for suspicious activities.</li>
-<li><strong>Audit Evidence:</strong> All actions are logged and audited for compliance reporting.</li>
-</ul>
-<p>This model ensures that security is integrated into the development process, reducing the risk of vulnerabilities and compliance violations.</p>
-
-<h2>Key Architecture Decisions</h2>
-<p>Several key architecture decisions were made to balance security, performance, and operational complexity.</p>
-
-<h3>Decision 1: Use Private AKS Cluster with Private DNS Zone</h3>
-<p><strong>Decision:</strong> Deploy the AKS cluster as a private cluster with a private DNS zone linked to the cluster VNet.</p>
-<p><strong>Why Chosen:</strong> This ensures that the API server is accessible only within the VNet, eliminating public exposure. The private DNS zone allows nodes to resolve the API server FQDN to its private IP address.</p>
-<p><strong>Alternative Rejected:</strong> Using a public API server with IP-based access restrictions. This was rejected because it exposes the API server to the public internet, increasing the attack surface.</p>
-<p><strong>Consequence:</strong> The cluster is fully isolated from the public internet. However, it requires careful DNS configuration to ensure that nodes can resolve the API server and private endpoints.</p>
-
-<h3>Decision 2: Control Egress via Azure Firewall with FQDN Rules</h3>
-<p><strong>Decision:</strong> Use Azure Firewall to control outbound traffic from the cluster, allowing only specific FQDNs and ports.</p>
-<p><strong>Why Chosen:</strong> Azure Firewall supports FQDN-based filtering, which is essential for AKS clusters that rely on dynamic IP addresses for many services. This allows for precise control over outbound traffic.</p>
-<p><strong>Alternative Rejected:</strong> Using Network Security Groups (NSGs) with IP-based rules. This was rejected because AKS dependencies often use dynamic IP addresses, making IP-based rules difficult to maintain.</p>
-<p><strong>Consequence:</strong> Egress traffic is strictly controlled, reducing the risk of data exfiltration. However, it requires ongoing maintenance of firewall rules to accommodate new dependencies.</p>
-
-<h3>Decision 3: Use Private ACR for Image Pulls</h3>
-<p><strong>Decision:</strong> Configure the cluster to pull images from a private Azure Container Registry (ACR) instance connected via a private endpoint.</p>
-<p><strong>Why Chosen:</strong> This eliminates the need for the cluster to access the public Microsoft Artifact Registry (MAR) for system images. The private ACR can pull images from MAR and serve them via a private endpoint, keeping traffic within the VNet.</p>
-<p><strong>Alternative Rejected:</strong> Allowing direct egress to MAR. This was rejected because it requires opening outbound access to public endpoints, which contradicts the goal of network isolation.</p>
-<p><strong>Consequence:</strong> Image pulls are fully isolated from the public internet. However, it requires managing the private ACR and ensuring that it is synchronized with MAR.</p>
-
-<h2>Implementation Blueprint</h2>
-<p>The implementation involves several steps to configure the private AKS cluster, network, and services.</p>
-
-<h3>1. Network Configuration</h3>
-<ul>
-<li>Create a hub VNet with a subnet for Azure Firewall and a spoke VNet for the AKS cluster.</li>
-<li>Configure route tables to direct outbound traffic from the AKS subnet to the Azure Firewall.</li>
-<li>Set up private DNS zones for the AKS cluster and shared services.</li>
+  <li><strong>Workload identity</strong> instead of secrets for pods that call Azure services.</li>
+  <li><strong>Network policies</strong> with a default deny, so a compromised pod can't reach everything else.</li>
+  <li><strong>The Azure Policy add-on</strong> to block privileged containers and images from registries you don't trust.</li>
+  <li><strong>Azure Linux 3</strong> for node pools. Azure Linux 2.0 lost support on November 30, 2025.</li>
 </ul>
 
-<h3>2. AKS Cluster Deployment</h3>
+<h2>What breaks, and how you'll notice</h2>
 <ul>
-<li>Deploy the AKS cluster as a private cluster, specifying the private DNS zone and disabling the public FQDN.</li>
-<li>Configure node pools with the appropriate OS SKU (Azure Linux 3) and Kubernetes version.</li>
-<li>Enable add-ons such as Azure Policy and Container Insights.</li>
+  <li><strong>A DNS zone isn't linked.</strong> Nodes or your runner can't resolve the API server or the registry. Test name resolution from a pod and from the runner before anything else.</li>
+  <li><strong>The firewall is missing an FQDN.</strong> Node provisioning or image pulls fail during an upgrade, not on day one. Run a node image upgrade in non-production before you trust the rule set.</li>
+  <li><strong>The bootstrap registry is unreachable.</strong> On a network isolated cluster this shows up as error 211, <code>OrasPullNetworkTimeoutVMExtensionError</code>. It nearly always means the private link or DNS for the registry is wrong.</li>
 </ul>
 
-<h3>3. Private Endpoints</h3>
-<ul>
-<li>Create private endpoints for ACR, Key Vault, and Azure Monitor in the cluster VNet.</li>
-<li>Link the private DNS zones to the cluster VNet to resolve the private endpoints.</li>
-</ul>
-
-<h3>4. Egress Control</h3>
-<ul>
-<li>Configure Azure Firewall with FQDN rules to allow outbound traffic to required AKS dependencies.</li>
-<li>Test the firewall rules to ensure that cluster operations are not blocked.</li>
-</ul>
-
-<h2>Operational Evidence and SLOs</h2>
-<p>Operational health is monitored through several key indicators:</p>
-<ul>
-<li><strong>Cluster Health:</strong> The status of the API server and node pools is monitored via Azure Monitor. Alerts are triggered for any unhealthy nodes.</li>
-<li><strong>Egress Latency:</strong> The latency of outbound traffic to required FQDNs is monitored to ensure that firewall rules do not introduce significant delays.</li>
-<li><strong>DNS Resolution:</strong> The success rate of DNS queries for private endpoints and the API server is monitored.</li>
-<li><strong>Image Pull Success:</strong> The success rate of image pulls from the private ACR is monitored.</li>
-</ul>
-<p>Service Level Objectives (SLOs) are defined for each of these indicators to ensure that the platform meets the required reliability standards.</p>
-
-<h2>Failure Modes and Trade-offs</h2>
-<p>Several failure modes and trade-offs must be considered:</p>
-<ul>
-<li><strong>DNS Misconfiguration:</strong> If the private DNS zone is not correctly linked to the cluster VNet, nodes may fail to resolve the API server FQDN. This can be mitigated by testing DNS resolution during deployment.</li>
-<li><strong>Firewall Rule Exhaustion:</strong> If too many FQDN rules are added to the Azure Firewall, it may impact performance. This can be mitigated by regularly reviewing and optimizing firewall rules.</li>
-<li><strong>Private ACR Synchronization:</strong> If the private ACR fails to synchronize with MAR, system images may become outdated. This can be mitigated by monitoring the synchronization status and setting up alerts.</li>
-<li><strong>Operational Complexity:</strong> Managing private endpoints, DNS zones, and firewall rules adds operational complexity. This can be mitigated by automating the configuration and management of these resources using IaC.</li>
-</ul>
-
-<h2>Adoption Roadmap</h2>
-<p>The adoption of this architecture can be phased to minimize risk:</p>
+<h2>How I'd roll it out</h2>
 <ol>
-<li><strong>Phase 1: Assessment and Planning:</strong> Assess the current network and security posture. Define the requirements for private endpoints and egress control.</li>
-<li><strong>Phase 2: Pilot Deployment:</strong> Deploy a pilot private AKS cluster in a non-production environment. Test the configuration and validate that cluster operations are not impacted.</li>
-<li><strong>Phase 3: Production Deployment:</strong> Deploy the private AKS cluster in production. Migrate workloads gradually, monitoring for any issues.</li>
-<li><strong>Phase 4: Optimization:</strong> Optimize the configuration based on operational experience. Fine-tune firewall rules and DNS settings.</li>
+  <li>Build the hub pieces first: firewall, DNS resolver and private DNS zones.</li>
+  <li>Create a private cluster in non-production with egress through the firewall.</li>
+  <li>Put a self-hosted runner in a peered network and deploy through it.</li>
+  <li>Run a scale-out and a node image upgrade. Fix whatever fails.</li>
+  <li>Only then repeat it in production, and decide whether a network isolated cluster is worth it for you.</li>
 </ol>
 
-<h2>Conclusion</h2>
-<p>Architecting a private AKS cluster with controlled egress and private endpoints is a complex but necessary task for enterprise platforms. By carefully balancing security, performance, and operational complexity, platform teams can deliver a secure and reliable environment for engineering teams. The key is to implement robust DevSecOps controls, monitor operational health, and continuously optimize the configuration based on feedback and experience.</p>
-<p>For more details on creating private AKS clusters, see <a href="https://learn.microsoft.com/azure/aks/private-clusters">Create a Private Azure Kubernetes Service (AKS) Cluster</a>. For information on controlling egress traffic, see <a href="https://learn.microsoft.com/azure/aks/outbound-rules-control-egress">Outbound Network and FQDN Rules for Azure Kubernetes Service (AKS) Clusters</a>. For an overview of private endpoints, see <a href="https://learn.microsoft.com/azure/private-link/private-endpoint-overview">What is a private endpoint?</a>.</p>
       <section class="sources">
         <h2>Sources</h2>
         <ol>
-          <li><a href="https://learn.microsoft.com/azure/aks/private-clusters" target="_blank" rel="noopener">Microsoft Learn source 1</a></li>
-          <li><a href="https://learn.microsoft.com/azure/aks/outbound-rules-control-egress" target="_blank" rel="noopener">Microsoft Learn source 2</a></li>
-          <li><a href="https://learn.microsoft.com/azure/private-link/private-endpoint-overview" target="_blank" rel="noopener">Microsoft Learn source 3</a></li>
+          <li><a href="https://learn.microsoft.com/azure/aks/private-clusters" target="_blank" rel="noopener">Create a private Azure Kubernetes Service (AKS) cluster</a> (Microsoft Learn)</li>
+          <li><a href="https://learn.microsoft.com/azure/aks/api-server-vnet-integration" target="_blank" rel="noopener">Use API Server VNet Integration in Azure Kubernetes Service (AKS)</a> (Microsoft Learn)</li>
+          <li><a href="https://learn.microsoft.com/azure/aks/access-private-cluster" target="_blank" rel="noopener">Access a private AKS cluster using the command invoke or Run command feature</a> (Microsoft Learn)</li>
+          <li><a href="https://learn.microsoft.com/azure/aks/outbound-rules-control-egress" target="_blank" rel="noopener">Outbound network and FQDN rules for Azure Kubernetes Service (AKS) clusters</a> (Microsoft Learn)</li>
+          <li><a href="https://learn.microsoft.com/azure/aks/concepts-network-isolated" target="_blank" rel="noopener">Network isolated Azure Kubernetes Service (AKS) clusters</a> (Microsoft Learn)</li>
+          <li><a href="https://learn.microsoft.com/troubleshoot/azure/azure-kubernetes/error-codes/vmextensionerror-oraspullnetworktimeout" target="_blank" rel="noopener">OrasPullNetworkTimeoutVMExtensionError error code 211</a> (Microsoft Learn)</li>
         </ol>
       </section>
+
       <aside class="author-card">
         <strong>Srinivas Yenuganti</strong>
         <p>Cloud engineer with 20+ years in enterprise infrastructure, cloud and security. I design and run Azure platforms for healthcare SaaS, with a focus on Zero Trust, compliance and secure AI.</p>
