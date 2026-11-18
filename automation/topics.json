@@ -1,347 +1,476 @@
 [
   {
-    "id": "azure-policy-platform-guardrails",
-    "slug": "azure-policy-platform-guardrails",
-    "title": "Azure Policy Guardrails That Enable Platform Teams",
-    "angle": "Explain how an enterprise platform team can move from audit-only visibility to safe enforcement using initiatives, exemptions, remediation, policy as code, and measurable rollout gates.",
-    "category": "Compliance & Governance",
-    "tags": ["Azure Policy", "Governance", "Platform Engineering"],
+    "slug": "hub-spoke-vs-virtual-wan",
+    "title": "Hub and spoke or Virtual WAN: choosing the network backbone",
+    "category": "Networking",
     "sources": [
-      "https://learn.microsoft.com/azure/governance/policy/overview",
-      "https://learn.microsoft.com/azure/governance/policy/concepts/exemption-structure",
-      "https://learn.microsoft.com/azure/governance/policy/how-to/remediate-resources"
-    ]
+      "https://learn.microsoft.com/azure/architecture/networking/architecture/hub-spoke",
+      "https://learn.microsoft.com/azure/virtual-wan/virtual-wan-about"
+    ],
+    "angle": "When a self-managed hub and spoke beats Virtual WAN and when it doesn't: routing control, scale, security integration, operations and migration between them."
   },
   {
-    "id": "pim-developer-write-access",
-    "slug": "pim-developer-write-access",
-    "title": "Just-in-Time Azure Write Access Across Development, Test, Staging, and Production",
-    "angle": "Design an enterprise Azure access-governance pattern across development, test, staging, and production. Engineering teams retain only the standing read access required for their responsibilities and activate narrowly scoped, eligible write roles through Microsoft Entra PIM.",
-    "scenario": "An engineering team supports an application across development, test, staging, and production subscriptions or resource groups. Team members have permanent Reader access only where operational visibility is required. Write access is eligible through Microsoft Entra PIM and scoped to the target environment and task; Contributor is not granted universally when a narrower built-in or custom role will work. Activation requires MFA, a change-ticket reference, justification, and approval from a designated approver group. Development and test can use an organization-defined maximum of up to eight hours, while staging and production use shorter risk-based windows, stricter approvers, protected administrative workstations, and change-management evidence. Eight hours is an organizational configuration choice, not a Microsoft default; PIM permits administrators to configure the maximum duration. PIM audit history records eligibility, requests, approvals, activations, and expiry, while Azure Activity Log records resource-plane write operations. The monitoring design correlates both records by identity, scope, and time.",
-    "diagram": {
-      "title": "Just-in-time access flow across Azure environments",
-      "subtitle": "Standing visibility is separated from time-bound privileged operations and independent evidence collection.",
-      "lanes": [
-        {
-          "name": "Engineering",
-          "owner": "Application team",
-          "components": [
-            {"name": "Engineer", "detail": "Scoped Reader access"},
-            {"name": "Change request", "detail": "Environment, role, duration, ticket"}
-          ]
-        },
-        {
-          "name": "Identity control plane",
-          "owner": "Identity and security teams",
-          "components": [
-            {"name": "Microsoft Entra PIM", "detail": "Eligibility and activation policy"},
-            {"name": "Security gates", "detail": "MFA, approval, justification, Conditional Access"}
-          ]
-        },
-        {
-          "name": "Azure environment",
-          "owner": "Platform team",
-          "components": [
-            {"name": "Scoped Azure RBAC", "detail": "Least-privileged role at target scope"},
-            {"name": "Dev / test / stage / prod", "detail": "Risk-based activation duration"}
-          ]
-        },
-        {
-          "name": "Evidence and assurance",
-          "owner": "Security operations and audit",
-          "components": [
-            {"name": "PIM audit history", "detail": "Request, approval, activation, expiry"},
-            {"name": "Azure Activity Log", "detail": "Resource-plane management operations"}
-          ]
-        }
-      ],
-      "flows": [
-        "Request scoped privilege",
-        "Apply identity and approval gates",
-        "Issue time-bound RBAC assignment",
-        "Correlate access and resource operations"
-      ]
-    },
-    "category": "Security & Identity",
-    "tags": ["Microsoft Entra PIM", "Azure RBAC", "Access Governance"],
+    "slug": "private-dns-resolver-hybrid",
+    "title": "Hybrid DNS with Azure DNS Private Resolver",
+    "category": "Networking",
     "sources": [
-      "https://learn.microsoft.com/entra/id-governance/privileged-identity-management/pim-resource-roles-configure-role-settings",
-      "https://learn.microsoft.com/entra/id-governance/privileged-identity-management/pim-resource-roles-activate-your-roles",
-      "https://learn.microsoft.com/entra/id-governance/privileged-identity-management/azure-pim-resource-rbac",
-      "https://learn.microsoft.com/azure/azure-monitor/essentials/activity-log",
-      "https://learn.microsoft.com/entra/architecture/secure-best-practices",
-      "https://learn.microsoft.com/security/benchmark/azure/mcsb-v2-privileged-access"
-    ]
+      "https://learn.microsoft.com/azure/dns/dns-private-resolver-overview",
+      "https://learn.microsoft.com/azure/dns/private-resolver-architecture"
+    ],
+    "angle": "Designing name resolution between on-premises and Azure with inbound and outbound endpoints, forwarding rulesets and private zones, and the failure modes that break it."
   },
   {
-    "id": "workload-identity-github-actions",
-    "slug": "workload-identity-github-actions",
-    "title": "Passwordless Azure Deployments from GitHub Actions",
-    "angle": "Give architects a practical design for GitHub Actions workload identity federation, least-privilege RBAC, environment protection, and migration away from client secrets.",
-    "scenario": "Several application teams deploy Terraform and application releases into separate Azure development subscriptions. Existing pipelines use long-lived client secrets shared across repositories. The platform team must migrate each repository to GitHub OIDC, scope federated identities and Azure RBAC by environment, require protected-environment approval for production, and retain evidence that ties a workflow run to an Azure deployment.",
-    "diagram": {
-      "title": "Enterprise workload identity and deployment control plane",
-      "subtitle": "Repository identity, environment approval, token exchange, Azure authorization, and evidence are separate control boundaries.",
-      "lanes": [
-        {
-          "name": "Engineering and source",
-          "owner": "Application team",
-          "components": [
-            {"name": "Pull request", "detail": "Reviewed application and IaC change"},
-            {"name": "Reusable workflow", "detail": "Pinned actions and governed deployment contract"}
-          ]
-        },
-        {
-          "name": "GitHub delivery control plane",
-          "owner": "Platform engineering",
-          "components": [
-            {"name": "Protected environment", "detail": "Approvers, branch rules, deployment concurrency"},
-            {"name": "OIDC token", "detail": "Repository, ref, workflow, and environment claims"}
-          ]
-        },
-        {
-          "name": "Microsoft Entra trust boundary",
-          "owner": "Identity team",
-          "components": [
-            {"name": "Federated credential", "detail": "Exact subject and audience match"},
-            {"name": "Workload identity", "detail": "Separate identity per environment or trust boundary"}
-          ]
-        },
-        {
-          "name": "Azure target scope",
-          "owner": "Cloud platform team",
-          "components": [
-            {"name": "Scoped Azure RBAC", "detail": "Least-privileged role at resource-group or resource scope"},
-            {"name": "Deployment target", "detail": "Dev, test, staging, or production landing zone"}
-          ]
-        },
-        {
-          "name": "Evidence and detection",
-          "owner": "Security operations",
-          "components": [
-            {"name": "Workflow evidence", "detail": "Run, commit, approver, and artifact provenance"},
-            {"name": "Azure evidence", "detail": "Entra sign-in and Azure Activity Log correlation"}
-          ]
-        }
-      ],
-      "flows": [
-        "Approve immutable change",
-        "Issue claim-bound OIDC token",
-        "Exchange token through federated trust",
-        "Authorize only the target scope",
-        "Correlate deployment and Azure evidence"
-      ]
-    },
-    "category": "DevSecOps & CI/CD",
-    "tags": ["GitHub Actions", "OIDC", "Microsoft Entra ID"],
+    "slug": "private-endpoint-dns-at-scale",
+    "title": "Private endpoint DNS at enterprise scale",
+    "category": "Networking",
     "sources": [
-      "https://learn.microsoft.com/azure/developer/github/connect-from-azure-openid-connect",
-      "https://learn.microsoft.com/entra/workload-id/workload-identity-federation",
-      "https://learn.microsoft.com/azure/role-based-access-control/best-practices"
-    ]
+      "https://learn.microsoft.com/azure/private-link/private-endpoint-dns",
+      "https://learn.microsoft.com/azure/cloud-adoption-framework/ready/azure-best-practices/private-link-and-dns-integration-at-scale"
+    ],
+    "angle": "Centralized private DNS zones, policy-driven record creation and the multi-subscription pitfalls that cause name resolution to silently go public."
   },
   {
-    "id": "aks-network-isolation",
-    "slug": "aks-network-isolation",
-    "title": "AKS Network Isolation Without Breaking Delivery",
-    "angle": "Describe the architecture decisions for a private AKS cluster, controlled egress, private endpoints, DNS, image pulls, and the operational trade-offs teams should test.",
-    "scenario": "A platform team operates a private AKS cluster for multiple engineering teams. Workloads must pull images, retrieve secrets, send telemetry, and consume platform services without unrestricted internet egress. The design must preserve developer delivery speed while controlling DNS, private endpoints, firewall paths, and documented break-glass operations.",
-    "diagram": {
-      "title": "Private AKS platform trust boundaries",
-      "subtitle": "Delivery, cluster management, workload traffic, private dependencies, and controlled egress remain independently governed.",
-      "lanes": [
-        {
-          "name": "Software supply chain",
-          "owner": "Engineering and DevSecOps",
-          "components": [
-            {"name": "Build and attest", "detail": "Signed image, SBOM, policy results"},
-            {"name": "Private registry", "detail": "Approved artifacts and image provenance"}
-          ]
-        },
-        {
-          "name": "Cluster management plane",
-          "owner": "Platform engineering",
-          "components": [
-            {"name": "Private AKS API", "detail": "Controlled administration path"},
-            {"name": "Policy and admission", "detail": "Identity, network, and workload guardrails"}
-          ]
-        },
-        {
-          "name": "Workload boundary",
-          "owner": "Application teams",
-          "components": [
-            {"name": "Namespace tenancy", "detail": "Identity, quotas, and network policy"},
-            {"name": "Workload identity", "detail": "Secretless access to Azure dependencies"}
-          ]
-        },
-        {
-          "name": "Shared Azure services",
-          "owner": "Cloud platform team",
-          "components": [
-            {"name": "Private endpoints", "detail": "Registry, Key Vault, data, and monitoring"},
-            {"name": "Private DNS", "detail": "Central resolution and zone lifecycle"}
-          ]
-        },
-        {
-          "name": "Egress and operations",
-          "owner": "Network and SRE teams",
-          "components": [
-            {"name": "Azure Firewall", "detail": "Explicit outbound destinations and logging"},
-            {"name": "Observability", "detail": "SLOs, flow evidence, and break-glass detection"}
-          ]
-        }
-      ],
-      "flows": [
-        "Promote trusted artifact",
-        "Admit compliant workload",
-        "Resolve private dependency",
-        "Authorize workload identity",
-        "Inspect exceptional egress"
-      ]
-    },
-    "category": "Cloud Architecture",
-    "tags": ["AKS", "Network Security", "Private Link"],
+    "slug": "firewall-premium-tls-inspection",
+    "title": "Azure Firewall Premium TLS inspection without breaking applications",
+    "category": "Security",
     "sources": [
-      "https://learn.microsoft.com/azure/aks/private-clusters",
-      "https://learn.microsoft.com/azure/aks/outbound-rules-control-egress",
-      "https://learn.microsoft.com/azure/private-link/private-endpoint-overview"
-    ]
+      "https://learn.microsoft.com/azure/firewall/premium-features",
+      "https://learn.microsoft.com/azure/firewall/premium-certificates"
+    ],
+    "angle": "Where TLS inspection and IDPS belong in an Azure network, certificate design, bypass lists and what to inspect versus trust."
   },
   {
-    "id": "azure-key-vault-zero-trust",
-    "slug": "azure-key-vault-zero-trust",
-    "title": "A Zero-Trust Operating Model for Azure Key Vault",
-    "angle": "Build an operational blueprint covering RBAC, private connectivity, managed identities, rotation, logging, recovery controls, and separation of duties.",
-    "category": "Security & Identity",
-    "tags": ["Key Vault", "Zero Trust", "Managed Identity"],
+    "slug": "front-door-private-link-origins",
+    "title": "Front Door with Private Link origins",
+    "category": "Networking",
     "sources": [
-      "https://learn.microsoft.com/azure/key-vault/general/best-practices",
-      "https://learn.microsoft.com/azure/key-vault/general/rbac-guide",
-      "https://learn.microsoft.com/azure/key-vault/general/soft-delete-overview"
-    ]
+      "https://learn.microsoft.com/azure/frontdoor/private-link",
+      "https://learn.microsoft.com/azure/frontdoor/front-door-overview"
+    ],
+    "angle": "Publishing internal apps through Azure Front Door while keeping origins private, with WAF at the edge and origin lockdown."
   },
   {
-    "id": "azure-monitor-observability-baseline",
-    "slug": "azure-monitor-observability-baseline",
-    "title": "Designing an Azure Observability Baseline",
-    "angle": "Show how to define a platform-level observability baseline using Azure Monitor, Log Analytics workspace design, diagnostic settings, alerts, and actionable service-level signals.",
-    "category": "Platform Engineering",
-    "tags": ["Azure Monitor", "Observability", "Log Analytics"],
+    "slug": "apim-multi-region-gateways",
+    "title": "API Management across regions and on-premises",
+    "category": "Integration",
     "sources": [
-      "https://learn.microsoft.com/azure/azure-monitor/fundamentals/overview",
-      "https://learn.microsoft.com/azure/azure-monitor/logs/workspace-design",
-      "https://learn.microsoft.com/azure/azure-monitor/essentials/diagnostic-settings"
-    ]
+      "https://learn.microsoft.com/azure/api-management/api-management-howto-deploy-multi-region",
+      "https://learn.microsoft.com/azure/api-management/self-hosted-gateway-overview"
+    ],
+    "angle": "Designing API Management for multi-region resilience and hybrid backends with managed and self-hosted gateways."
   },
   {
-    "id": "defender-for-cloud-devsecops",
-    "slug": "defender-for-cloud-devsecops",
-    "title": "Bringing Defender for Cloud into the DevSecOps Loop",
-    "angle": "Explain how security posture, code-to-cloud context, regulatory controls, and remediation ownership can become part of an engineering operating model rather than a dashboard-only exercise.",
-    "scenario": "Application and platform teams deploy containerized workloads and infrastructure as code through GitHub. Security findings are visible in Defender for Cloud but lack engineering ownership and remediation targets. The DevSecOps design must connect repositories to cloud resources, route actionable findings to the owning team, block only high-confidence release risks, and retain evidence for governance reviews.",
-    "diagram": {
-      "title": "Code-to-cloud risk ownership and remediation loop",
-      "subtitle": "Preventive pipeline controls and runtime posture signals converge on the team that owns the affected service.",
-      "lanes": [
-        {
-          "name": "Engineering",
-          "owner": "Service team",
-          "components": [
-            {"name": "Application and IaC", "detail": "Repository ownership and service metadata"},
-            {"name": "Pull request", "detail": "Threat model and risk acceptance context"}
-          ]
-        },
-        {
-          "name": "DevSecOps pipeline",
-          "owner": "Platform security",
-          "components": [
-            {"name": "Preventive checks", "detail": "Secrets, SAST, dependencies, IaC, containers"},
-            {"name": "Release policy", "detail": "Risk-based block, warn, or exception"}
-          ]
-        },
-        {
-          "name": "Azure runtime",
-          "owner": "Cloud platform",
-          "components": [
-            {"name": "Deployed workload", "detail": "Resource graph and code-to-cloud mapping"},
-            {"name": "Defender for Cloud", "detail": "Posture, attack path, and runtime findings"}
-          ]
-        },
-        {
-          "name": "Operations and governance",
-          "owner": "Security operations and risk",
-          "components": [
-            {"name": "Ownership routing", "detail": "Service owner, severity, SLA, exception expiry"},
-            {"name": "Evidence loop", "detail": "Remediation commit, deployment, verification"}
-          ]
-        }
-      ],
-      "flows": [
-        "Evaluate change before merge",
-        "Deploy with traceable provenance",
-        "Correlate runtime exposure to source",
-        "Route finding to accountable owner",
-        "Verify remediation in code and cloud"
-      ]
-    },
-    "category": "DevSecOps & CI/CD",
-    "tags": ["Defender for Cloud", "DevSecOps", "Cloud Security"],
+    "slug": "apim-ai-gateway",
+    "title": "Putting an AI gateway in front of model endpoints",
+    "category": "AI Platform",
     "sources": [
-      "https://learn.microsoft.com/azure/defender-for-cloud/defender-for-cloud-introduction",
-      "https://learn.microsoft.com/azure/defender-for-cloud/concept-cloud-security-posture-management",
-      "https://learn.microsoft.com/azure/defender-for-cloud/quickstart-onboard-github"
-    ]
+      "https://learn.microsoft.com/azure/api-management/genai-gateway-capabilities"
+    ],
+    "angle": "Using API Management as an AI gateway: token limits, load balancing across deployments, semantic caching and usage tracking per team."
   },
   {
-    "id": "azure-cost-governance",
-    "slug": "azure-cost-governance",
-    "title": "FinOps Guardrails for Enterprise Azure",
-    "angle": "Present a practical operating model that connects hierarchy, tags, budgets, anomaly detection, reservations, and engineering accountability without inventing savings percentages.",
-    "category": "Compliance & Governance",
-    "tags": ["FinOps", "Cost Management", "Governance"],
+    "slug": "service-bus-geo-resilience",
+    "title": "Geo-resilient messaging with Service Bus",
+    "category": "Integration",
     "sources": [
-      "https://learn.microsoft.com/azure/cost-management-billing/costs/overview-cost-management",
-      "https://learn.microsoft.com/azure/cost-management-billing/costs/tutorial-acm-create-budgets",
-      "https://learn.microsoft.com/cloud-computing/finops/framework/finops-framework"
-    ]
+      "https://learn.microsoft.com/azure/service-bus-messaging/service-bus-geo-replication",
+      "https://learn.microsoft.com/azure/service-bus-messaging/service-bus-geo-dr"
+    ],
+    "angle": "Choosing between geo-replication and geo-disaster recovery for Service Bus, and designing producers and consumers that survive a region switch."
   },
   {
-    "id": "azure-backup-ransomware-resilience",
-    "slug": "azure-backup-ransomware-resilience",
-    "title": "Ransomware-Resilient Backup Architecture on Azure",
-    "angle": "Explain how soft delete, immutability, authorization controls, monitoring, restore testing, and separation of duties fit together in a defensible backup architecture.",
-    "category": "Security & Identity",
-    "tags": ["Azure Backup", "Ransomware", "Business Continuity"],
+    "slug": "event-grid-event-driven",
+    "title": "Event-driven integration with Event Grid",
+    "category": "Integration",
     "sources": [
-      "https://learn.microsoft.com/azure/backup/security-overview",
-      "https://learn.microsoft.com/azure/backup/backup-azure-security-feature-cloud",
-      "https://learn.microsoft.com/azure/backup/backup-azure-immutable-vault-concept"
-    ]
+      "https://learn.microsoft.com/azure/event-grid/overview",
+      "https://learn.microsoft.com/azure/event-grid/concepts"
+    ],
+    "angle": "When Event Grid fits better than queues or streams, how to design topics and subscriptions, and how to handle retries, dead-lettering and idempotency."
   },
   {
-    "id": "container-apps-platform-pattern",
-    "slug": "container-apps-platform-pattern",
-    "title": "When Azure Container Apps Is the Right Platform Choice",
-    "angle": "Compare the architectural concerns that make Container Apps suitable for APIs, event-driven services, and jobs, while clearly identifying when AKS or App Service is a better fit.",
-    "category": "Cloud Architecture",
-    "tags": ["Container Apps", "Platform Engineering", "Architecture"],
+    "slug": "cosmos-db-multi-region-writes",
+    "title": "Cosmos DB multi-region writes and conflict handling",
+    "category": "Data",
     "sources": [
-      "https://learn.microsoft.com/azure/container-apps/overview",
-      "https://learn.microsoft.com/azure/container-apps/compare-options",
-      "https://learn.microsoft.com/azure/container-apps/jobs"
-    ]
+      "https://learn.microsoft.com/azure/cosmos-db/conflict-resolution-policies",
+      "https://learn.microsoft.com/azure/cosmos-db/consistency-levels"
+    ],
+    "angle": "Designing for multi-region writes: consistency choices, conflict resolution policies and what the application has to do differently."
   },
   {
-    "id": "azure-well-architected-review",
-    "slug": "azure-well-architected-review",
-    "title": "Turning an Azure Architecture Review into an Engineering Backlog",
-    "angle": "Show how architects can use the Well-Architected Framework pillars to produce prioritized, owned, testable improvements instead of a static assessment document.",
-    "category": "Cloud Architecture",
-    "tags": ["Well-Architected", "Architecture Review", "Cloud Adoption"],
+    "slug": "cosmos-db-partition-design",
+    "title": "Partition key design for Cosmos DB",
+    "category": "Data",
     "sources": [
-      "https://learn.microsoft.com/azure/well-architected/what-is-well-architected-framework",
-      "https://learn.microsoft.com/azure/well-architected/pillars",
-      "https://learn.microsoft.com/assessments/azure-architecture-review/"
-    ]
+      "https://learn.microsoft.com/azure/cosmos-db/partitioning-overview",
+      "https://learn.microsoft.com/azure/cosmos-db/hierarchical-partition-keys"
+    ],
+    "angle": "Choosing partition keys that scale, using hierarchical partition keys for multitenant data, and spotting hot partitions early."
+  },
+  {
+    "slug": "sql-failover-groups-design",
+    "title": "Designing applications for Azure SQL failover groups",
+    "category": "Data",
+    "sources": [
+      "https://learn.microsoft.com/azure/azure-sql/database/failover-group-sql-db",
+      "https://learn.microsoft.com/azure/azure-sql/database/high-availability-sla-local-zone-redundancy"
+    ],
+    "angle": "Zone redundancy versus failover groups, listener endpoints, read routing, and how applications should behave during a failover."
+  },
+  {
+    "slug": "aks-workload-identity",
+    "title": "Workload identity for AKS applications",
+    "category": "Containers",
+    "sources": [
+      "https://learn.microsoft.com/azure/aks/workload-identity-overview"
+    ],
+    "angle": "Replacing secrets in Kubernetes with Microsoft Entra workload identity: federation, service accounts, scoping and operational checks."
+  },
+  {
+    "slug": "aks-upgrade-strategy",
+    "title": "An AKS upgrade strategy that doesn't page anyone",
+    "category": "Containers",
+    "sources": [
+      "https://learn.microsoft.com/azure/aks/upgrade-cluster",
+      "https://learn.microsoft.com/azure/aks/planned-maintenance"
+    ],
+    "angle": "Planning AKS control plane and node upgrades with maintenance windows, surge settings, auto-upgrade channels and blue-green node pools."
+  },
+  {
+    "slug": "aks-multitenancy",
+    "title": "Multitenancy on a shared AKS platform",
+    "category": "Containers",
+    "sources": [
+      "https://learn.microsoft.com/azure/aks/operator-best-practices-cluster-isolation",
+      "https://learn.microsoft.com/azure/architecture/guide/multitenant/service/aks"
+    ],
+    "angle": "Namespaces, node pools or separate clusters: isolation levels for teams and tenants on AKS and the controls each needs."
+  },
+  {
+    "slug": "container-apps-networking",
+    "title": "Container Apps networking and workload profiles",
+    "category": "Containers",
+    "sources": [
+      "https://learn.microsoft.com/azure/container-apps/networking",
+      "https://learn.microsoft.com/azure/container-apps/workload-profiles-overview"
+    ],
+    "angle": "Designing Container Apps environments: VNet integration, internal versus external ingress, egress control and choosing workload profiles."
+  },
+  {
+    "slug": "app-service-zone-redundancy",
+    "title": "Zone-redundant App Service done right",
+    "category": "App Platform",
+    "sources": [
+      "https://learn.microsoft.com/azure/reliability/reliability-app-service"
+    ],
+    "angle": "What zone redundancy in App Service covers and what it doesn't, instance counts, and pairing it with zone-redundant data services."
+  },
+  {
+    "slug": "saas-tenancy-models",
+    "title": "Choosing a tenancy model for a SaaS platform on Azure",
+    "category": "SaaS Architecture",
+    "sources": [
+      "https://learn.microsoft.com/azure/architecture/guide/multitenant/considerations/tenancy-models",
+      "https://learn.microsoft.com/azure/architecture/guide/multitenant/approaches/overview"
+    ],
+    "angle": "Shared, pooled or dedicated: how to pick a tenancy model per component and how it affects cost, isolation, onboarding and compliance."
+  },
+  {
+    "slug": "deployment-stamps",
+    "title": "Scaling SaaS with deployment stamps",
+    "category": "SaaS Architecture",
+    "sources": [
+      "https://learn.microsoft.com/azure/architecture/patterns/deployment-stamp"
+    ],
+    "angle": "Using deployment stamps to scale a multitenant platform: stamp sizing, tenant placement, routing and rolling out changes stamp by stamp."
+  },
+  {
+    "slug": "subscription-vending",
+    "title": "Subscription vending for platform teams",
+    "category": "Governance",
+    "sources": [
+      "https://learn.microsoft.com/azure/architecture/landing-zones/subscription-vending"
+    ],
+    "angle": "Automating subscription creation with networking, policy, budgets and access already in place, so teams get a ready landing zone in minutes."
+  },
+  {
+    "slug": "deployment-stacks",
+    "title": "Protecting infrastructure with deployment stacks",
+    "category": "Governance",
+    "sources": [
+      "https://learn.microsoft.com/azure/azure-resource-manager/bicep/deployment-stacks"
+    ],
+    "angle": "Using deployment stacks to manage resource lifecycles as a unit and deny settings to stop drift and accidental deletes."
+  },
+  {
+    "slug": "locks-vs-deny-assignments",
+    "title": "Resource locks, deny assignments and when to use each",
+    "category": "Governance",
+    "sources": [
+      "https://learn.microsoft.com/azure/azure-resource-manager/management/lock-resources",
+      "https://learn.microsoft.com/azure/role-based-access-control/deny-assignments"
+    ],
+    "angle": "How resource locks and deny assignments differ, what each actually blocks, and how to protect critical resources without blocking operations."
+  },
+  {
+    "slug": "managed-hsm-cmk",
+    "title": "Customer-managed keys with Key Vault Managed HSM",
+    "category": "Security",
+    "sources": [
+      "https://learn.microsoft.com/azure/key-vault/managed-hsm/overview",
+      "https://learn.microsoft.com/azure/security/fundamentals/encryption-models"
+    ],
+    "angle": "When customer-managed keys need Managed HSM, key hierarchy and rotation design, and the availability risks of owning the keys."
+  },
+  {
+    "slug": "workload-identity-conditional-access",
+    "title": "Conditional Access for workload identities",
+    "category": "Identity",
+    "sources": [
+      "https://learn.microsoft.com/entra/workload-id/workload-identities-overview",
+      "https://learn.microsoft.com/entra/identity/conditional-access/workload-identity"
+    ],
+    "angle": "Applying Conditional Access and risk policies to service principals, and building an inventory and lifecycle for non-human identities."
+  },
+  {
+    "slug": "cross-tenant-access",
+    "title": "Cross-tenant access design for partners and acquisitions",
+    "category": "Identity",
+    "sources": [
+      "https://learn.microsoft.com/entra/external-id/cross-tenant-access-overview"
+    ],
+    "angle": "Designing B2B collaboration and direct connect between tenants with cross-tenant access settings, trust of MFA and device claims, and governance."
+  },
+  {
+    "slug": "azure-lighthouse",
+    "title": "Managing customer tenants with Azure Lighthouse",
+    "category": "Governance",
+    "sources": [
+      "https://learn.microsoft.com/azure/lighthouse/overview",
+      "https://learn.microsoft.com/azure/lighthouse/concepts/architecture"
+    ],
+    "angle": "Delegated resource management across tenants: authorization design, eligible access, auditing and the limits of Lighthouse."
+  },
+  {
+    "slug": "defender-attack-paths",
+    "title": "Using attack path analysis to prioritize cloud risk",
+    "category": "Security",
+    "sources": [
+      "https://learn.microsoft.com/azure/defender-for-cloud/concept-attack-path",
+      "https://learn.microsoft.com/azure/defender-for-cloud/concept-cloud-security-posture-management"
+    ],
+    "angle": "Turning Defender CSPM attack paths and the cloud security graph into a short, fixable list instead of thousands of findings."
+  },
+  {
+    "slug": "log-table-plans",
+    "title": "Log Analytics table plans and log cost design",
+    "category": "Operations",
+    "sources": [
+      "https://learn.microsoft.com/azure/azure-monitor/logs/logs-table-plans",
+      "https://learn.microsoft.com/azure/azure-monitor/logs/workspace-design"
+    ],
+    "angle": "Using Analytics, Basic and Auxiliary table plans to keep the logs you need searchable while controlling ingestion and retention cost."
+  },
+  {
+    "slug": "data-collection-rules",
+    "title": "Data collection rules as code",
+    "category": "Operations",
+    "sources": [
+      "https://learn.microsoft.com/azure/azure-monitor/essentials/data-collection-rule-overview"
+    ],
+    "angle": "Designing data collection rules for VMs and services: filtering at the source, transformations, routing and managing them with policy."
+  },
+  {
+    "slug": "chaos-studio-resilience",
+    "title": "Resilience testing with Azure Chaos Studio",
+    "category": "Reliability",
+    "sources": [
+      "https://learn.microsoft.com/azure/chaos-studio/chaos-studio-overview"
+    ],
+    "angle": "Planning fault experiments that prove failover designs work, with safe targets, permissions and a gradual path to production."
+  },
+  {
+    "slug": "availability-zones-multi-region",
+    "title": "Availability zones or multiple regions?",
+    "category": "Reliability",
+    "sources": [
+      "https://learn.microsoft.com/azure/reliability/availability-zones-overview",
+      "https://learn.microsoft.com/azure/reliability/regions-multi-region-nonpaired"
+    ],
+    "angle": "Deciding when zone redundancy is enough and when a workload needs a second region, including nonpaired regions and data residency."
+  },
+  {
+    "slug": "site-recovery-azure-to-azure",
+    "title": "VM disaster recovery with Azure Site Recovery",
+    "category": "Reliability",
+    "sources": [
+      "https://learn.microsoft.com/azure/site-recovery/azure-to-azure-architecture"
+    ],
+    "angle": "Designing Azure-to-Azure VM replication: networking in the target region, recovery plans, test failovers and what Site Recovery doesn't cover."
+  },
+  {
+    "slug": "storage-object-replication",
+    "title": "Blob object replication for distribution and DR",
+    "category": "Data",
+    "sources": [
+      "https://learn.microsoft.com/azure/storage/blobs/object-replication-overview"
+    ],
+    "angle": "Using object replication to copy blobs between accounts and regions, its prerequisites and how it compares with geo-redundant storage."
+  },
+  {
+    "slug": "azure-files-hybrid",
+    "title": "Hybrid file services with Azure Files and File Sync",
+    "category": "Data",
+    "sources": [
+      "https://learn.microsoft.com/azure/storage/file-sync/file-sync-introduction",
+      "https://learn.microsoft.com/azure/storage/files/storage-files-networking-overview"
+    ],
+    "angle": "Replacing file servers with Azure Files and File Sync: cloud tiering, private networking, identity-based access and migration."
+  },
+  {
+    "slug": "savings-plans-vs-reservations",
+    "title": "Savings plans or reservations: a commitment strategy",
+    "category": "FinOps",
+    "sources": [
+      "https://learn.microsoft.com/azure/cost-management-billing/savings-plan/decide-between-savings-plan-reservation"
+    ],
+    "angle": "How to choose between Azure savings plans and reservations, how much to commit, and how to review commitments over time."
+  },
+  {
+    "slug": "ai-search-rag-security",
+    "title": "Securing retrieval for RAG with Azure AI Search",
+    "category": "AI Platform",
+    "sources": [
+      "https://learn.microsoft.com/azure/search/search-security-overview",
+      "https://learn.microsoft.com/azure/search/retrieval-augmented-generation-overview"
+    ],
+    "angle": "Private networking, managed identities and document-level security trimming so retrieval only returns what each user is allowed to see."
+  },
+  {
+    "slug": "openai-provisioned-throughput",
+    "title": "Capacity planning with provisioned throughput",
+    "category": "AI Platform",
+    "sources": [
+      "https://learn.microsoft.com/azure/ai-foundry/openai/concepts/provisioned-throughput"
+    ],
+    "angle": "When provisioned throughput makes sense versus standard deployments, sizing, spillover and keeping latency predictable."
+  },
+  {
+    "slug": "azure-arc-hybrid-servers",
+    "title": "Governing hybrid servers with Azure Arc",
+    "category": "Hybrid",
+    "sources": [
+      "https://learn.microsoft.com/azure/azure-arc/servers/overview"
+    ],
+    "angle": "Bringing on-premises and other-cloud servers under Azure Policy, Defender and Update Manager with Arc, and the network and identity design it needs."
+  },
+  {
+    "slug": "expressroute-resiliency",
+    "title": "Designing ExpressRoute for resiliency",
+    "category": "Networking",
+    "sources": [
+      "https://learn.microsoft.com/azure/expressroute/design-architecture-for-resiliency"
+    ],
+    "angle": "Circuit diversity, peering locations, gateway redundancy and VPN backup: building hybrid connectivity that survives a site failure."
+  },
+  {
+    "slug": "nat-gateway-egress",
+    "title": "Predictable outbound traffic with NAT Gateway",
+    "category": "Networking",
+    "sources": [
+      "https://learn.microsoft.com/azure/nat-gateway/nat-overview"
+    ],
+    "angle": "Using NAT Gateway for stable egress IPs and SNAT scale, and how it works alongside Azure Firewall in hub designs."
+  },
+  {
+    "slug": "bastion-private-only",
+    "title": "Private-only Azure Bastion for admin access",
+    "category": "Security",
+    "sources": [
+      "https://learn.microsoft.com/azure/bastion/private-only-deployment"
+    ],
+    "angle": "Removing public IPs from administrative access with private-only Bastion, and combining it with just-in-time access and conditional access."
+  },
+  {
+    "slug": "logic-apps-standard-integration",
+    "title": "Logic Apps Standard in private networks",
+    "category": "Integration",
+    "sources": [
+      "https://learn.microsoft.com/azure/logic-apps/single-tenant-overview-compare"
+    ],
+    "angle": "Choosing Logic Apps Standard for enterprise integration: VNet integration, private endpoints, deployment as code and scaling."
+  },
+  {
+    "slug": "durable-functions-orchestration",
+    "title": "Long-running workflows with Durable Functions",
+    "category": "App Platform",
+    "sources": [
+      "https://learn.microsoft.com/azure/azure-functions/durable/durable-functions-overview"
+    ],
+    "angle": "Orchestrations, fan-out and human approval patterns with Durable Functions, and the design rules that keep them deterministic."
+  },
+  {
+    "slug": "data-factory-managed-vnet",
+    "title": "Private data movement with Data Factory managed VNet",
+    "category": "Data",
+    "sources": [
+      "https://learn.microsoft.com/azure/data-factory/managed-virtual-network-private-endpoint"
+    ],
+    "angle": "Running Data Factory integration in a managed virtual network with managed private endpoints, and when to use self-hosted runtimes instead."
+  },
+  {
+    "slug": "update-manager-patching",
+    "title": "Patch management at scale with Azure Update Manager",
+    "category": "Operations",
+    "sources": [
+      "https://learn.microsoft.com/azure/update-manager/overview"
+    ],
+    "angle": "Designing patch schedules, maintenance configurations and reporting for Azure and Arc-enabled servers."
+  },
+  {
+    "slug": "avnm-security-admin-rules",
+    "title": "Organization-wide network guardrails with Virtual Network Manager",
+    "category": "Networking",
+    "sources": [
+      "https://learn.microsoft.com/azure/virtual-network-manager/concept-security-admins"
+    ],
+    "angle": "Using security admin rules to enforce network rules that teams' NSGs can't override, and rolling them out safely."
+  },
+  {
+    "slug": "vnet-flow-logs",
+    "title": "Network visibility with VNet flow logs",
+    "category": "Operations",
+    "sources": [
+      "https://learn.microsoft.com/azure/network-watcher/vnet-flow-logs-overview"
+    ],
+    "angle": "Replacing NSG flow logs with VNet flow logs, traffic analytics and how to use flow data for security investigations and segmentation."
+  },
+  {
+    "slug": "confidential-computing",
+    "title": "Where confidential computing fits in Azure designs",
+    "category": "Security",
+    "sources": [
+      "https://learn.microsoft.com/azure/confidential-computing/overview"
+    ],
+    "angle": "Confidential VMs, containers and data in use protection: which threats they address and which workloads justify them."
+  },
+  {
+    "slug": "redis-caching-patterns",
+    "title": "Caching patterns with Azure Managed Redis",
+    "category": "Data",
+    "sources": [
+      "https://learn.microsoft.com/azure/redis/overview"
+    ],
+    "angle": "Cache-aside, session state and rate limiting with Azure Managed Redis, plus high availability, persistence and private access."
+  },
+  {
+    "slug": "app-gateway-for-containers",
+    "title": "Application Gateway for Containers as AKS ingress",
+    "category": "Containers",
+    "sources": [
+      "https://learn.microsoft.com/azure/application-gateway/for-containers/overview"
+    ],
+    "angle": "Using Application Gateway for Containers with the Gateway API: traffic splitting, WAF, and how it compares with other AKS ingress options."
   }
 ]

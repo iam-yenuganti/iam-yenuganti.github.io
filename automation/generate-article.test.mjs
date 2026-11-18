@@ -1,180 +1,161 @@
 import assert from "node:assert/strict";
+import fs from "node:fs";
 import test from "node:test";
 import {
+  AZURE_ICONS,
   buildPrompt,
+  checkContentRules,
+  checkOriginality,
   escapeHtml,
   extractJson,
-  normalizeArticleMetadata,
-  renderScenarioDiagram,
+  renderDiagramXml,
+  renderPost,
   updateBlogIndex,
   updateSitemap,
-  validateArticle
+  validateArticle,
+  validateDiagram
 } from "./generate-article.mjs";
 
 const topic = {
-  id: "test-topic",
   slug: "test-topic",
-  diagram: {
-    title: "Access flow",
-    subtitle: "A realistic trust-boundary view.",
-    lanes: [
-      {
-        name: "Engineering",
-        owner: "Application team",
-        components: [{ name: "Change", detail: "Reviewed <write> request" }]
-      },
-      {
-        name: "Azure",
-        owner: "Platform team",
-        components: [{ name: "Target", detail: "Scoped resource" }]
-      }
-    ],
-    flows: ["Review change", "Authorize target"]
-  },
+  title: "Test topic",
+  category: "Networking",
+  angle: "An angle.",
   sources: ["https://learn.microsoft.com/azure/test"]
 };
 
+const diagram = {
+  title: "Private access to a web app",
+  subtitle: "Users reach the app through Front Door; the app reaches data privately.",
+  altText: "Users connect to Front Door, which forwards to App Service, which reads from Azure SQL through a private endpoint.",
+  lanes: [
+    { name: "Edge", nodes: [{ id: "users", label: "Users", detail: "Browser clients", icon: "users" }, { id: "afd", label: "Front Door", detail: "WAF at the edge", icon: "front-door" }] },
+    { name: "Workload", nodes: [{ id: "app", label: "App Service", detail: "Web app <b>", icon: "app-service" }] },
+    { name: "Data", nodes: [{ id: "sql", label: "Azure SQL", detail: "Private endpoint only", icon: "sql-database" }] }
+  ],
+  flows: [
+    { from: "users", to: "afd", label: "HTTPS request" },
+    { from: "afd", to: "app", label: "Private Link origin" },
+    { from: "app", to: "sql", label: "Query over private endpoint" }
+  ]
+};
+
+function section(heading, sentence) {
+  return `<h2>${heading}</h2><p>${Array.from({ length: 40 }, (_, i) => `${sentence} number ${i}.`).join(" ")}</p>`;
+}
+
 const validArticle = {
-  title: "A Safe Azure Architecture",
-  description: "A practical guide to a safe Azure architecture.",
-  excerpt: "Practical architecture guidance.",
-  readTimeMinutes: 12,
+  title: "Private Access for a Web App on Azure",
+  description: "How I keep a web app's data tier private while serving users through Front Door.",
+  excerpt: "Front Door at the edge, private origins and a data tier with no public endpoint.",
   articleHtml: [
-    "<p>Opening context for architects.</p>",
-    "<h2>Executive Context</h2><p>",
-    "word ".repeat(150),
-    "</p><h2>Constraints and Assumptions</h2><p>",
-    "word ".repeat(150),
-    "</p><h2>Target Architecture</h2><p>",
-    "word ".repeat(150),
-    "</p><h2>DevSecOps Control Model</h2><p>",
-    "word ".repeat(150),
-    "</p><h2>Key Architecture Decisions</h2><p>",
-    "word ".repeat(150),
-    "</p><h2>Implementation Blueprint</h2><p>",
-    "word ".repeat(150),
-    "</p><h2>Operational Evidence and SLOs</h2><p>",
-    "word ".repeat(150),
-    "</p><h2>Failure Modes and Trade-offs</h2><p>",
-    "word ".repeat(150),
-    "</p><h2>Adoption Roadmap</h2><p>",
-    "word ".repeat(150),
-    "</p><h2>Conclusion</h2><p>",
-    "word ".repeat(150),
-    '</p><p><a href="https://learn.microsoft.com/azure/test">Source</a></p>'
-  ].join("")
+    section("Why this matters", "The app should serve users without exposing its database"),
+    section("How the request flows", "Front Door forwards traffic to a private origin"),
+    section("Choosing the data path", "I keep the database behind a private endpoint"),
+    section("Testing it", "A quick check proves the public path is closed"),
+    `<p>See <a href="https://learn.microsoft.com/azure/test">the docs</a>.</p>`
+  ].join(""),
+  diagram
 };
 
 test("extractJson accepts fenced JSON", () => {
-  assert.deepEqual(extractJson('```json\n{"ok":true}\n```'), { ok: true });
+  assert.deepEqual(extractJson('```json\n{"a":1}\n```'), { a: 1 });
 });
 
-test("escapeHtml encodes generated metadata", () => {
-  assert.equal(escapeHtml('<script>"x"</script>'), "&lt;script&gt;&quot;x&quot;&lt;/script&gt;");
+test("escapeHtml encodes metadata", () => {
+  assert.equal(escapeHtml(`<a href="x">'&`), "&lt;a href=&quot;x&quot;&gt;&#39;&amp;");
 });
 
-test("normalizeArticleMetadata trims long metadata at word boundaries", () => {
-  const normalized = normalizeArticleMetadata({
-    title: "Architecture ".repeat(12),
-    description: "Description ".repeat(20),
-    excerpt: "Excerpt ".repeat(40)
-  });
-  assert.ok(normalized.title.length <= 100);
-  assert.ok(normalized.description.length <= 180);
-  assert.ok(normalized.excerpt.length <= 240);
-  assert.match(normalized.title, /\.\.\.$/);
+test("validateArticle accepts a clean article", () => {
+  assert.equal(validateArticle(structuredClone(validArticle), topic).title, validArticle.title);
 });
 
-test("renderScenarioDiagram creates complete ownership lanes and flows", () => {
-  const diagram = renderScenarioDiagram(topic);
-  assert.match(diagram, /Access flow/);
-  assert.match(diagram, /Owner: Application team/);
-  assert.match(diagram, /Reviewed &lt;write&gt; request/);
-  assert.match(diagram, /End-to-end control flow/);
+test("validateArticle rejects executable HTML and unapproved links", () => {
+  for (const bad of [`<script>x</script>`, `<p onclick="x">x</p>`, `<a href="https://example.com">x</a>`, `<img src="x">`]) {
+    const article = structuredClone(validArticle);
+    article.articleHtml += bad;
+    assert.throws(() => validateArticle(article, topic));
+  }
 });
 
-test("validateArticle accepts a grounded article", () => {
-  assert.equal(validateArticle(validArticle, topic), validArticle);
+test("validateArticle enforces length and section count", () => {
+  const short = structuredClone(validArticle);
+  short.articleHtml = section("Only", "Too short");
+  assert.throws(() => validateArticle(short, topic), /1000 to 2000 words/);
 });
 
-test("validateArticle accepts the prompted line-break tag", () => {
-  const article = {
-    ...validArticle,
-    articleHtml: validArticle.articleHtml.replace("Opening context", "Opening<br>context")
-  };
-  assert.equal(validateArticle(article, topic), article);
+test("content rules block dashes, filler, private names and authorship mentions", () => {
+  const cases = [
+    ["A design — with a dash", /dashes/],
+    ["This gives a seamless experience", /Formulaic/],
+    ["When I was at Lyric we did this", /employer/],
+    ["I worked with a bank on this", /client stories/],
+    ["This post was generated with Claude", /AI tools/],
+    ["Contact admin@contoso.com", /email/],
+    ["Subscription 12345678-1234-1234-1234-123456789abc", /GUIDs/],
+    ["Allow 52.10.20.30 inbound", /private placeholder/],
+    ["It costs $500 a month", /prices/]
+  ];
+  for (const [text, pattern] of cases) assert.throws(() => checkContentRules(text), pattern);
+  assert.doesNotThrow(() => checkContentRules("Route 10.0.0.0/16 through the firewall and deny 0.0.0.0/0."));
 });
 
-test("buildPrompt includes grounded-draft validation feedback on retry", () => {
-  assert.match(
-    buildPrompt(topic, [], "2026-09-24", "Generated article must contain 1300-2400 words"),
-    /previous draft failed validation: Generated article must contain 1300-2400 words/
-  );
+test("checkOriginality rejects copied source wording", () => {
+  const source = "Azure Private Link enables you to access Azure PaaS services over a private endpoint in your virtual network without exposure to the public internet at all.";
+  const copied = `<p>${source}</p>`;
+  assert.throws(() => checkOriginality(copied, [source]), /copies source wording/);
+  assert.doesNotThrow(() => checkOriginality("<p>I keep data services off the internet by giving each one a private address inside the network.</p>", [source]));
 });
 
-test("validateArticle rejects executable HTML", () => {
-  assert.throws(
-    () => validateArticle({ ...validArticle, articleHtml: `${validArticle.articleHtml}<script>alert(1)</script>` }, topic),
-    /forbidden/
-  );
+test("validateDiagram requires known icons, node ids and enough Azure icons", () => {
+  assert.doesNotThrow(() => validateDiagram(structuredClone(diagram)));
+  const unknown = structuredClone(diagram);
+  unknown.flows.push({ from: "app", to: "missing", label: "x" });
+  assert.throws(() => validateDiagram(unknown), /unknown node/);
+  const plain = structuredClone(diagram);
+  for (const lane of plain.lanes) for (const node of lane.nodes) node.icon = "none";
+  assert.throws(() => validateDiagram(plain), /at least three/);
 });
 
-test("validateArticle rejects unapproved tags and attributes", () => {
-  assert.throws(
-    () => validateArticle({ ...validArticle, articleHtml: `${validArticle.articleHtml}<img src="x">` }, topic),
-    /unapproved tag/
-  );
-  assert.throws(
-    () => validateArticle({
-      ...validArticle,
-      articleHtml: validArticle.articleHtml.replace("<p>Opening", '<p class="lead">Opening')
-    }, topic),
-    /unapproved attributes/
-  );
+test("renderDiagramXml produces draw.io XML with escaped labels and Azure icons", () => {
+  const xml = renderDiagramXml(diagram);
+  assert.match(xml, /^<mxfile/);
+  assert.match(xml, /img\/lib\/azure2\/networking\/Front_Doors\.svg/);
+  assert.match(xml, /source="afd" target="app"/);
+  assert.ok(xml.includes("Web app &amp;lt;b&amp;gt;"), "user text is escaped inside the HTML label");
+  for (const [file] of Object.values(AZURE_ICONS)) assert.match(file, /^[a-z_]+\/[A-Za-z_0-9]+\.svg$/);
 });
 
-test("validateArticle rejects unapproved links", () => {
-  assert.throws(
-    () => validateArticle({
-      ...validArticle,
-      articleHtml: validArticle.articleHtml.replace(
-        "https://learn.microsoft.com/azure/test",
-        "https://example.com"
-      )
-    }, topic),
-    /unapproved link/
-  );
+test("renderPost includes the diagram, sources and author card with no tool mentions", () => {
+  const html = renderPost(validArticle, topic, [{ url: topic.sources[0], title: "Test page" }], "2026-11-18", "post-test-topic");
+  assert.match(html, /assets\/diagrams\/post-test-topic\.svg/);
+  assert.match(html, /Test page<\/a> \(Microsoft Learn\)/);
+  assert.match(html, /18 November 2026/);
+  assert.doesNotMatch(html, /claude|anthropic|ai-generated|generated by/i);
 });
 
-test("validateArticle requires the scenario-led technical structure", () => {
-  assert.throws(
-    () => validateArticle({
-      ...validArticle,
-      articleHtml: validArticle.articleHtml.replace("<h2>Operational Evidence and SLOs</h2>", "<h2>Observations</h2>")
-    }, topic),
-    /missing the required Operational Evidence and SLOs section/
-  );
+test("buildPrompt includes feedback on retry and forbids copying", () => {
+  const prompt = buildPrompt(topic, [{ url: topic.sources[0], title: "Test", content: "Source body" }], "too short");
+  assert.match(prompt, /previous attempt failed this check: too short/);
+  assert.match(prompt, /do not copy wording/);
 });
 
-test("validateArticle rejects formulaic AI phrasing", () => {
-  assert.throws(
-    () => validateArticle({
-      ...validArticle,
-      articleHtml: validArticle.articleHtml.replace(
-        "Opening context for architects.",
-        "In today's rapidly evolving digital landscape, opening context for architects."
-      )
-    }, topic),
-    /formulaic phrasing/
-  );
+test("index and sitemap updates insert at the marker", () => {
+  const blog = updateBlogIndex("<ul><!-- POSTS_START --></ul>", validArticle, topic, "2026-11-18");
+  assert.match(blog, /data-topic="test-topic"/);
+  assert.match(blog, /post-test-topic\.html/);
+  const sitemap = updateSitemap("<urlset><!-- POSTS_START --></urlset>", topic, "2026-11-18");
+  assert.match(sitemap, /<lastmod>2026-11-18<\/lastmod>/);
 });
 
-test("index and sitemap updates are inserted at their markers", () => {
-  const blog = updateBlogIndex(`before\n${"<!-- AI_POSTS_START -->"}\nafter`, validArticle, topic, "2026-09-21");
-  assert.match(blog, /data-ai-topic="test-topic"/);
-  assert.match(blog, /21 September 2026/);
-
-  const sitemap = updateSitemap(`before\n${"<!-- AI_POSTS_START -->"}\nafter`, topic, "2026-09-21");
-  assert.match(sitemap, /post-test-topic\.html/);
-  assert.match(sitemap, /2026-09-21/);
+test("topics backlog is valid and does not collide with existing posts", () => {
+  const topics = JSON.parse(fs.readFileSync(new URL("./topics.json", import.meta.url), "utf8"));
+  const slugs = new Set();
+  for (const t of topics) {
+    assert.match(t.slug, /^[a-z0-9-]+$/);
+    assert.ok(!slugs.has(t.slug), `duplicate slug ${t.slug}`);
+    slugs.add(t.slug);
+    assert.ok(t.title && t.angle && t.category);
+    assert.ok(t.sources.length >= 1 && t.sources.every((u) => u.startsWith("https://learn.microsoft.com/")));
+  }
 });

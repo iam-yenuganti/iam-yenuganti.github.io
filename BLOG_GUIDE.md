@@ -182,127 +182,60 @@ Given your expertise, here are article ideas:
 
 ---
 
-## Automated Daily Drafts
+## Automated Daily Posts
 
-The local Ollama agent creates a reviewable pull request every day at 07:00
-local time. It never publishes directly. A post goes live only after you review
-and merge its pull request into `main`.
-If an `ai-draft` pull request is already open, the next scheduled run skips
-generation so your review queue does not accumulate duplicate drafts.
-The local runner also checks the articles already merged into `main`. If an
-article has today's local publication date, it exits successfully without
-generating another one. This guarantees at most one article per calendar day,
-including manual runs.
+The **Daily blog post** GitHub Actions workflow (`.github/workflows/daily-post.yml`)
+publishes one post a day at 13:30 UTC. It runs entirely in GitHub, so nothing
+depends on a laptop being on.
 
-### One-time setup
+Each run:
 
-1. Install Ollama, Node.js, Git, and the GitHub CLI.
-2. Pull the configured writing model: `ollama pull qwen3.6:27b`.
-3. Authenticate the GitHub CLI: `gh auth login`.
-4. Make sure the Ollama application starts when you sign in to the Mac.
-5. Commit and push the automation files to `main`. The scheduled process works
-   in a temporary clone and intentionally does not use your working folder.
-6. Install the schedule:
+1. Picks the first topic in `automation/topics.json` that has no post yet.
+2. Downloads that topic's Microsoft Learn pages for fact checking.
+3. Writes the post and an architecture diagram specification with the Claude API.
+4. Rejects the draft (and retries up to 3 times) unless it passes every check:
+   allowed HTML and links only, 1,000 to 2,000 words, 4 to 9 sections, no em
+   dashes or filler phrases, no employer or client names, no real IDs, emails,
+   public IPs or prices, no mention of how it was written, and no wording
+   copied from the sources (12-word and 8-word overlap checks).
+5. Draws the diagram in draw.io with official Azure icons and exports an SVG
+   (`assets/diagrams/post-<slug>.drawio` and `.svg`).
+6. Adds the post to `blog.html` and `sitemap.xml`, commits to `main`, and
+   triggers the Pages deployment.
 
-   ```bash
-   chmod +x automation/run-local-draft.sh automation/install-local-schedule.sh
-   ./automation/install-local-schedule.sh
-   ```
+If any check still fails after 3 attempts, nothing is published and the run is
+marked failed. If a post already exists for the day, the run does nothing.
 
-The scheduler is macOS `launchd`, not a GitHub self-hosted runner. This avoids
-allowing workflows from a public repository to execute on your personal laptop.
-The installer copies the runtime script to
-`~/Library/Application Support/YenugantiBlogAgent` because background services
-can be denied access to OneDrive-managed folders by macOS privacy controls.
-The laptop must be powered on, awake, connected to the internet, and running
-Ollama when the job starts. The agent also runs at login and checks every
-minute while awake, so opening the laptop after 07:00 triggers a catch-up run
-within a minute. A completed run is recorded for the day to prevent repeated
-generation; an existing open draft or an article already dated today also
-prevents duplicates. Failed attempts can retry on the next check. Check
-`~/Library/Logs/yenuganti-blog-agent-error.log` when no draft appears. Since
-generation runs in a temporary clone of `main`, local uncommitted changes to
-the generator do not affect scheduled drafts.
+### Setup
 
-### Editorial workflow
+Add the repository secret `ANTHROPIC_API_KEY` (Settings > Secrets and variables
+> Actions). Without it the workflow fails before writing anything.
 
-1. The generator selects the first unused entry in `automation/topics.json`.
-2. It creates a clean temporary clone, downloads only the listed Microsoft
-   Learn pages, and gives that material to the local model as reference data.
-3. It retries malformed or out-of-range drafts with validation feedback, then
-   rejects output that still fails validation, including executable HTML and
-   unapproved links.
-4. It creates a post, updates `blog.html` and `sitemap.xml`, then opens a pull
-   request.
-5. Review every factual claim and source before merging. Edit the branch
-   directly when needed.
+### Topics
 
-Every generated article targets principal and senior cloud architects with more
-than ten years of experience. It uses a realistic multi-team, multi-environment
-estate and covers constraints, trust boundaries, scale assumptions, blast
-radius, architecture decisions, alternatives rejected, DevSecOps controls,
-operating ownership, evidence, SLOs, failure modes, and an adoption roadmap.
-Product introductions and generic step-by-step tutorials are not acceptable.
+Add entries to `automation/topics.json` to extend the backlog:
 
-Generation uses two passes. The first produces a source-grounded architecture
-draft. The second is an editorial pass that cannot add facts or links; it
-removes repetitive structure, promotional adjectives, generic introductions,
-stock AI transitions, and tutorial language. The house style is direct,
-specific, measured, and written as one experienced architect speaking to peers.
-
-For access-governance scenarios, the draft must separate PIM activation evidence
-from Azure Activity Log records of the actual resource changes. Patterns should
-cover development, test, staging, and production where applicable, with controls
-strengthened according to environment risk. They must use least privilege at the
-narrowest practical scope rather than treating Contributor or Owner as universal
-engineering roles.
-
-Topics can also define a trusted `diagram` in `automation/topics.json`. A diagram
-must show ownership lanes or trust boundaries, named components, control flow,
-and evidence paths. The generator renders the full diagram as responsive
-HTML/CSS without horizontal scrolling; it does not allow the model to emit
-scripts or arbitrary SVG.
-
-The workflow fails clearly when the curated queue is empty. Add reviewed topic
-entries and official Microsoft Learn source URLs to extend the queue. For a
-professional portfolio, quality is more important than maintaining an
-uninterrupted daily count.
-
-### Local validation
-
-The validation tests do not call Ollama:
-
-```bash
-node --test automation/generate-article.test.mjs
+```json
+{
+  "slug": "short-unique-slug",
+  "title": "Working title",
+  "category": "Networking",
+  "sources": ["https://learn.microsoft.com/..."],
+  "angle": "What the post should argue and cover."
+}
 ```
 
-Run a complete draft manually with:
+Sources must be Microsoft Learn pages. The run fails when the backlog is empty.
+
+### Manual runs and tests
+
+Run the workflow from the Actions tab (optionally with a topic slug), or test
+the checks locally without calling the API:
 
 ```bash
-./automation/run-local-draft.sh
+npm ci
+node --test automation/
 ```
-
-This opens a real pull request. To test a specific queued topic:
-
-```bash
-TOPIC_ID=aks-network-isolation ./automation/run-local-draft.sh
-```
-
-To remove the daily schedule:
-
-```bash
-./automation/install-local-schedule.sh --uninstall
-```
-
-To revise an existing generated article without adding a duplicate blog or
-sitemap entry:
-
-```bash
-REVISION_ONLY=true TOPIC_ID=workload-identity-github-actions \
-  node automation/generate-article.mjs
-```
-
----
 
 ## Support
 
