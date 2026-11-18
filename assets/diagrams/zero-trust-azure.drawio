@@ -1,0 +1,108 @@
+<mxfile host="drawio">
+  <diagram id="zt" name="Zero Trust on Azure">
+    <mxGraphModel dx="1200" dy="700" grid="1" gridSize="5" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1160" pageHeight="680" math="0" shadow="0">
+      <root>
+        <mxCell id="0"/>
+        <mxCell id="1" parent="0"/>
+
+        <mxCell id="laneUsers" value="Users and devices" style="rounded=1;arcSize=3;whiteSpace=wrap;html=1;fillColor=#F6F8FA;strokeColor=#D0D7DE;verticalAlign=top;align=left;spacingLeft=12;spacingTop=8;fontStyle=1;fontSize=14;fontColor=#1F2328;" vertex="1" parent="1">
+          <mxGeometry x="20" y="40" width="180" height="430" as="geometry"/>
+        </mxCell>
+        <mxCell id="laneEntra" value="Microsoft Entra ID" style="rounded=1;arcSize=3;whiteSpace=wrap;html=1;fillColor=#F2F8FD;strokeColor=#C7DDF2;verticalAlign=top;align=left;spacingLeft=12;spacingTop=8;fontStyle=1;fontSize=14;fontColor=#1F2328;" vertex="1" parent="1">
+          <mxGeometry x="220" y="40" width="250" height="430" as="geometry"/>
+        </mxCell>
+        <mxCell id="laneHub" value="Hub network" style="rounded=1;arcSize=3;whiteSpace=wrap;html=1;fillColor=#F2F8FD;strokeColor=#C7DDF2;verticalAlign=top;align=left;spacingLeft=12;spacingTop=8;fontStyle=1;fontSize=14;fontColor=#1F2328;" vertex="1" parent="1">
+          <mxGeometry x="490" y="40" width="270" height="430" as="geometry"/>
+        </mxCell>
+        <mxCell id="laneSpoke" value="Application spoke" style="rounded=1;arcSize=3;whiteSpace=wrap;html=1;fillColor=#F2F8FD;strokeColor=#C7DDF2;verticalAlign=top;align=left;spacingLeft=12;spacingTop=8;fontStyle=1;fontSize=14;fontColor=#1F2328;" vertex="1" parent="1">
+          <mxGeometry x="780" y="40" width="360" height="430" as="geometry"/>
+        </mxCell>
+        <mxCell id="laneDetect" value="Detect and respond: every layer sends its logs here" style="rounded=1;arcSize=3;whiteSpace=wrap;html=1;fillColor=#F7F7F7;strokeColor=#D6D6D6;verticalAlign=top;align=left;spacingLeft=12;spacingTop=8;fontStyle=1;fontSize=14;fontColor=#1F2328;" vertex="1" parent="1">
+          <mxGeometry x="20" y="495" width="1120" height="150" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="users" value="Users on&lt;br&gt;compliant devices" style="image;aspect=fixed;html=1;points=[];align=center;fontSize=12;image=img/lib/azure2/identity/Users.svg;labelBackgroundColor=#F6F8FA;" vertex="1" parent="1">
+          <mxGeometry x="78" y="100" width="64" height="70" as="geometry"/>
+        </mxCell>
+        <mxCell id="admins" value="Engineers and&lt;br&gt;administrators" style="image;aspect=fixed;html=1;points=[];align=center;fontSize=12;image=img/lib/azure2/identity/Users.svg;labelBackgroundColor=#F6F8FA;" vertex="1" parent="1">
+          <mxGeometry x="78" y="320" width="64" height="70" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="ca" value="&lt;b&gt;Conditional Access&lt;/b&gt;&lt;br&gt;MFA strength · compliant&lt;br&gt;device · sign-in risk" style="image;aspect=fixed;html=1;points=[];align=center;fontSize=12;image=img/lib/azure2/security/Conditional_Access.svg;labelBackgroundColor=#F2F8FD;" vertex="1" parent="1">
+          <mxGeometry x="317" y="100" width="56" height="68" as="geometry"/>
+        </mxCell>
+        <mxCell id="pim" value="&lt;b&gt;PIM&lt;/b&gt;&lt;br&gt;just-in-time admin roles" style="image;aspect=fixed;html=1;points=[];align=center;fontSize=12;image=img/lib/azure2/identity/Entra_Privileged_Identity_Management.svg;labelBackgroundColor=#F2F8FD;" vertex="1" parent="1">
+          <mxGeometry x="311" y="321" width="68" height="68" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="agw" value="&lt;b&gt;Application Gateway&lt;/b&gt;&lt;br&gt;WAF v2, prevention mode" style="image;aspect=fixed;html=1;points=[];align=center;fontSize=12;image=img/lib/azure2/networking/Application_Gateways.svg;labelBackgroundColor=#F2F8FD;" vertex="1" parent="1">
+          <mxGeometry x="593" y="100" width="64" height="64" as="geometry"/>
+        </mxCell>
+        <mxCell id="fw" value="&lt;b&gt;Azure Firewall Premium&lt;/b&gt;&lt;br&gt;egress inspection · IDPS" style="image;aspect=fixed;html=1;points=[];align=center;fontSize=12;image=img/lib/azure2/networking/Firewalls.svg;labelBackgroundColor=#F2F8FD;" vertex="1" parent="1">
+          <mxGeometry x="590" y="215" width="71" height="60" as="geometry"/>
+        </mxCell>
+        <mxCell id="bastion" value="&lt;b&gt;Azure Bastion&lt;/b&gt;&lt;br&gt;no public RDP or SSH" style="image;aspect=fixed;html=1;points=[];align=center;fontSize=12;image=img/lib/azure2/networking/Bastions.svg;labelBackgroundColor=#F2F8FD;" vertex="1" parent="1">
+          <mxGeometry x="596" y="321" width="58" height="68" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="app" value="&lt;b&gt;Application&lt;/b&gt;&lt;br&gt;managed identity,&lt;br&gt;no secrets" style="image;aspect=fixed;html=1;points=[];align=center;fontSize=12;image=img/lib/azure2/app_services/App_Services.svg;labelBackgroundColor=#F2F8FD;labelPosition=right;verticalLabelPosition=middle;verticalAlign=middle;align=left;spacingLeft=6;" vertex="1" parent="1">
+          <mxGeometry x="900" y="100" width="64" height="64" as="geometry"/>
+        </mxCell>
+        <mxCell id="pe" value="Workloads and data: private endpoints only, no public access" style="rounded=1;arcSize=4;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#0078D4;dashed=1;verticalAlign=top;align=left;spacingLeft=10;spacingTop=4;fontSize=12;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="800" y="265" width="320" height="185" as="geometry"/>
+        </mxCell>
+        <mxCell id="kv" value="Key Vault" style="image;aspect=fixed;html=1;points=[];align=center;fontSize=11;image=img/lib/azure2/security/Key_Vaults.svg;" vertex="1" parent="1">
+          <mxGeometry x="818" y="320" width="56" height="56" as="geometry"/>
+        </mxCell>
+        <mxCell id="sql" value="Azure SQL" style="image;aspect=fixed;html=1;points=[];align=center;fontSize=11;image=img/lib/azure2/databases/SQL_Database.svg;" vertex="1" parent="1">
+          <mxGeometry x="900" y="316" width="45" height="60" as="geometry"/>
+        </mxCell>
+        <mxCell id="st" value="Storage" style="image;aspect=fixed;html=1;points=[];align=center;fontSize=11;image=img/lib/azure2/storage/Storage_Accounts.svg;" vertex="1" parent="1">
+          <mxGeometry x="968" y="324" width="60" height="48" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="vm" value="Virtual machines" style="image;aspect=fixed;html=1;points=[];align=center;fontSize=11;image=img/lib/azure2/compute/Virtual_Machine.svg;" vertex="1" parent="1">
+          <mxGeometry x="1043" y="316" width="62" height="58" as="geometry"/>
+        </mxCell>
+        <mxCell id="def" value="&lt;b&gt;Microsoft Defender for Cloud&lt;/b&gt;&lt;br&gt;posture and workload alerts" style="image;aspect=fixed;html=1;points=[];align=left;fontSize=12;image=img/lib/azure2/security/Azure_Defender.svg;labelPosition=right;verticalLabelPosition=middle;verticalAlign=middle;spacingLeft=6;" vertex="1" parent="1">
+          <mxGeometry x="60" y="545" width="60" height="60" as="geometry"/>
+        </mxCell>
+        <mxCell id="sentinel" value="&lt;b&gt;Microsoft Sentinel&lt;/b&gt;&lt;br&gt;in the Microsoft Defender portal" style="image;aspect=fixed;html=1;points=[];align=left;fontSize=12;image=img/lib/azure2/security/Azure_Sentinel.svg;labelPosition=right;verticalLabelPosition=middle;verticalAlign=middle;spacingLeft=6;" vertex="1" parent="1">
+          <mxGeometry x="440" y="540" width="56" height="68" as="geometry"/>
+        </mxCell>
+        <mxCell id="law" value="&lt;b&gt;Log Analytics workspace&lt;/b&gt;&lt;br&gt;Entra sign-ins, Activity Log,&lt;br&gt;WAF, firewall, Key Vault logs" style="image;aspect=fixed;html=1;points=[];align=left;fontSize=12;image=img/lib/azure2/analytics/Log_Analytics_Workspaces.svg;labelPosition=right;verticalLabelPosition=middle;verticalAlign=middle;spacingLeft=6;" vertex="1" parent="1">
+          <mxGeometry x="800" y="542" width="64" height="64" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="e1" value="1  sign in" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#0078D4;strokeWidth=1.5;endArrow=block;endFill=1;fontSize=11;labelBackgroundColor=#FFFFFF;exitX=1;exitY=0.35;exitDx=0;exitDy=0;entryX=0;entryY=0.35;entryDx=0;entryDy=0;" edge="1" parent="1" source="users" target="ca">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e2" value="2  token, if every&lt;br&gt;condition is met" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#0078D4;strokeWidth=1.5;endArrow=block;endFill=1;fontSize=11;labelBackgroundColor=#FFFFFF;exitX=1;exitY=0.35;exitDx=0;exitDy=0;entryX=0;entryY=0.35;entryDx=0;entryDy=0;" edge="1" parent="1" source="ca" target="agw">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e3" value="3  inspected request" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#0078D4;strokeWidth=1.5;endArrow=block;endFill=1;fontSize=11;labelBackgroundColor=#FFFFFF;exitX=1;exitY=0.35;exitDx=0;exitDy=0;entryX=0;entryY=0.35;entryDx=0;entryDy=0;" edge="1" parent="1" source="agw" target="app">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e4" value="4  private link" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#0078D4;strokeWidth=1.5;endArrow=block;endFill=1;fontSize=11;labelBackgroundColor=#F2F8FD;" edge="1" parent="1" source="app" target="pe">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e5" value="outbound internet only&lt;br&gt;through the firewall" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#8C959F;dashed=1;strokeWidth=1.5;endArrow=block;endFill=1;fontSize=11;labelBackgroundColor=#F2F8FD;exitX=0.25;exitY=1;exitDx=0;exitDy=0;entryX=1;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="app" target="fw">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="916" y="245"/>
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="a1" value="activate role" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#24292F;strokeWidth=1.5;endArrow=block;endFill=1;fontSize=11;labelBackgroundColor=#FFFFFF;exitX=1;exitY=0.4;exitDx=0;exitDy=0;entryX=0;entryY=0.4;entryDx=0;entryDy=0;" edge="1" parent="1" source="admins" target="pim">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="a2" value="time-boxed&lt;br&gt;session" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#24292F;strokeWidth=1.5;endArrow=block;endFill=1;fontSize=11;labelBackgroundColor=#FFFFFF;exitX=1;exitY=0.4;exitDx=0;exitDy=0;entryX=0;entryY=0.4;entryDx=0;entryDy=0;" edge="1" parent="1" source="pim" target="bastion">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="a3" value="admin access&lt;br&gt;to VMs" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#24292F;strokeWidth=1.5;endArrow=block;endFill=1;fontSize=11;labelBackgroundColor=#FFFFFF;exitX=1;exitY=0.4;exitDx=0;exitDy=0;entryX=0;entryY=0.6;entryDx=0;entryDy=0;" edge="1" parent="1" source="bastion" target="pe">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

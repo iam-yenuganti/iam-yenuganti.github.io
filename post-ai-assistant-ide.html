@@ -3,11 +3,11 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="description" content="The complete guide to integrating AI agents into every IDE — VS Code, JetBrains, Visual Studio, Eclipse, Neovim. Real troubleshooting, deployment, and development scenarios for DevOps, developers, and architects. Stop Googling, start asking." />
-  <title>AI Agents in Every IDE: The Complete Guide for Dev, DevOps &amp; Architects | Srinivas Yenuganti</title>
+  <meta name="description" content="How I set up GitHub Copilot agent mode in VS Code for Terraform and Azure: a repository instructions file, the Azure MCP Server, careful tool approvals, and a plan-first workflow." />
+  <title>Setting Up an AI Coding Assistant for Infrastructure Work | Srinivas Yenuganti</title>
   <meta property="og:type" content="article" />
-  <meta property="og:title" content="AI Agents in Every IDE: The Complete Guide for Developers, DevOps &amp; Architects" />
-  <meta property="og:description" content="Step-by-step AI agent setup for VS Code, JetBrains, Visual Studio, Eclipse, and Neovim with real DevOps scenarios." />
+  <meta property="og:title" content="Setting Up an AI Coding Assistant for Infrastructure Work" />
+  <meta property="og:description" content="How I set up GitHub Copilot agent mode in VS Code for Terraform and Azure: a repository instructions file, the Azure MCP Server, careful tool approvals, and a plan-first workflow." />
   <meta property="og:url" content="https://yenuganti.in/post-ai-assistant-ide.html" />
   <meta property="article:published_time" content="2026-04-28" />
   <meta name="twitter:card" content="summary" />
@@ -154,6 +154,18 @@
     .author-name{font-size:.97rem;font-weight:700;color:#0d1b2a;margin-bottom:.15rem}
     .author-role{font-size:.78rem;color:#64748b;margin-bottom:.45rem}
     .author-bio{font-size:.84rem;color:#64748b;line-height:1.6;margin-bottom:.5rem}
+  
+    /* rewrite: shared styles for prose posts */
+    .article-body pre{background:#0b1f33;color:#e6edf3;padding:1rem 1.1rem;border-radius:8px;overflow:auto;font-size:.82rem;line-height:1.6;margin:1.25rem 0}
+    .article-body code{background:#eef2f7;padding:.1rem .3rem;border-radius:4px;font-size:.88em;overflow-wrap:anywhere;color:inherit}
+    .article-body pre code{background:none;padding:0;color:inherit;border-radius:0;font-size:inherit}
+    .architecture-diagram{max-width:100%;margin:0 0 2.5rem;padding:1rem;background:#fff;border:1px solid #c8c6c4;border-top:4px solid #0078d4;border-radius:4px;box-shadow:0 2px 8px rgba(0,0,0,.08)}
+    .architecture-diagram figcaption{font-size:1.05rem;font-weight:760;color:#201f1e;margin-bottom:.3rem}
+    .diagram-subtitle{font-size:.82rem!important;color:#605e5c!important;margin-bottom:.85rem!important}
+    .architecture-diagram img{display:block;width:100%;height:auto;border:1px solid #d2d0ce;border-radius:3px}
+    .diagram-note{margin-top:.65rem!important;font-size:.72rem!important;color:#605e5c!important}
+    .article-body .sources{margin-top:2.5rem;padding-top:1.5rem;border-top:1px solid #e2e8f0}
+    .article-body .sources li{font-size:.9rem}
   </style>
 </head>
 <body>
@@ -174,721 +186,131 @@
     <div class="post-breadcrumb">
       <a href="blog.html">&#8592; Blog</a> &nbsp;&middot;&nbsp; Developer Experience
     </div>
-    <h1 class="post-title">AI Agents in Every IDE: The Complete Guide for Developers, DevOps &amp; Architects</h1>
+    <h1 class="post-title">Setting Up an AI Coding Assistant for Infrastructure Work</h1>
     <div class="post-meta">
-      <span>&#9203; 18 min read</span>
+      <span>&#9203; 7 min read</span>
       <span>&#128197; April 28, 2026</span>
-      <span>&#128295; Hands-on &mdash; VS Code &middot; JetBrains &middot; Visual Studio &middot; Eclipse &middot; Neovim</span>
+      <span>&#128295; Hands-on: VS Code, GitHub Copilot, Azure MCP Server</span>
       <span>&#9998;&#65039; Srinivas Yenuganti</span>
     </div>
     <div class="post-tags">
       <span class="post-tag">GitHub Copilot</span>
-      <span class="post-tag">Claude</span>
-      <span class="post-tag">MCP</span>
       <span class="post-tag">VS Code</span>
-      <span class="post-tag">JetBrains</span>
-      <span class="post-tag">DevOps</span>
-      <span class="post-tag">Troubleshooting</span>
-      <span class="post-tag">Deployments</span>
+      <span class="post-tag">Azure MCP Server</span>
+      <span class="post-tag">Terraform</span>
+      <span class="post-tag">Infrastructure as Code</span>
     </div>
   </header>
 
   <section class="article-section">
     <div class="article-body">
 
-      <!-- TL;DR -->
-      <div class="speedrun">
-        <div class="speedrun-label">&#9889; What this guide saves you</div>
-        <h3>Instead of Googling each of these, ask your AI agent inside your IDE:</h3>
-        <ul>
-          <li>&#8220;My Kubernetes pod keeps OOMKilling &mdash; what&rsquo;s wrong and how do I fix it?&#8221;</li>
-          <li>&#8220;This GitHub Actions pipeline failed at the Terraform apply step. Here&rsquo;s the log. What happened?&#8221;</li>
-          <li>&#8220;Write a Helm chart for my FastAPI service with readiness probes, HPA, and resource limits.&#8221;</li>
-          <li>&#8220;My Azure SQL connection is timing out from the app. Walk me through diagnosing this.&#8221;</li>
-          <li>&#8220;Review this Dockerfile for security issues and optimise the build layers.&#8221;</li>
-          <li>&#8220;Generate an ADR for choosing Azure Service Bus over Event Grid for this use case.&#8221;</li>
-        </ul>
-      </div>
+      <p>AI coding assistants are most useful to infrastructure engineers when they live where the code is: in the editor, next to the Terraform, with access to the terminal and to Azure. They're also most dangerous there, for exactly the same reason. An assistant that can run commands can run the wrong one.</p>
 
-      <!-- WHO THIS IS FOR -->
-      <div class="persona-strip">
-        <div class="persona-card p-dev">
-          <div class="persona-icon">&#128187;</div>
-          <div class="persona-title">Software Developer</div>
-          <div class="persona-desc">Write, debug, test, and refactor code faster. Get explanations instead of Stack Overflow tabs.</div>
-        </div>
-        <div class="persona-card p-dops">
-          <div class="persona-icon">&#128640;</div>
-          <div class="persona-title">DevOps Engineer</div>
-          <div class="persona-desc">Build pipelines, troubleshoot deployments, manage IaC, and triage incidents without leaving the terminal.</div>
-        </div>
-        <div class="persona-card p-arch">
-          <div class="persona-icon">&#127963;&#65039;</div>
-          <div class="persona-title">Cloud Architect</div>
-          <div class="persona-desc">Design, review, document, and validate architecture decisions with a model that knows your codebase.</div>
-        </div>
-      </div>
+      <p>This is how I set up GitHub Copilot in VS Code for Terraform, Bicep and Azure work, and the habits that keep it from doing something I'll regret. Most of it carries over to other editors and assistants. The details of each tool change every few months, so I've stuck to the parts that don't.</p>
 
-      <p>The productivity shift from AI tools is real &mdash; but only when they are wired into your actual working environment, not used as a separate browser tab. This guide covers every major IDE, every major AI tool, and gives you exact prompts you can use today for real problems: production incidents, failed deployments, security reviews, and complex builds.</p>
+      <h2>Use agent mode, and know what it can do</h2>
+      <p>Copilot Chat has a plain chat mode and an agent mode. In agent mode it can read and edit files across the workspace, run terminal commands and call tools from MCP servers, then iterate on the result. That's what makes it useful for "add diagnostic settings to every resource in this module." It's also why every tool call it makes should be something you understand and allowed on purpose.</p>
 
-      <div class="stat-strip">
-        <div class="stat-card"><div class="stat-num">6</div><div class="stat-label">IDEs covered with specific setup instructions</div></div>
-        <div class="stat-card"><div class="stat-num">15+</div><div class="stat-label">real scenario prompts across all three personas</div></div>
-        <div class="stat-card"><div class="stat-num">0</div><div class="stat-label">new browser tabs needed for common engineering problems</div></div>
-      </div>
+      <h2>Write a repository instructions file first</h2>
+      <p>Copilot reads <code>.github/copilot-instructions.md</code> from the repository and adds it to every request in that workspace. This is the highest-value ten minutes of the whole setup. Without it, the assistant writes generic code. With it, it writes your code.</p>
+<pre><code># Platform infrastructure: instructions for AI assistants
 
-      <!-- ═══════════════════════════ SECTION 1 ═══════════════════════════ -->
-      <div class="sh">
-        <div class="sh-badge b1">&#128506;&#65039;</div>
-        <div class="sh-text"><h2>Section 1 &mdash; The AI Tool Matrix: What Works Where</h2><p>Which tools integrate with which IDE and what they actually do</p></div>
-      </div>
+## What this repo is
+Terraform for the shared Azure platform: hub network, private DNS,
+monitoring, and per-application landing zones.
 
-      <p>Before installing anything, understand the landscape. Not every tool works in every IDE, and they serve different purposes.</p>
+## Conventions
+- Terraform with the azurerm provider; use the versions pinned in versions.tf
+- Names: {app}-{env}-{region}-{type}, for example payments-prod-eus2-kv
+- Tags on every resource: environment, owner, cost-center
+- Modules live in modules/, one module per folder, with a README
 
-      <table class="matrix-table">
-        <thead>
-          <tr><th>AI Tool</th><th>VS Code</th><th>JetBrains</th><th>Visual Studio</th><th>Eclipse</th><th>Neovim</th><th>Best For</th></tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td><strong>GitHub Copilot</strong></td>
-            <td><span class="pill pill-y">Native</span></td>
-            <td><span class="pill pill-y">Plugin</span></td>
-            <td><span class="pill pill-y">Extension</span></td>
-            <td><span class="pill pill-p">Partial</span></td>
-            <td><span class="pill pill-y">Plugin</span></td>
-            <td>Inline completions, chat, agent mode, model switching</td>
-          </tr>
-          <tr>
-            <td><strong>Claude (via Copilot)</strong></td>
-            <td><span class="pill pill-y">Model picker</span></td>
-            <td><span class="pill pill-y">Model picker</span></td>
-            <td><span class="pill pill-y">Model picker</span></td>
-            <td><span class="pill pill-n">Not yet</span></td>
-            <td><span class="pill pill-n">Not yet</span></td>
-            <td>Long-context reasoning, architecture reviews, ADRs</td>
-          </tr>
-          <tr>
-            <td><strong>Cursor</strong></td>
-            <td><span class="pill pill-p">Fork of VS Code</span></td>
-            <td><span class="pill pill-n">No</span></td>
-            <td><span class="pill pill-n">No</span></td>
-            <td><span class="pill pill-n">No</span></td>
-            <td><span class="pill pill-n">No</span></td>
-            <td>Deep multi-file edits, prototyping, Composer mode</td>
-          </tr>
-          <tr>
-            <td><strong>Amazon Q Developer</strong></td>
-            <td><span class="pill pill-y">Extension</span></td>
-            <td><span class="pill pill-y">Plugin</span></td>
-            <td><span class="pill pill-n">No</span></td>
-            <td><span class="pill pill-y">Plugin</span></td>
-            <td><span class="pill pill-n">No</span></td>
-            <td>AWS CDK, CloudFormation, Lambda, Java/Python heavy stacks</td>
-          </tr>
-          <tr>
-            <td><strong>Gemini Code Assist</strong></td>
-            <td><span class="pill pill-y">Extension</span></td>
-            <td><span class="pill pill-y">Plugin</span></td>
-            <td><span class="pill pill-n">No</span></td>
-            <td><span class="pill pill-n">No</span></td>
-            <td><span class="pill pill-n">No</span></td>
-            <td>GCP IaC, BigQuery, GKE, multi-cloud teams</td>
-          </tr>
-          <tr>
-            <td><strong>Continue.dev</strong></td>
-            <td><span class="pill pill-y">Extension</span></td>
-            <td><span class="pill pill-y">Plugin</span></td>
-            <td><span class="pill pill-n">No</span></td>
-            <td><span class="pill pill-n">No</span></td>
-            <td><span class="pill pill-y">Plugin</span></td>
-            <td>Open source, bring-your-own-model (Ollama, Azure AI, Bedrock)</td>
-          </tr>
-          <tr>
-            <td><strong>Codeium / Windsurf</strong></td>
-            <td><span class="pill pill-y">Extension</span></td>
-            <td><span class="pill pill-y">Plugin</span></td>
-            <td><span class="pill pill-y">Extension</span></td>
-            <td><span class="pill pill-y">Plugin</span></td>
-            <td><span class="pill pill-y">Plugin</span></td>
-            <td>Free tier, broadest IDE coverage, good for restricted environments</td>
-          </tr>
-        </tbody>
-      </table>
+## Non-negotiables
+- No secrets in code, variables files or examples. Use Key Vault references.
+- public_network_access_enabled = false unless the README says otherwise
+- Managed identities only; no client secrets for service-to-service auth
+- Role assignments at resource-group scope or narrower, never subscription
 
-      <div class="callout c-real">
-        <div class="ct">&#128295; Recommendation by team type</div>
-        <ul>
-          <li><strong>Azure / Microsoft shop:</strong> GitHub Copilot Enterprise &mdash; lives in the Microsoft trust boundary, Defender for DevOps integration, org-level policy</li>
-          <li><strong>AWS-heavy / Java teams:</strong> Amazon Q Developer &mdash; best CDK and Java understanding, Eclipse support for enterprise Java</li>
-          <li><strong>Air-gapped / regulated:</strong> Continue.dev with a locally deployed Ollama model or Microsoft Foundry private endpoint &mdash; no data leaves your network</li>
-          <li><strong>Greenfield / fast prototyping:</strong> Cursor &mdash; deepest multi-file edit capability and native MCP support</li>
-          <li><strong>Multi-cloud / heterogeneous:</strong> GitHub Copilot for primary, Gemini Code Assist for GCP-specific resources</li>
-        </ul>
-      </div>
+## Before proposing a change
+- Run terraform fmt and terraform validate
+- Show the expected terraform plan summary, and call out anything destroyed</code></pre>
+      <p>Treat this file like code: review changes to it in pull requests. It shapes everything the assistant writes for your team.</p>
 
-      <!-- ═══════════════════════════ SECTION 2 ═══════════════════════════ -->
-      <div class="sh">
-        <div class="sh-badge b2">&#9881;&#65039;</div>
-        <div class="sh-text"><h2>Section 2 &mdash; IDE Setup: Step-by-Step for Every Editor</h2><p>Exact install steps for each IDE &mdash; pick yours</p></div>
-      </div>
-
-      <!-- TAB BUTTONS -->
-      <div class="ide-tabs">
-        <div class="tab-btns">
-          <button class="tab-btn active" onclick="showTab('vsc',this)">VS Code</button>
-          <button class="tab-btn" onclick="showTab('jb',this)">JetBrains</button>
-          <button class="tab-btn" onclick="showTab('vs',this)">Visual Studio</button>
-          <button class="tab-btn" onclick="showTab('ecl',this)">Eclipse</button>
-          <button class="tab-btn" onclick="showTab('nv',this)">Neovim</button>
-        </div>
-
-        <!-- VS CODE -->
-        <div class="tab-panel active" id="tab-vsc">
-          <div class="step-list">
-            <div class="step"><div class="sn"></div><div class="step-body"><div class="step-title">Install GitHub Copilot + Copilot Chat</div><div class="step-desc"><span class="ic">Ctrl/Cmd+Shift+X</span> &rarr; search &ldquo;GitHub Copilot&rdquo; &rarr; install both extensions. Sign in with your GitHub account. Inline completions (Tab to accept) are active immediately.</div></div></div>
-            <div class="step"><div class="sn"></div><div class="step-body"><div class="step-title">Open Copilot Chat &amp; switch to Agent mode</div><div class="step-desc">Click the chat icon in the Activity Bar or press <span class="ic">Ctrl/Cmd+Alt+I</span>. In the input dropdown, select <strong>Agent</strong>. Agent mode lets Copilot run terminal commands, edit files, and iterate autonomously.</div></div></div>
-            <div class="step"><div class="sn"></div><div class="step-body"><div class="step-title">Select Claude as your model for complex tasks</div><div class="step-desc">Bottom of the Copilot Chat input box &rarr; click the model name &rarr; select <strong>Claude Sonnet</strong> or <strong>Claude Opus</strong>. Use Claude for architecture questions, long docs, and deep reasoning. Switch back to GPT-4o for quick completions.</div></div></div>
-            <div class="step"><div class="sn"></div><div class="step-body"><div class="step-title">Install supporting extensions</div><div class="step-desc">For cloud/DevOps work: <strong>HashiCorp Terraform</strong>, <strong>Azure Bicep</strong>, <strong>Kubernetes (ms-kubernetes-tools)</strong>, <strong>Docker</strong>, <strong>YAML (Red Hat)</strong>, <strong>GitLens</strong>. These give Copilot schema awareness &mdash; it generates syntactically correct configs, not just plausible guesses.</div></div></div>
-            <div class="step"><div class="sn"></div><div class="step-body"><div class="step-title">Create the workspace instructions file</div><div class="step-desc">Create <span class="ic">.github/copilot-instructions.md</span> at your repo root. Every Copilot prompt in the workspace automatically includes this context. Put your naming conventions, tech stack, provider versions, and security requirements here. See the example below.</div></div></div>
-            <div class="step"><div class="sn"></div><div class="step-body"><div class="step-title">Wire up MCP servers (optional, powerful)</div><div class="step-desc">Create <span class="ic">.vscode/mcp.json</span> to connect tool servers. This enables agent mode to actually run commands &mdash; not just suggest them. GitHub MCP lets the agent open PRs; shell MCP lets it run terraform, kubectl, az.</div></div></div>
-          </div>
-
-          <div class="code-block">
-            <span class="code-label">&#128196; .github/copilot-instructions.md &mdash; paste and fill in your details</span>
-            <pre>## Project Context
-[Brief: what this repo does, what team owns it]
-
-## Tech Stack
-- Language: Python 3.12 / Go 1.22 / TypeScript 5 / Java 21
-- IaC: Terraform, azurerm >= 3.90.0
-- Container: Docker + AKS 1.30 / EKS 1.29
-- CI/CD: GitHub Actions (OIDC auth, never client secrets)
-- Secrets: Azure Key Vault / AWS Secrets Manager
-
-## Naming Convention
-{env}-{region-short}-{service}-{instance}  e.g. prod-eus2-api-01
-
-## Non-Negotiable Defaults
-- Tags on every cloud resource: Environment, Owner, CostCenter, Project
-- No hardcoded secrets anywhere in code or config
-- All storage encrypted at rest with CMK
-- Deny-by-default network rules, no 0.0.0.0/0 inbound
-
-## Test Requirements
-- Unit tests required for all new functions
-- Integration tests for all API endpoints
-- Run: pytest / go test / jest (pick what applies)</pre>
-          </div>
-
-          <div class="code-block">
-            <span class="code-label">&#128196; .vscode/mcp.json &mdash; add MCP tool servers</span>
-            <pre>{
+      <h2>Give it Azure context with the Azure MCP Server</h2>
+      <p>The Azure MCP Server lets the assistant look things up in your Azure environment: list resource groups, read a resource's configuration, query logs. Install it as a VS Code extension (it also comes with GitHub Copilot for Azure), or add it to the workspace in <code>.vscode/mcp.json</code>:</p>
+<pre><code>{
   "servers": {
-    "filesystem": {
+    "Azure MCP Server": {
       "command": "npx",
-      "args": ["-y", "@modelcontextprotocol/server-filesystem", "."]
-    },
-    "github": {
-      "command": "npx",
-      "args": ["-y", "@modelcontextprotocol/server-github"],
-      "env": { "GITHUB_PERSONAL_ACCESS_TOKEN": "${env:GITHUB_TOKEN}" }
-    },
-    "shell": {
-      "command": "npx",
-      "args": ["-y", "@modelcontextprotocol/server-shell"],
-      "env": {
-        "SHELL_ALLOW_LIST": "terraform,kubectl,az,git,docker,helm,npm,go,pytest"
-      }
+      "args": ["-y", "@azure/mcp@latest", "server", "start"]
     }
   }
-}</pre>
-          </div>
-        </div>
-
-        <!-- JETBRAINS -->
-        <div class="tab-panel" id="tab-jb">
-          <div class="step-list">
-            <div class="step"><div class="sn"></div><div class="step-body"><div class="step-title">Install GitHub Copilot plugin</div><div class="step-desc">File &rarr; Settings (or Preferences on Mac) &rarr; Plugins &rarr; Marketplace &rarr; search &ldquo;GitHub Copilot&rdquo; &rarr; Install &rarr; Restart IDE. Works in IntelliJ IDEA, GoLand, PyCharm, WebStorm, Rider, DataGrip, and CLion.</div></div></div>
-            <div class="step"><div class="sn"></div><div class="step-body"><div class="step-title">Sign in and verify completions</div><div class="step-desc">Tools &rarr; GitHub Copilot &rarr; Sign in. Once signed in, open any file and start typing. Ghost completions appear inline. <span class="ic">Tab</span> to accept, <span class="ic">Alt+]</span> to cycle alternatives.</div></div></div>
-            <div class="step"><div class="sn"></div><div class="step-body"><div class="step-title">Open Copilot Chat in JetBrains</div><div class="step-desc">View &rarr; Tool Windows &rarr; GitHub Copilot Chat. The same Chat panel, agent mode, and model picker available in VS Code work identically here. Select Claude from the model dropdown for long-context tasks.</div></div></div>
-            <div class="step"><div class="sn"></div><div class="step-body"><div class="step-title">Install Amazon Q for Java/AWS work</div><div class="step-desc">Plugins &rarr; Marketplace &rarr; &ldquo;AWS Toolkit&rdquo; (includes Amazon Q Developer). Essential if your stack uses Java Spring Boot, AWS Lambda, or CDK &mdash; Q&rsquo;s Java understanding is significantly better than Copilot for enterprise Java patterns.</div></div></div>
-            <div class="step"><div class="sn"></div><div class="step-body"><div class="step-title">copilot-instructions.md works automatically</div><div class="step-desc">The same <span class="ic">.github/copilot-instructions.md</span> file is read by the JetBrains Copilot plugin. Your conventions carry over from VS Code &mdash; no duplicate config.</div></div></div>
-            <div class="step"><div class="sn"></div><div class="step-body"><div class="step-title">MCP servers in JetBrains</div><div class="step-desc">Settings &rarr; Tools &rarr; GitHub Copilot &rarr; MCP Servers (available in Copilot plugin 1.5+). Add the same server configs as VS Code. The JetBrains AI Assistant plugin (separate) also has MCP support under Settings &rarr; Tools &rarr; AI Assistant &rarr; Model Context Protocol.</div></div></div>
-          </div>
-          <div class="callout c-tip">
-            <div class="ct">&#128161; When JetBrains beats VS Code</div>
-            <p>For <strong>Java, Kotlin, Scala, Go, and Python</strong> &mdash; JetBrains IDEs have deeper language server integration than VS Code. Copilot completions in IntelliJ are more accurate for Java Spring patterns, Go interfaces, and Python type hints because the IDE&rsquo;s type inference provides richer context to the model. If your stack is primarily one of these languages, use JetBrains as your primary IDE.</p>
-          </div>
-        </div>
-
-        <!-- VISUAL STUDIO -->
-        <div class="tab-panel" id="tab-vs">
-          <div class="step-list">
-            <div class="step"><div class="sn"></div><div class="step-body"><div class="step-title">Install GitHub Copilot extension</div><div class="step-desc">Extensions &rarr; Manage Extensions &rarr; Online &rarr; search &ldquo;GitHub Copilot&rdquo; &rarr; Install. Requires Visual Studio 2022 version 17.10 or later. Restart when prompted.</div></div></div>
-            <div class="step"><div class="sn"></div><div class="step-body"><div class="step-title">Sign in and activate</div><div class="step-desc">The GitHub account sign-in prompt appears on restart. Complete the OAuth flow. Copilot Chat opens via View &rarr; GitHub Copilot Chat or the toolbar button.</div></div></div>
-            <div class="step"><div class="sn"></div><div class="step-body"><div class="step-title">Agent mode and model selection</div><div class="step-desc">In the Copilot Chat panel, the mode selector and model picker work the same as VS Code. Select Agent mode for multi-step tasks; Claude for .NET architecture reviews or complex C# refactors.</div></div></div>
-            <div class="step"><div class="sn"></div><div class="step-body"><div class="step-title">Inline chat shortcut</div><div class="step-desc">Select any code block &rarr; <span class="ic">Alt+/</span> to open inline Copilot Chat directly in the editor. Useful for: &ldquo;fix this method&rdquo;, &ldquo;add null checks&rdquo;, &ldquo;explain what this LINQ query does&rdquo; without switching to the chat panel.</div></div></div>
-          </div>
-          <div class="callout c-tip">
-            <div class="ct">&#128161; Best use in Visual Studio</div>
-            <p>Visual Studio&rsquo;s Copilot integration is strongest for <strong>.NET, C#, F#, and Azure Functions</strong>. Use it to: generate Entity Framework migrations from a plain-English description, refactor async patterns, write unit tests with xUnit/NUnit, and generate Azure SDK client code from the REST API spec.</p>
-          </div>
-        </div>
-
-        <!-- ECLIPSE -->
-        <div class="tab-panel" id="tab-ecl">
-          <div class="step-list">
-            <div class="step"><div class="sn"></div><div class="step-body"><div class="step-title">Install Amazon Q Developer (recommended for Eclipse)</div><div class="step-desc">Help &rarr; Eclipse Marketplace &rarr; search &ldquo;AWS Toolkit&rdquo; &rarr; Install. This gives you Amazon Q Developer inline completions and chat. Copilot&rsquo;s Eclipse support is limited; Amazon Q is the stronger choice for Eclipse Java environments.</div></div></div>
-            <div class="step"><div class="sn"></div><div class="step-body"><div class="step-title">Install Codeium for broader model access</div><div class="step-desc">Eclipse Marketplace &rarr; search &ldquo;Codeium&rdquo; &rarr; Install. Codeium provides inline completions and a chat panel in Eclipse with free tier. Broader model support than Q if you are not on AWS.</div></div></div>
-            <div class="step"><div class="sn"></div><div class="step-body"><div class="step-title">Sign in to your chosen tool</div><div class="step-desc">Amazon Q: AWS Builder ID (free) or AWS IAM Identity Center for Pro. Codeium: create a free account at codeium.com. Both authenticate via OAuth in the browser.</div></div></div>
-            <div class="step"><div class="sn"></div><div class="step-body"><div class="step-title">Use AI chat for Eclipse-specific help</div><div class="step-desc">Ask: &ldquo;Convert this Maven POM to use Spring Boot 3.3&rdquo;, &ldquo;Add SLF4J logging to this Java class&rdquo;, &ldquo;Write a JUnit 5 test for this service class.&rdquo; The chat panel works like any other IDE.</div></div></div>
-          </div>
-        </div>
-
-        <!-- NEOVIM -->
-        <div class="tab-panel" id="tab-nv">
-          <div class="step-list">
-            <div class="step"><div class="sn"></div><div class="step-body"><div class="step-title">Install GitHub Copilot via plugin manager</div><div class="step-desc">Using lazy.nvim: add <span class="ic">{ "github/copilot.vim" }</span> to your plugins list. Or with packer: <span class="ic">use 'github/copilot.vim'</span>. Run <span class="ic">:Copilot setup</span> after install to authenticate.</div></div></div>
-            <div class="step"><div class="sn"></div><div class="step-body"><div class="step-title">Install CopilotChat.nvim for chat interface</div><div class="step-desc">Add <span class="ic">{ "CopilotC-Nvim/CopilotChat.nvim" }</span>. This adds a proper chat panel. Open with <span class="ic">&lt;leader&gt;cc</span> (configurable). You can ask questions about the current buffer or entire workspace.</div></div></div>
-            <div class="step"><div class="sn"></div><div class="step-body"><div class="step-title">Alternative: avante.nvim for Claude + GPT-4o</div><div class="step-desc">Add <span class="ic">{ "yetone/avante.nvim" }</span>. Configure with your Anthropic or OpenAI API key in the setup. Avante gives you inline diff-based editing &mdash; propose a change, accept or reject it &mdash; similar to Cursor&rsquo;s Composer in Neovim.</div></div></div>
-            <div class="step"><div class="sn"></div><div class="step-body"><div class="step-title">MCP in Neovim via mcphub.nvim</div><div class="step-desc">Add <span class="ic">{ "ravibrock/mcphub.nvim" }</span>. Configure MCP servers in the setup function. Neovim&rsquo;s MCP support is community-driven but functional for filesystem and shell server use.</div></div></div>
-          </div>
-          <div class="callout c-tip">
-            <div class="ct">&#128161; Neovim + AI sweet spot</div>
-            <p>Neovim with Copilot is excellent for engineers who live in the terminal &mdash; SREs, platform engineers, infrastructure specialists. The inline completion quality is the same as VS Code. The chat interface is less visual but faster to operate with keyboard-first workflows. Pair it with <span class="ic">tmux</span> and a terminal-based MCP shell server for a fully keyboard-driven agentic environment.</p>
-          </div>
-        </div>
-      </div><!-- /ide-tabs -->
-
-      <!-- ═══════════════════════════ SECTION 3 ═══════════════════════════ -->
-      <div class="sh">
-        <div class="sh-badge b3">&#127987;&#65039;</div>
-        <div class="sh-text"><h2>Section 3 &mdash; Real Scenarios: Software Developer</h2><p>Stop Googling. Ask the agent in your IDE.</p></div>
-      </div>
-
-      <!-- SCENARIO: DEBUG NULL POINTER -->
-      <div class="scenario">
-        <div class="sc-bar sc-persona">&#128187; Developer &mdash; Debugging a NullPointerException</div>
-        <div class="sc-bar sc-you">You (any IDE, Copilot Chat)</div>
-        <div class="sc-body">I'm getting a NullPointerException at UserService.java:47.
-Here's the stack trace and the method. Why is this happening
-and what's the safest fix?
-
-[paste stack trace + method code]</div>
-        <div class="sc-bar sc-ai">Agent response</div>
-        <div class="sc-body">The NPE occurs because `user.getProfile()` returns null when
-the user was created before the Profile table existed (legacy
-records). The call on line 47 assumes profile is always set.
-
-Safe fix: add a null check before access.
-
-// Before
-String email = user.getProfile().getEmail();
-
-// After - Option 1: null guard
-String email = user.getProfile() != null
-    ? user.getProfile().getEmail() : "";
-
-// After - Option 2: Optional (preferred for new code)
-String email = Optional.ofNullable(user.getProfile())
-    .map(Profile::getEmail).orElse("");
-
-Also recommend: add a DB migration to backfill Profile records
-for legacy users so this is a one-time fix, not ongoing handling.</div>
-        <div class="sc-bar sc-result">&#9989; What you got instead of 20 minutes of Google + Stack Overflow</div>
-        <div class="sc-result-body">Root cause identified, two fix options with trade-offs explained, and a follow-up recommendation to prevent recurrence. Total time: under 30 seconds.</div>
-      </div>
-
-      <!-- SCENARIO: CODE REVIEW -->
-      <div class="scenario">
-        <div class="sc-bar sc-persona">&#128187; Developer &mdash; Getting a code review before raising a PR</div>
-        <div class="sc-bar sc-you">You</div>
-        <div class="sc-body">Review this Python function for:
-1. Security issues (injection, input validation)
-2. Performance problems
-3. Missing error handling
-4. Any Python anti-patterns
-
-[paste function]</div>
-        <div class="sc-bar sc-ai">Agent response</div>
-        <div class="sc-body">Security: Line 12 - `query = f"SELECT * FROM orders WHERE id={id}"`
-This is SQL injection. Use parameterised queries:
-cursor.execute("SELECT * FROM orders WHERE id = %s", (id,))
-
-Performance: Line 28 - you're calling `len(items)` inside the
-for loop. Python re-evaluates this every iteration.
-Fix: cache it before the loop: total = len(items)
-
-Error handling: The database call on line 19 has no try/except.
-If the connection drops, this raises an unhandled exception.
-Wrap in try/except and return a meaningful error response.
-
-Anti-pattern: Line 34 uses bare `except:` which catches
-everything including KeyboardInterrupt. Use `except Exception as e:`</div>
-        <div class="sc-bar sc-result">&#9989; What you got</div>
-        <div class="sc-result-body">A structured review that catches SQL injection (a real security vulnerability) plus three quality issues, with exact line numbers and corrected code. Faster than waiting for a team member and more thorough than a quick self-review.</div>
-      </div>
-
-      <!-- SCENARIO: WRITE TESTS -->
-      <div class="scenario">
-        <div class="sc-bar sc-persona">&#128187; Developer &mdash; Writing tests for existing code</div>
-        <div class="sc-bar sc-you">You</div>
-        <div class="sc-body">Generate Jest unit tests for this TypeScript service class.
-Cover: happy path, null inputs, error responses from the
-API dependency, and the pagination edge case where
-totalPages is 0.
-
-[paste service class]</div>
-        <div class="sc-bar sc-ai">Agent (with filesystem MCP, writes the test file directly)</div>
-        <div class="sc-body">Writing: src/__tests__/order-service.test.ts
-
-Generated 8 test cases:
-✓ fetchOrders - returns paginated results correctly
-✓ fetchOrders - throws when API returns 401
-✓ fetchOrders - throws when API returns 500
-✓ fetchOrders - handles null userId gracefully
-✓ fetchOrders - handles totalPages = 0 (empty result set)
-✓ createOrder - validates required fields
-✓ createOrder - returns order ID on success
-✓ createOrder - rolls back on payment failure
-
-Running: npm test -- --testPathPattern=order-service
-Tests: 8 passed, 0 failed</div>
-        <div class="sc-bar sc-result">&#9989; What you got</div>
-        <div class="sc-result-body">The agent wrote the test file, ran it, and confirmed all 8 pass. Edge cases you described in plain English were translated into actual test cases. Writing these manually would take 45&ndash;60 minutes.</div>
-      </div>
-
-      <!-- ═══════════════════════════ SECTION 4 ═══════════════════════════ -->
-      <div class="sh">
-        <div class="sh-badge b4">&#128640;</div>
-        <div class="sh-text"><h2>Section 4 &mdash; Real Scenarios: DevOps Engineer</h2><p>Troubleshoot deployments, fix pipelines, manage infra &mdash; without leaving your terminal</p></div>
-      </div>
-
-      <!-- SCENARIO: POD CRASH -->
-      <div class="scenario">
-        <div class="sc-bar sc-persona">&#128640; DevOps &mdash; Kubernetes pod keeps crashing (OOMKilled)</div>
-        <div class="sc-bar sc-you">You (VS Code with kubectl MCP server, or paste log output)</div>
-        <div class="sc-body">My payment-service pod keeps restarting with OOMKilled.
-Here's kubectl describe pod output and the current
-resource limits. What's wrong and what should I set?
-
-Name: payment-service-7d8f9b-xk2p4
-Limits: memory: 256Mi, cpu: 200m
-Last State: OOMKilled, Exit Code: 137
-Restart Count: 14</div>
-        <div class="sc-bar sc-ai">Agent response</div>
-        <div class="sc-body">OOMKilled (exit code 137) means the container exceeded its 256Mi
-memory limit. The 14 restarts confirm this is repeated.
-
-Diagnosis steps:
-1. Check actual memory use before OOM:
-   kubectl top pod payment-service-7d8f9b-xk2p4 --containers
-
-2. Get memory over time from Prometheus (if available):
-   container_memory_working_set_bytes{pod="payment-service-*"}
-
-Likely causes for a payment service:
-- In-memory caching without eviction (Redis or local cache)
-- Large payload processing without streaming
-- Memory leak in a library (common: JDBC connection pools)
-
-Recommended fix:
-resources:
-  requests:
-    memory: "256Mi"
-    cpu: "200m"
-  limits:
-    memory: "512Mi"    # double the current limit as starting point
-    cpu: "500m"
-
-Also add a liveness probe so Kubernetes restarts faster
-instead of waiting for the full OOM cycle.</div>
-        <div class="sc-bar sc-result">&#9989; What you got instead of Googling &ldquo;kubernetes oomkilled exit 137&rdquo;</div>
-        <div class="sc-result-body">Root cause analysis, exact kubectl commands to diagnose further, likely causes specific to your service type, and a ready-to-paste resource limits fix. Delivered in context, not across 5 Stack Overflow tabs.</div>
-      </div>
-
-      <!-- SCENARIO: PIPELINE FAILURE -->
-      <div class="scenario">
-        <div class="sc-bar sc-persona">&#128640; DevOps &mdash; GitHub Actions pipeline failing</div>
-        <div class="sc-bar sc-you">You</div>
-        <div class="sc-body">My Terraform apply step is failing in GitHub Actions.
-Here's the error log. What is causing this and how do I fix
-the pipeline without changing the Terraform code?
-
-Error: Error building AzureRM Client: obtain subscription(...)
-  authorization failed: no cached authorizations
-
-Job: terraform-apply
-  uses: hashicorp/setup-terraform@v3
-  env:
-    ARM_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
-    ARM_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}</div>
-        <div class="sc-bar sc-ai">Agent response</div>
-        <div class="sc-body">This error means the azurerm provider cannot authenticate to Azure.
-The most common cause: you're using client ID but missing the
-authentication method. With OIDC (recommended) you need:
-
-Required environment variables for OIDC:
-  ARM_CLIENT_ID        ✓ set
-  ARM_SUBSCRIPTION_ID  ✓ set
-  ARM_TENANT_ID        ✗ MISSING
-  ARM_USE_OIDC: "true" ✗ MISSING
-
-Updated workflow step:
-- name: Terraform Apply
-  env:
-    ARM_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
-    ARM_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
-    ARM_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
-    ARM_USE_OIDC: "true"
-  run: terraform apply -auto-approve
-
-Also check: the federated credential on the Microsoft Entra app registration
-registration must have a subject matching your repo and branch:
-repo:your-org/your-repo:ref:refs/heads/main</div>
-        <div class="sc-bar sc-result">&#9989; What you got</div>
-        <div class="sc-result-body">Exact missing variables identified, corrected YAML ready to paste, and the often-missed federated credential check that catches people the second time. This is a 30-second fix vs. 20 minutes of docs-reading.</div>
-      </div>
-
-      <!-- SCENARIO: DEPLOY HELM CHART -->
-      <div class="scenario">
-        <div class="sc-bar sc-persona">&#128640; DevOps &mdash; Write a Helm chart from scratch</div>
-        <div class="sc-bar sc-you">You (Agent mode + filesystem MCP)</div>
-        <div class="sc-body">Create a production-ready Helm chart for my FastAPI service.
-Requirements:
-- Image: myregistry.azurecr.io/fastapi-service:latest
-- Replicas: 3 (configurable via values)
-- Resource limits: 500m CPU, 512Mi memory
-- HPA: scale 3-10 based on 70% CPU
-- Readiness probe: GET /health, port 8000
-- Liveness probe: GET /health, port 8000, initialDelaySeconds 30
-- ConfigMap for APP_ENV and LOG_LEVEL
-- Secret reference for DATABASE_URL from existing k8s secret</div>
-        <div class="sc-bar sc-ai">Agent (writes files directly)</div>
-        <div class="sc-body">Creating helm/fastapi-service/
-  Chart.yaml
-  values.yaml
-  templates/deployment.yaml
-  templates/service.yaml
-  templates/hpa.yaml
-  templates/configmap.yaml
-  templates/ingress.yaml
-
-Running: helm lint helm/fastapi-service/
-==> Linting helm/fastapi-service/
-1 chart(s) linted, 0 chart(s) failed
-
-Running: helm template fastapi-service helm/fastapi-service/ --dry-run
-[output: 6 valid Kubernetes manifests rendered]</div>
-        <div class="sc-bar sc-result">&#9989; What you got</div>
-        <div class="sc-result-body">A complete, production-ready Helm chart with 6 files, auto-linted and dry-run validated &mdash; all from one prompt. Writing this manually takes 45&ndash;90 minutes and almost always produces first-draft errors.</div>
-      </div>
-
-      <!-- ═══════════════════════════ SECTION 5 ═══════════════════════════ -->
-      <div class="sh">
-        <div class="sh-badge b5">&#127963;&#65039;</div>
-        <div class="sh-text"><h2>Section 5 &mdash; Real Scenarios: Cloud Architect</h2><p>Design, review, document, and validate &mdash; all inside the IDE</p></div>
-      </div>
-
-      <!-- SCENARIO: ARCHITECTURE REVIEW -->
-      <div class="scenario">
-        <div class="sc-bar sc-persona">&#127963;&#65039; Architect &mdash; Reviewing an architecture for failure modes</div>
-        <div class="sc-bar sc-you">You (Claude model selected for long context)</div>
-        <div class="sc-body">Review this proposed architecture for our payment processing system.
-Identify: single points of failure, blast radius if the primary
-region goes down, security gaps, and which of the 5 Azure
-Well-Architected Framework pillars this scores worst on.
-
-[paste architecture description or paste your Mermaid diagram]</div>
-        <div class="sc-bar sc-ai">Agent response (Claude)</div>
-        <div class="sc-body">Single Points of Failure:
-1. The Azure SQL primary has no read replica configured.
-   If the primary fails, reads and writes both fail during failover.
-2. The API Management instance is in one region with no
-   geo-redundancy configured. APIM failover is not automatic.
-
-Blast Radius - Primary Region Failure:
-- Payment submission: DOWN (no secondary API endpoint in APIM)
-- Order lookup: DEGRADED (Cosmos DB multi-region reads work)
-- Notification service: DOWN (Service Bus not geo-redundant)
-
-WAF Pillar Weakness: Reliability (score: lowest)
-- No defined RTO/RPO targets documented
-- No chaos engineering or fault injection tested
-- Backup restore has never been validated in production
-
-Security Gap:
-- Managed identities are used correctly
-- However: the Azure Container Registry has no
-  vulnerability scanning policy on image push</div>
-        <div class="sc-bar sc-result">&#9989; What you got</div>
-        <div class="sc-result-body">A structured failure mode analysis that would typically require a 2-hour Architecture Review Board session compressed into a 60-second response. Use the output to drive the follow-up design conversations.</div>
-      </div>
-
-      <!-- SCENARIO: IaC SECURITY SCAN -->
-      <div class="scenario">
-        <div class="sc-bar sc-persona">&#127963;&#65039; Architect &mdash; Security scan of all Terraform before a release</div>
-        <div class="sc-bar sc-you">You (@workspace active)</div>
-        <div class="sc-body">@workspace Scan all Terraform files in environments/prod/
-against CIS Azure Benchmark v2.0 and Azure Security Benchmark v3.
-Return: file, line, control ID, risk level, and exact fix.</div>
-        <div class="sc-bar sc-ai">Agent (reads all files via @workspace)</div>
-        <div class="sc-body">Scanned 18 files. Found 4 issues:
-
-HIGH  environments/prod/network.tf:41
-      NS-1: NSG rule allows inbound RDP from 0.0.0.0/0
-      Fix: restrict source_address_prefix to corporate IP range
-
-MEDIUM  environments/prod/storage.tf:23
-        DP-3: supportsHttpsTrafficOnly not explicitly declared
-        Fix: add supportsHttpsTrafficOnly = true (for audit evidence)
-
-MEDIUM  environments/prod/aks.tf:88
-        PA-7: local_account_disabled not set to true
-        Fix: add local_account_disabled = true
-
-LOW  environments/prod/keyvault.tf:14
-     LT-4: diagnostic_settings logging retention < 90 days (set to 30)
-     Fix: change retention_days = 30 to retention_days = 90</div>
-        <div class="sc-bar sc-result">&#9989; What you got</div>
-        <div class="sc-result-body">A pre-release security scan that replaces a 60-minute manual Checkov review. One HIGH finding (open RDP) would have been caught in production otherwise. Control IDs are ready to copy into your security review report.</div>
-      </div>
-
-      <!-- ═══════════════════════════ SECTION 6 ═══════════════════════════ -->
-      <div class="sh">
-        <div class="sh-badge b6">&#128279;</div>
-        <div class="sh-text"><h2>Section 6 &mdash; MCP Tool Servers: What the Agent Can Actually Do</h2><p>The difference between &ldquo;AI suggests&rdquo; and &ldquo;AI does&rdquo;</p></div>
-      </div>
-
-      <p>MCP (Model Context Protocol) is the open standard that lets AI agents call real tools. Without MCP, the agent can only suggest commands and code. With MCP, it runs them, reads the output, and iterates. Here are the most useful servers for dev and DevOps teams:</p>
-
-      <table class="mcp-table">
-        <thead><tr><th>MCP Server</th><th>What the Agent Can Do</th><th>Most Useful For</th></tr></thead>
-        <tbody>
-          <tr><td><strong>server-filesystem</strong></td><td>Read, write, create, and list files in your project. Edits real files, not suggestions.</td><td>All personas &mdash; the baseline server, always include this</td></tr>
-          <tr><td><strong>server-github</strong></td><td>Create branches, open/close PRs, post PR comments, search code, manage issues, list workflows</td><td>DevOps: automate PR creation from agent. Dev: open issue from a bug report.</td></tr>
-          <tr><td><strong>server-shell</strong></td><td>Execute terminal commands from an allow list: terraform, kubectl, az, git, docker, helm, npm, pytest, go test</td><td>DevOps: the most powerful server. Validates, deploys, runs tests autonomously.</td></tr>
-          <tr><td><strong>mcp-server-azure-cli</strong></td><td>Run <span class="ic">az</span> commands: list resources, check policy compliance, compare live state vs Terraform</td><td>Architect: audit live Azure environment from the IDE without terminal switching</td></tr>
-          <tr><td><strong>server-kubernetes</strong></td><td>List pods, get logs, describe resources, check deployment status, exec into containers</td><td>DevOps: read live cluster state so the agent can diagnose and suggest fixes based on actual conditions</td></tr>
-          <tr><td><strong>server-postgres / server-sqlite</strong></td><td>Query databases, read schema, explain query plans, generate migrations</td><td>Dev: generate accurate migration scripts from actual schema, not assumed schema</td></tr>
-          <tr><td><strong>server-fetch</strong></td><td>Fetch URLs: read provider docs, OpenAPI specs, REST API definitions without leaving the IDE</td><td>All personas: agent pulls the latest Terraform registry docs before generating code</td></tr>
-          <tr><td><strong>server-docker</strong></td><td>List containers, images, logs; run docker commands; inspect compose configs</td><td>Dev/DevOps: diagnose container issues from within IDE without switching to Docker Desktop</td></tr>
-        </tbody>
-      </table>
-
-      <div class="callout c-warn">
-        <div class="ct">&#9888; Security rule for MCP shell server</div>
-        <p>Always configure <span class="ic">SHELL_ALLOW_LIST</span> to restrict which commands the agent can run. Never allow unrestricted shell access. Start with: <span class="ic">terraform,git,kubectl,az,helm,npm,pytest,go</span>. Review and trim the list to only what your workflow actually needs.</p>
-      </div>
-
-      <!-- ═══════════════════════════ SECTION 7 ═══════════════════════════ -->
-      <div class="sh">
-        <div class="sh-badge b7">&#9881;&#65039;</div>
-        <div class="sh-text"><h2>Section 7 &mdash; The Complete Build &amp; Deploy Workflow</h2><p>From code to production without leaving your IDE</p></div>
-      </div>
-
-      <div class="wf">
-        <div class="wf-step"><div class="wf-icon">&#128196;</div><div class="wf-label">Scaffold</div><div class="wf-sub">Agent writes code/IaC files</div></div>
-        <div class="wf-arrow">&#8250;</div>
-        <div class="wf-step"><div class="wf-icon">&#9989;</div><div class="wf-label">Validate</div><div class="wf-sub">Agent runs linters + tests</div></div>
-        <div class="wf-arrow">&#8250;</div>
-        <div class="wf-step"><div class="wf-icon">&#128737;&#65039;</div><div class="wf-label">Security</div><div class="wf-sub">CIS/OWASP scan prompt</div></div>
-        <div class="wf-arrow">&#8250;</div>
-        <div class="wf-step"><div class="wf-icon">&#128196;</div><div class="wf-label">Document</div><div class="wf-sub">README + API docs generated</div></div>
-        <div class="wf-arrow">&#8250;</div>
-        <div class="wf-step"><div class="wf-icon">&#128640;</div><div class="wf-label">PR</div><div class="wf-sub">Agent branches, commits, opens PR</div></div>
-        <div class="wf-arrow">&#8250;</div>
-        <div class="wf-step"><div class="wf-icon">&#128736;&#65039;</div><div class="wf-label">Pipeline</div><div class="wf-sub">CI runs on PR, deploy on merge</div></div>
-      </div>
-
-      <p>Here are the six prompts for this workflow, issued in sequence in one Copilot Chat conversation. The agent maintains context across the chain &mdash; it knows what it built in step 1 when reviewing in step 3.</p>
-
-      <div class="code-block">
-        <span class="code-label">&#128203; Prompt 1 &mdash; Scaffold</span>
-        <pre>Create a [service type, e.g. FastAPI REST service / Terraform module / Helm chart]
-for [describe what it does].
-Use my tech stack from the workspace instructions.
-Requirements: [list your specific requirements].
-After creating, validate it and report any errors.</pre>
-      </div>
-
-      <div class="code-block">
-        <span class="code-label">&#128203; Prompt 2 &mdash; Test</span>
-        <pre>Write unit tests for the code we just created.
-Cover: happy path, error paths, edge cases for [describe edge cases].
-Run the tests and fix anything that fails before showing me the results.</pre>
-      </div>
-
-      <div class="code-block">
-        <span class="code-label">&#128203; Prompt 3 &mdash; Security Review</span>
-        <pre>Review the code/IaC we just created for security issues.
-For application code: check against OWASP Top 10.
-For IaC: check against CIS Azure Benchmark v2 / AWS Security Benchmark.
-List findings with: location, risk level, and exact fix.</pre>
-      </div>
-
-      <div class="code-block">
-        <span class="code-label">&#128203; Prompt 4 &mdash; Document</span>
-        <pre>Generate documentation for what we just built:
-- README with purpose, setup, usage examples
-- For APIs: OpenAPI / Swagger annotations
-- For IaC modules: inputs table, outputs table, compliance controls satisfied</pre>
-      </div>
-
-      <div class="code-block">
-        <span class="code-label">&#128203; Prompt 5 &mdash; PR (requires GitHub MCP)</span>
-        <pre>Create a feature branch called feat/[name], commit all the files
-we created in this session with a meaningful commit message,
-and open a draft PR titled "[title]" with a description summarising
-what was built and what was tested.</pre>
-      </div>
-
-      <!-- ═══════════════════════════ SECTION 8 ═══════════════════════════ -->
-      <div class="sh">
-        <div class="sh-badge b8">&#128161;</div>
-        <div class="sh-text"><h2>Section 8 &mdash; Prompt Patterns That Always Work</h2><p>Reusable prompt suffixes that upgrade any response</p></div>
-      </div>
-
-      <div class="callout c-do">
-        <div class="ct">&#9989; Add these to any prompt for better results</div>
-        <ul>
-          <li><strong>&ldquo;Explain your reasoning for any non-obvious choices.&rdquo;</strong> &mdash; Adds inline comments. Makes review fast. Stops you accepting code you don&rsquo;t understand.</li>
-          <li><strong>&ldquo;What assumptions did you make?&rdquo;</strong> (ask after any response) &mdash; Surfaces hidden choices like &ldquo;I assumed Python 3.11&rdquo; or &ldquo;I assumed azurerm 4.x&rdquo; before they cause failures.</li>
-          <li><strong>&ldquo;What are the failure modes?&rdquo;</strong> &mdash; Forces the model to surface edge cases it is aware of but didn&rsquo;t mention. Gold for architecture and DevOps tasks.</li>
-          <li><strong>&ldquo;Walk me through this step by step before writing any code.&rdquo;</strong> &mdash; For complex tasks, get the plan first. Catch misunderstandings before the agent writes 200 lines in the wrong direction.</li>
-          <li><strong>&ldquo;After generating, run [validate command] and fix any errors.&rdquo;</strong> &mdash; Closes the validate-fix loop autonomously. You see only working code.</li>
-          <li><strong>&ldquo;Give me the simplest possible version first, then I&rsquo;ll tell you what to add.&rdquo;</strong> &mdash; Avoids over-engineering. Iterate from a working minimum instead of debugging a complex first draft.</li>
-        </ul>
-      </div>
-
-      <div class="callout c-stop">
-        <div class="ct">&#10060; Never do these</div>
-        <ul>
-          <li><strong>Never paste secrets, API keys, or connection strings into the chat window</strong> &mdash; replace with <span class="ic">[REDACTED]</span> or variable names. Even on enterprise plans.</li>
-          <li><strong>Never run <span class="ic">terraform apply</span> or <span class="ic">kubectl apply</span> on production from agent mode</strong> without reviewing the plan/diff first. Agent mode executes what you ask. That&rsquo;s the power. That&rsquo;s also the risk.</li>
-          <li><strong>Never accept AI-generated IAM permissions, firewall rules, or RBAC assignments without manual review.</strong> These are the highest blast-radius outputs and models frequently generate overly permissive defaults.</li>
-          <li><strong>Never assume the model knows your specific environment.</strong> Without <span class="ic">copilot-instructions.md</span> and explicit context, it generates generic code that looks right and integrates wrong.</li>
-          <li><strong>Never use a vague prompt for a complex task.</strong> &ldquo;Write a deployment pipeline&rdquo; gets you a demo. &ldquo;Write a GitHub Actions pipeline for Python 3.12, OIDC to Azure, pytest on PR, terraform plan on PR, terraform apply on merge to main&rdquo; gets you what you need.</li>
-        </ul>
-      </div>
-
-      <!-- CHECKLIST -->
-      <div class="sh">
-        <div class="sh-badge b1">&#127894;&#65039;</div>
-        <div class="sh-text"><h2>Your First Week Checklist</h2><p>Do these in order &mdash; each one builds on the previous</p></div>
-      </div>
-
-      <div class="step-list">
-        <div class="step"><div class="sn"></div><div class="step-body"><div class="step-title">Install GitHub Copilot in your IDE</div><div class="step-desc">VS Code, JetBrains, Visual Studio, Neovim &mdash; follow the steps in Section 2 for your editor. Verify inline completions work.</div></div></div>
-        <div class="step"><div class="sn"></div><div class="step-body"><div class="step-title">Create .github/copilot-instructions.md in your main repo</div><div class="step-desc">10 minutes of setup that saves hours across the team. Paste your naming convention, tech stack, and security defaults. This is the most impactful thing you can do.</div></div></div>
-        <div class="step"><div class="sn"></div><div class="step-body"><div class="step-title">Switch to Agent mode and try one real task</div><div class="step-desc">In Copilot Chat, switch to Agent mode. Ask it to create a test file, a config, or a small service for something you are actually working on. Watch it write and validate in one shot.</div></div></div>
-        <div class="step"><div class="sn"></div><div class="step-body"><div class="step-title">Try Claude for your next architecture question</div><div class="step-desc">Switch the model to Claude Sonnet. Paste in an architecture you&rsquo;re designing and ask: &ldquo;What are the failure modes? What did I miss?&rdquo; Claude handles long-context reasoning significantly better than GPT-4o.</div></div></div>
-        <div class="step"><div class="sn"></div><div class="step-body"><div class="step-title">Add MCP filesystem + shell servers</div><div class="step-desc">Add mcp.json with the filesystem and shell servers (allow-listed). This is the step that turns the agent from advisor to operator &mdash; it can now write files and run commands.</div></div></div>
-        <div class="step"><div class="sn"></div><div class="step-body"><div class="step-title">Run the security review prompt on your existing code</div><div class="step-desc">Use the @workspace CIS / OWASP scan prompt from Section 4 or 5 on a codebase you know. See what it finds. Use the output in your next sprint retrospective or security review.</div></div></div>
-        <div class="step"><div class="sn"></div><div class="step-body"><div class="step-title">Next time something breaks, ask the agent before Googling</div><div class="step-desc">Paste the error, the context, and the question directly into Copilot Chat. Give it two minutes before opening a browser tab. Track how often it gets you to the answer faster.</div></div></div>
-      </div>
-
+}</code></pre>
+      <p>It signs in with your Entra ID identity, and if you're already signed in with the Azure CLI it uses that. Two consequences follow:</p>
+      <ul>
+        <li><strong>The assistant has your permissions.</strong> If your account can delete a production resource group, so can a tool call you approve without reading. I use an account with Reader on production for day-to-day work and elevate separately when I actually need to change something.</li>
+        <li><strong>Approvals matter.</strong> When the agent wants to run a tool, VS Code asks, and you can allow it for the current session, the workspace or always. I allow read operations for the session. I never choose "always allow" for anything that writes.</li>
+      </ul>
+
+      <h2>How I make a Terraform change with it</h2>
+      <ol>
+        <li>Describe the change and the constraints. Point at the module and the instructions file rather than pasting everything.</li>
+        <li>Let the agent edit the files, then read the diff. All of it.</li>
+        <li>Run <code>terraform fmt</code>, <code>terraform validate</code> and <code>terraform plan</code> myself, or let the agent run them and read the output myself.</li>
+        <li>Open a pull request. CI runs the same checks plus static analysis, and a colleague reviews it.</li>
+        <li>The pipeline applies it. Not the agent, and not me from a laptop.</li>
+      </ol>
+      <p>The rule that holds all of this together: the agent never runs <code>terraform apply</code> against a shared environment.</p>
+
+      <h2>Prompts that work for infrastructure</h2>
+      <p>Specific beats clever. Three I use often:</p>
+      <ul>
+        <li><strong>Reviewing a plan.</strong> "Here's a terraform plan. List every resource that will be destroyed or replaced, explain why for each, and tell me which attribute change forces it."</li>
+        <li><strong>Writing a module.</strong> "Write a module for a Key Vault with RBAC authorization, purge protection, a private endpoint in the subnet passed as a variable, and diagnostic settings to the Log Analytics workspace passed as a variable. Follow the repo instructions. Don't add anything I didn't ask for."</li>
+        <li><strong>Explaining a failed run.</strong> "This pipeline failed. Here's the log. Tell me the most likely cause, what evidence in the log supports it, and what you'd check next. Don't change any files yet."</li>
+      </ul>
+      <p>The "don't change any files yet" line is doing real work. Diagnosis and changes are separate steps.</p>
+
+      <h2>Mistakes I watch for</h2>
+      <ul>
+        <li><strong>Invented arguments.</strong> Plausible attribute names that the provider doesn't have, or had two major versions ago. <code>terraform validate</code> catches most of these.</li>
+        <li><strong>Defaults that open things up.</strong> Public network access left on, firewall rules for <code>0.0.0.0/0</code>, storage with shared key access enabled.</li>
+        <li><strong>Over-broad roles.</strong> Contributor or Owner at subscription scope "to make it work."</li>
+        <li><strong>Old names.</strong> Services get renamed often. If the assistant talks about Azure AD or Azure AI Studio, its knowledge of that area is out of date, so check the current docs.</li>
+        <li><strong>Packages that don't exist.</strong> Before installing a module or package it suggests, confirm it's real and maintained.</li>
+      </ul>
+
+      <h2>For a team</h2>
+      <ul>
+        <li>Put the instructions file in every infrastructure repository and review it like code.</li>
+        <li>Agree on what can go in a prompt. No secrets, no customer data, no production connection strings. That's policy, not preference.</li>
+        <li>Keep humans as required reviewers on infrastructure pull requests. AI review can add to that, but it doesn't replace it.</li>
+        <li>Share prompts that work. A short list in the repo wiki beats everyone rediscovering them.</li>
+      </ul>
+
+      <h2>A first week</h2>
+      <ol>
+        <li>Day 1: write the instructions file for one repository.</li>
+        <li>Day 2: add the Azure MCP Server and use it only for read-only questions.</li>
+        <li>Day 3: have the agent explain the last three failed pipeline runs.</li>
+        <li>Day 4: make one small module change end to end through a pull request.</li>
+        <li>Day 5: write down what it got wrong, and add the lessons to the instructions file.</li>
+      </ol>
+      <p>Day 5 is the one people skip, and it's the one that makes the next week better.</p>
+
+      <p>For using an assistant on design work rather than code, see <a href="post-claude-for-developers.html">how I use Claude for design reviews</a>.</p>
+
+      <section class="sources">
+        <h2>Sources</h2>
+        <ol>
+          <li><a href="https://learn.microsoft.com/azure/developer/azure-mcp-server/get-started/tools/visual-studio-code" target="_blank" rel="noopener">Get started with the Azure MCP Server using Visual Studio Code</a> (Microsoft Learn)</li>
+          <li><a href="https://learn.microsoft.com/azure/developer/azure-mcp-server/overview" target="_blank" rel="noopener">What is the Azure MCP Server?</a> (Microsoft Learn)</li>
+          <li><a href="https://learn.microsoft.com/azure/developer/github-copilot-azure/get-started" target="_blank" rel="noopener">Get started with GitHub Copilot for Azure</a> (Microsoft Learn)</li>
+          <li><a href="https://code.visualstudio.com/docs/copilot/chat/chat-agent-mode" target="_blank" rel="noopener">Use agent mode in VS Code</a> (VS Code docs)</li>
+          <li><a href="https://code.visualstudio.com/docs/copilot/chat/mcp-servers" target="_blank" rel="noopener">Use MCP servers in VS Code</a> (VS Code docs)</li>
+        </ol>
+      </section>
     </div>
   </section>
 
@@ -905,7 +327,7 @@ what was built and what was tested.</pre>
   </section>
 
   <div style="max-width:720px;margin:2.5rem auto;padding:1.25rem 1.5rem;background:#f8fafc;border:1px solid #e2e8f0;border-left:4px solid #94a3b8;border-radius:8px;">
-    <p style="margin:0;font-size:.82rem;color:#64748b;line-height:1.75;"><strong style="color:#475569;">Disclaimer:</strong> The views and opinions expressed in this article are solely those of the author (Srinivas Yenuganti) and do not represent the views of any employer, client, or affiliated organisation. All information is based on publicly available sources and personal research as of the date of publication. Content is provided for educational and informational purposes only and should not be relied upon as professional or legal advice. Product names and trademarks referenced herein are the property of their respective owners.</p>
+    <p style="margin:0;font-size:.82rem;color:#64748b;line-height:1.75;"><strong style="color:#475569;">Disclaimer:</strong> These are my own views, not those of any employer or client. Examples use placeholder names. Azure features and prices change, so check Microsoft&rsquo;s documentation before relying on anything here.</p>
   </div>
 
   <footer class="main-footer">
@@ -916,15 +338,6 @@ what was built and what was tested.</pre>
       <a href="mailto:syenuganti@outlook.com">Email</a>
     </p>
   </footer>
-
-  <script>
-    function showTab(id, btn) {
-      document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
-      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-      document.getElementById('tab-' + id).classList.add('active');
-      btn.classList.add('active');
-    }
-  </script>
 
 </body>
 </html>

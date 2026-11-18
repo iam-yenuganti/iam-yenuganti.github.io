@@ -3,10 +3,10 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="description" content="Turn Defender for Cloud posture and GitHub repository findings into an accountable DevSecOps loop: ownership, proportionate release gates, remediation, and evidence." />
-  <title>Bringing Defender for Cloud into the DevSecOps Loop | Srinivas Yenuganti</title>
+  <meta name="description" content="Connect GitHub to Microsoft Defender for Cloud, route every finding to a team that can fix it, gate only on high-confidence risks, and verify fixes in the deployed environment." />
+  <title>Making Defender for Cloud Findings Actually Get Fixed | Srinivas Yenuganti</title>
   <meta property="og:type" content="article" />
-  <meta property="og:title" content="Bringing Defender for Cloud into the DevSecOps Loop" />
+  <meta property="og:title" content="Making Defender for Cloud Findings Actually Get Fixed" />
   <meta property="og:description" content="Connect GitHub repositories to cloud posture, route risks to service owners, and verify fixes in both code and deployed resources." />
   <meta property="og:url" content="https://yenuganti.in/post-defender-for-cloud-devsecops.html" />
   <meta property="article:published_time" content="2026-09-25" />
@@ -57,106 +57,88 @@
   <header class="post-header">
     <div class="post-header-inner">
       <div class="post-breadcrumb"><a href="blog.html">&larr; Blog</a> &middot; DevSecOps &amp; CI/CD</div>
-      <h1 class="post-title">Bringing Defender for Cloud into the DevSecOps Loop</h1>
-      <div class="post-meta">10 min read &middot; 25 September 2026</div>
+      <h1 class="post-title">Making Defender for Cloud Findings Actually Get Fixed</h1>
+      <div class="post-meta">7 min read &middot; 25 September 2026</div>
     </div>
   </header>
 
   <main class="article-section">
     <article class="article-body">
-      <figure class="architecture-diagram" aria-labelledby="architecture-flow-title">
-        <figcaption id="architecture-flow-title">Code-to-cloud risk ownership and remediation loop</figcaption>
-        <p class="diagram-subtitle">Preventive pipeline controls and runtime posture signals converge on the team that owns the affected service.</p>
-        <div class="diagram-lanes">
-          <section class="diagram-lane">
-            <h3>Engineering</h3><p>Owner: Service team</p>
-            <ul><li><strong>Application and IaC:</strong> Repository ownership and service metadata</li><li><strong>Pull request:</strong> Threat model and risk acceptance context</li></ul>
-          </section>
-          <section class="diagram-lane">
-            <h3>DevSecOps pipeline</h3><p>Owner: Platform security</p>
-            <ul><li><strong>Preventive checks:</strong> Secrets, SAST, dependencies, IaC, containers</li><li><strong>Release policy:</strong> Risk-based block, warn, or exception</li></ul>
-          </section>
-          <section class="diagram-lane">
-            <h3>Azure runtime</h3><p>Owner: Cloud platform</p>
-            <ul><li><strong>Deployed workload:</strong> Resource graph and code-to-cloud mapping</li><li><strong>Defender for Cloud:</strong> Posture, attack path, and runtime findings</li></ul>
-          </section>
-          <section class="diagram-lane">
-            <h3>Operations and governance</h3><p>Owner: Security operations and risk</p>
-            <ul><li><strong>Ownership routing:</strong> Service owner, severity, target, exception expiry</li><li><strong>Evidence loop:</strong> Remediation commit, deployment, verification</li></ul>
-          </section>
-        </div>
-        <ol class="diagram-flows"><li>Evaluate change before merge</li><li>Deploy with traceable provenance</li><li>Correlate runtime exposure to source</li><li>Route finding to accountable owner</li><li>Verify remediation in code and cloud</li></ol>
-      </figure>
 
-      <h2>Executive Context</h2>
-      <p>A security recommendation is not yet a fix. An application team can pass every pull-request check and still deploy a poorly configured resource; a cloud security team can see that resource in a dashboard without knowing which repository or engineer can change it. The missing piece is an operating loop: a finding must reach an owner, become a prioritized change, pass through delivery, and be checked again against the deployed environment.</p>
+<p>A security recommendation isn't a fix. I've seen plenty of setups where every pull request passes its checks, Defender for Cloud still flags the deployed resource, and the finding sits in a dashboard because the security team can see it but can't change it, and the team that could change it never sees it.</p>
 
-      <p>Microsoft describes Defender for Cloud as a cloud-native application protection platform that combines cloud security posture management (CSPM), DevSecOps, and cloud workload protection (CWPP). That breadth is useful, but it is not a substitute for service ownership or release decisions. This article uses a GitHub-to-Azure container application as an example and distinguishes <em>product capabilities</em> from <em>team policy</em>. The design applies equally well when a platform team maintains infrastructure as code (IaC) separately from the application repository. <a href="https://learn.microsoft.com/azure/defender-for-cloud/defender-for-cloud-introduction">[1]</a></p>
+<p>Connecting GitHub to Microsoft Defender for Cloud helps, but the tool isn't the hard part. The hard part is a loop: every finding reaches someone who can fix it, the fix goes through the normal pipeline, and someone checks that the deployed resource actually changed. Here's how I set that up.</p>
 
-      <h2>Constraints and Assumptions</h2>
-      <p>Make a small service record before deciding which scanner should block a build. Record the service name, owning team, primary and IaC repositories, Azure subscription and resource group, production environment, and escalation contact. Keep a way to connect a deployed version to its source revision in the team's delivery records. Those fields are an <em>operating-model recommendation</em>, not an automatic connector feature: without them, a cloud finding can easily become a ticket sent to the wrong team.</p>
+<h2>Start with ownership, not scanners</h2>
+<p>Before deciding what should block a build, write down a small record for each service: name, owning team, application and infrastructure repositories, Azure subscription and resource group, and who to escalate to. It's a spreadsheet's worth of data, and it's the difference between a finding landing with the right team and bouncing around for a week.</p>
+<p>Shared infrastructure needs an explicit owner too. A misconfigured hub network belongs to the platform team even if every application runs on it. "Unmapped" must never mean "unowned".</p>
 
-      <p>Defender for Cloud's GitHub onboarding connects organizations through <strong>Environment settings → Add environment → GitHub</strong>. The documented flow creates a connector in an Azure subscription, authorizes access, and installs the Defender for Cloud GitHub application. Review which organization and repositories the application may access with the GitHub owner and the subscription team before authorizing it. Microsoft recommends access to all repositories for coverage, but a team should document its chosen scope and investigate gaps rather than silently assuming discovery is complete. <a href="https://learn.microsoft.com/azure/defender-for-cloud/quickstart-onboard-github">[3]</a></p>
+<h2>Connect GitHub, then check what you actually got</h2>
+<p>You onboard from <strong>Environment settings</strong> in Defender for Cloud by adding a GitHub environment. That creates a connector in an Azure subscription and installs the Defender for Cloud GitHub app on your organization. You need Contributor on the subscription and Organization Owner in GitHub. If someone only needs to read the findings, Security Reader on the connector's resource group is enough.</p>
+<p>Three things are easy to get wrong:</p>
+<ul>
+  <li><strong>Discovery takes time.</strong> Repositories can take up to eight hours to appear in Inventory and DevOps security.</li>
+  <li><strong>Discovery isn't scanning.</strong> A repository showing up means Defender knows it exists. Code, secret, dependency and IaC scanning results need the Microsoft Security DevOps action configured in the workflow.</li>
+  <li><strong>The app's repository access matters.</strong> Microsoft recommends giving it access to all repositories. If you limit it, write down which ones are excluded so nobody reads an empty result as a clean one.</li>
+</ul>
+<p>Pick one representative repository, confirm findings arrive, and only then roll out further.</p>
 
-      <p>Check the result rather than treating connector creation as the finish line. The onboarding guide says repositories and builds appear in Inventory and DevOps security after successful onboarding, potentially taking up to eight hours. Scanning recommendations can require a further workflow configuration step, and finding refresh intervals vary by recommendation. A repository listed in Inventory is therefore evidence of discovery, <em>not</em> proof that every intended check has run. Use a representative repository to confirm coverage and record its last observed result before expanding the rollout. <a href="https://learn.microsoft.com/azure/defender-for-cloud/quickstart-onboard-github">[3]</a></p>
+<h2>Know which plan you're on</h2>
+<p>The free Foundational CSPM plan gives you recommendations and secure score. The features that make this loop work well, such as code-to-cloud mapping, attack path analysis and pull request annotations, need the paid Defender CSPM plan. Pull request annotations in GitHub also require GitHub Advanced Security. Check both before you design a process around those features.</p>
+<p>Secure score is a useful trend line. It isn't a release approval, and it isn't proof of compliance with any particular regulation.</p>
 
-      <h2>Target Architecture</h2>
-      <p>A pull request is the right place to challenge a change while its author still has context. Agree which checks your GitHub workflows and existing security tooling run for secrets, static analysis, dependencies, IaC, and container artifacts. Do not claim that simply connecting GitHub automatically enables every one of those checks: the connector guide explicitly notes that some scanning recommendations require additional workflow configuration. Capture the repository, revision, check result, and disposition in the normal review record. <a href="https://learn.microsoft.com/azure/defender-for-cloud/quickstart-onboard-github">[3]</a></p>
+<h2>Two places to catch problems</h2>
+<p><strong>In the pull request</strong>, while the author still remembers why they wrote the change. Scan for secrets, code issues, vulnerable dependencies, IaC misconfigurations and container image problems.</p>
+<p><strong>After deployment</strong>, the question changes from "is this change safe?" to "what's actually exposed right now?" That's where Defender's posture findings and attack paths help, because they reflect the real environment, including things no pull request touched.</p>
+<p>Where code-to-cloud mapping is available, use it to suggest which repository and team own a resource, then confirm against your service records. Shared clusters and base images often have more than one owner, and the mapping won't always know that.</p>
 
-      <p>After deployment, the question changes from “was the proposed change safe?” to “what is actually exposed?” Foundational CSPM supplies benchmark-based recommendations and secure score; Defender CSPM adds advanced capabilities such as attack path analysis and risk prioritization. The plan comparison says advanced DevOps posture features, including code-to-cloud mapping and pull-request annotations, require the paid Defender CSPM plan. Check plan and feature availability before making either feature a dependency of your process. A secure score is a useful trend, but it should not be mistaken for a release approval or a guarantee of compliance. <a href="https://learn.microsoft.com/azure/defender-for-cloud/concept-cloud-security-posture-management">[2]</a></p>
+<h2>Block, warn or investigate</h2>
+<p>Blocking every finding trains people to bypass the checks. Ignoring them turns the dashboard into a graveyard. I agree a short decision table with the teams that run the service. This is team policy, not a Defender default:</p>
+<table>
+  <thead>
+    <tr><th>Decision</th><th>When</th><th>What happens</th></tr>
+  </thead>
+  <tbody>
+    <tr><td>Block</td><td>A new, confirmed, high-confidence exposure in the service being changed, with no mitigation</td><td>Fix before release, or get a named, time-limited exception</td></tr>
+    <tr><td>Warn</td><td>A real issue with limited impact and a documented compensating control</td><td>Release goes ahead; an owned work item gets a target date</td></tr>
+    <tr><td>Investigate</td><td>A stale, unclear or unmapped finding</td><td>Confirm the resource and owner before deciding</td></tr>
+  </tbody>
+</table>
+<p>Exceptions are scoped to one service and one environment, and they expire. Never turn off a scanner for the whole organization to unblock one deployment. If a check is too noisy to block on, run it as a warning while you improve it.</p>
 
-      <p>Where code-to-cloud context is available, use it to <em>propose</em> the repository and team behind a resource, then validate the match against service metadata and deployment history. Not every recommendation maps neatly to one commit: shared networks, platform-managed clusters, and base images can have multiple owners. A misconfiguration in a shared subscription may belong to the platform team even if an application happens to run there. Record an explicit owner when correlation is missing; do not let “unmapped” mean “unowned.”</p>
+<h2>Closing the loop</h2>
+<p>Take a finding on a production container app. The steps I expect:</p>
+<ol>
+  <li>Confirm the resource and that the exposure is real.</li>
+  <li>Find where its configuration lives: the service repository or a central infrastructure repository.</li>
+  <li>Fix it there, through the normal pipeline.</li>
+  <li>Deploy, and check that the resource changed.</li>
+  <li>Look at the Defender recommendation again, allowing for its refresh interval, and only then close the ticket.</li>
+</ol>
+<p>Closing the ticket when the pull request merges leaves half the loop open. I've seen fixes merge and never deploy.</p>
+<p>I track two numbers separately: time from detection to an assigned owner, and time from assignment to a verified fix. If the first is slow, routing is the problem. If the second is slow, it's capacity or the pipeline.</p>
 
-      <h2>DevSecOps Control Model</h2>
-      <p>Blocking every finding produces noise; ignoring every finding turns a security dashboard into a backlog graveyard. Define a narrow decision table with the teams that operate the service. The table below is a suggested organizational policy, <em>not</em> a Defender for Cloud default or a built-in severity-to-gate mapping.</p>
+<h2>Evidence for reviews</h2>
+<p>For anything material, keep the chain: the recommendation, the decision and who made it, the commit, the deployment, and the later check. When an auditor or reviewer samples a finding, they should be able to see who accepted any remaining risk, when that acceptance expires, and whether the scanner actually covered that repository.</p>
+<p>Every quarter or so, reconcile the GitHub organizations, discovered repositories, Azure resources and your service records. A repository Defender never discovered will never have findings, and that silence isn't good news.</p>
 
-      <table>
-        <thead><tr><th>Decision</th><th>Example condition</th><th>Expected action</th></tr></thead>
-        <tbody>
-          <tr><td>Block</td><td>A validated, high-confidence new exposure in the changed service with no approved mitigation</td><td>Fix before release or obtain a time-limited, named exception</td></tr>
-          <tr><td>Warn</td><td>A confirmed issue with bounded impact and a documented compensating control</td><td>Create an owned work item and target date; allow the release under the agreed policy</td></tr>
-          <tr><td>Investigate</td><td>An ambiguous, stale, or unmapped signal</td><td>Check affected resource and ownership before choosing a gate</td></tr>
-        </tbody>
-      </table>
-
-      <p>Consider exposure, affected environment, exploitability evidence, business criticality, and whether the change introduced the issue. The Defender CSPM documentation describes attack paths and risk prioritization as advanced posture capabilities; they can inform investigation, but cannot replace a team decision about service impact. Give the service owner a path to challenge an incorrect mapping and give security staff a path to escalate an accepted risk that has outlived its exception. <a href="https://learn.microsoft.com/azure/defender-for-cloud/concept-cloud-security-posture-management">[2]</a></p>
-
-      <h2>Key Architecture Decisions</h2>
-      <p>Write down the release rule in the repository's contribution or deployment process: who approves exceptions, which environment the exception covers, when it expires, and how it is reviewed. An exception should not disable a scanner for the entire organization just to unblock one deployment. If a check is too noisy to gate reliably, run it as a warning while the team fixes its quality and measures false positives.</p>
-
-      <h2>Implementation Blueprint</h2>
-      <p>A practical triage record contains the finding and its source link, observed resource, mapped service, owner, affected environment, reason for priority, remediation target, and next review date. Treat a cloud-platform-owned setting differently from an application-owned manifest. If the service team cannot edit the offending resource, assign the work to the platform team and keep the service owner informed of the impact. Security operations coordinates risk; it should not become the default assignee for every engineering change.</p>
-
-      <p>For example, suppose a recommendation flags an exposed configuration on a production containerized service. First confirm the resource and current exposure; then check whether its deployment manifest lives in the service repository or in a central IaC repository. Link the finding to a change in the <em>actual</em> source of truth. Test the change in the normal pipeline, deploy it, and verify that the deployed resource changed. Finally inspect the relevant Defender for Cloud recommendation again, allowing for its documented refresh behavior. Closing the code ticket solely because a pull request merged would leave the cloud half of the loop open. <a href="https://learn.microsoft.com/azure/defender-for-cloud/quickstart-onboard-github">[3]</a></p>
-
-      <p>Use different targets for different risk classes, chosen by your organization rather than asserted as universal service-level agreements. Track the time from detection to owner assignment separately from the time to verified remediation. That distinction shows whether the bottleneck is routing, engineering capacity, or delayed verification. Reassign stale and unmapped findings in a regular review instead of letting their age silently grow.</p>
-
-      <h2>Operational Evidence and SLOs</h2>
-      <p>Defender for Cloud's Foundational CSPM documentation ties recommendations and secure score to the Microsoft Cloud Security Benchmark. A benchmark view is a useful way to inspect posture across a cloud estate; it is not, by itself, proof that a specific organization's regulatory obligations are satisfied. Map controls to the exact environment and evidence your assessor expects. Keep a link from each material exception or remediation to the recommendation, review decision, commit, deployment record, and subsequent verification. <a href="https://learn.microsoft.com/azure/defender-for-cloud/concept-cloud-security-posture-management">[2]</a></p>
-
-      <p>For governance reviews, sample both successful remediations and unresolved exceptions. Can a reviewer tell who accepted the remaining risk, when it expires, which deployed version was inspected, and whether the scanner had coverage? If not, improve the evidence trail before buying more dashboards. Periodically reconcile GitHub organizations, discovered repositories, Azure resources, and service records; the absence of a recommendation in an undiscovered repository is not a clean bill of health.</p>
-
-      <h2>Failure Modes and Trade-offs</h2>
-      <p>A connector that discovers repositories but has no configured scan leaves coverage incomplete. A gate that blocks every finding creates pressure to bypass checks; a gate that cannot identify a service owner strands work in security operations. Shared infrastructure complicates code-to-cloud attribution, while stale posture results can make a fixed deployment look unchanged. Check scan configuration, confirm the actual resource owner, and allow for finding refresh before declaring either success or failure. These are reasons to maintain manual verification and escalation paths, not reasons to abandon the loop.</p>
-
-      <h2>Adoption Roadmap</h2>
-      <ol>
-        <li><strong>Baseline:</strong> Select one service, identify its repositories and deployed resources, assign owners, and inspect the CSPM plan and current recommendations. Do not infer that advanced features are included in every plan. <a href="https://learn.microsoft.com/azure/defender-for-cloud/concept-cloud-security-posture-management">[2]</a></li>
-        <li><strong>Connect and verify:</strong> Onboard the relevant GitHub organization with the required permissions, check discovery after the documented delay, and verify a configured scan in a representative workflow. <a href="https://learn.microsoft.com/azure/defender-for-cloud/quickstart-onboard-github">[3]</a></li>
-        <li><strong>Route before gating:</strong> Practice assigning several code and cloud findings to the teams that can actually fix them. Start release checks in warning mode until ownership and signal quality are credible.</li>
-        <li><strong>Gate narrowly:</strong> Enable blocking only for an agreed set of high-confidence risks; record exception approvers, expiry, and review dates. Measure rework and false positives, not just the number of blocked builds.</li>
-        <li><strong>Close the loop:</strong> Recheck a deployed fix and retain a compact evidence trail. Expand to other services only after the first team's findings consistently reach an owner and receive verification.</li>
-      </ol>
-
-      <h2>Conclusion</h2>
-      <p>The outcome to optimize is not a perfect-looking dashboard. It is a repeatable answer to five questions: what changed, what is exposed, who can fix it, what decision was made, and did the deployed system improve? Defender for Cloud can supply important posture and DevOps context; the engineering organization still owns the decisions and the proof of remediation.</p>
+<h2>Rolling it out</h2>
+<ol>
+  <li>Pick one service. Map its repositories, resources and owners, and check your Defender plan.</li>
+  <li>Connect the GitHub organization, wait for discovery, and confirm scanning works in one workflow.</li>
+  <li>Route findings to owners for a few weeks before gating anything.</li>
+  <li>Turn on blocking for a small set of high-confidence risks, with exceptions that expire.</li>
+  <li>Verify deployed fixes and keep the evidence. Expand to the next service only when the first one works.</li>
+</ol>
 
       <section class="sources">
         <h2>Sources</h2>
         <ol>
-          <li><a href="https://learn.microsoft.com/azure/defender-for-cloud/defender-for-cloud-introduction">Microsoft Learn: Microsoft Defender for Cloud overview</a></li>
-          <li><a href="https://learn.microsoft.com/azure/defender-for-cloud/concept-cloud-security-posture-management">Microsoft Learn: Cloud Security Posture Management plans and capabilities</a></li>
-          <li><a href="https://learn.microsoft.com/azure/defender-for-cloud/quickstart-onboard-github">Microsoft Learn: Connect your GitHub organizations</a></li>
+          <li><a href="https://learn.microsoft.com/azure/defender-for-cloud/defender-for-cloud-introduction" target="_blank" rel="noopener">What is Microsoft Defender for Cloud?</a> (Microsoft Learn)</li>
+          <li><a href="https://learn.microsoft.com/azure/defender-for-cloud/quickstart-onboard-github" target="_blank" rel="noopener">Quick Start: Connect your GitHub Environment to Microsoft Defender for Cloud</a> (Microsoft Learn)</li>
+          <li><a href="https://learn.microsoft.com/azure/defender-for-cloud/github-action" target="_blank" rel="noopener">Configure the Microsoft Security DevOps GitHub action</a> (Microsoft Learn)</li>
+          <li><a href="https://learn.microsoft.com/azure/defender-for-cloud/concept-cloud-security-posture-management" target="_blank" rel="noopener">What is Cloud Security Posture Management (CSPM)</a> (Microsoft Learn)</li>
+          <li><a href="https://learn.microsoft.com/azure/defender-for-cloud/enable-pull-request-annotations" target="_blank" rel="noopener">Enable pull request annotations in GitHub and Azure DevOps</a> (Microsoft Learn)</li>
         </ol>
       </section>
       <aside class="author-card">

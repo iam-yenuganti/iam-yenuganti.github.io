@@ -3,11 +3,11 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="description" content="Architecture patterns for production-grade generative AI — RAG, fine-tuning, private LLM deployment, responsible AI controls, and FinOps for LLM workloads on Azure." />
-  <title>Generative AI in the Enterprise | Srinivas Yenuganti</title>
+  <meta name="description" content="The platform I put under a production RAG or chat app on Azure: hybrid retrieval, an AI gateway in API Management, private networking, guardrails, evaluations and cost control." />
+  <title>Running Generative AI in Production on Azure: The Platform Under the Chat App | Srinivas Yenuganti</title>
   <meta property="og:type" content="article" />
-  <meta property="og:title" content="Generative AI in the Enterprise: Architecture Patterns for Production-Grade LLM Deployments" />
-  <meta property="og:description" content="RAG pipeline design, private LLM deployment, responsible AI controls, AI FinOps, and evaluation-driven development for production GenAI on Azure." />
+  <meta property="og:title" content="Running Generative AI in Production on Azure: The Platform Under the Chat App" />
+  <meta property="og:description" content="The platform I put under a production RAG or chat app on Azure: hybrid retrieval, an AI gateway in API Management, private networking, guardrails, evaluations and cost control." />
   <meta property="og:url" content="https://yenuganti.in/post-genai-enterprise.html" />
   <meta property="article:published_time" content="2026-02-12" />
   <meta name="twitter:card" content="summary" />
@@ -60,6 +60,18 @@
     .arch-diagram{background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;padding:1.5rem;margin:1.75rem 0;overflow-x:auto}
     .arch-diagram svg{display:block;margin:0 auto;max-width:100%;height:auto}
     .diagram-caption{font-size:.78rem;color:#64748b;text-align:center;margin-top:.6rem;font-style:italic}
+  
+    /* rewrite: shared styles for prose posts */
+    .article-body pre{background:#0b1f33;color:#e6edf3;padding:1rem 1.1rem;border-radius:8px;overflow:auto;font-size:.82rem;line-height:1.6;margin:1.25rem 0}
+    .article-body code{background:#eef2f7;padding:.1rem .3rem;border-radius:4px;font-size:.88em;overflow-wrap:anywhere;color:inherit}
+    .article-body pre code{background:none;padding:0;color:inherit;border-radius:0;font-size:inherit}
+    .architecture-diagram{max-width:100%;margin:0 0 2.5rem;padding:1rem;background:#fff;border:1px solid #c8c6c4;border-top:4px solid #0078d4;border-radius:4px;box-shadow:0 2px 8px rgba(0,0,0,.08)}
+    .architecture-diagram figcaption{font-size:1.05rem;font-weight:760;color:#201f1e;margin-bottom:.3rem}
+    .diagram-subtitle{font-size:.82rem!important;color:#605e5c!important;margin-bottom:.85rem!important}
+    .architecture-diagram img{display:block;width:100%;height:auto;border:1px solid #d2d0ce;border-radius:3px}
+    .diagram-note{margin-top:.65rem!important;font-size:.72rem!important;color:#605e5c!important}
+    .article-body .sources{margin-top:2.5rem;padding-top:1.5rem;border-top:1px solid #e2e8f0}
+    .article-body .sources li{font-size:.9rem}
   </style>
 </head>
 <body>
@@ -80,193 +92,113 @@
     <div class="post-breadcrumb">
       <a href="blog.html">← Blog</a> &nbsp;·&nbsp; AI Architecture
     </div>
-    <h1 class="post-title">Generative AI in the Enterprise: Architecture Patterns for Production-Grade LLM Deployments</h1>
+    <h1 class="post-title">Running Generative AI in Production on Azure: The Platform Under the Chat App</h1>
     <div class="post-meta">
-      <span>⏱ 11 min read</span>
+      <span>⏱ 8 min read</span>
       <span>📅 February 12, 2026</span>
       <span>✍️ Srinivas Yenuganti</span>
     </div>
     <div class="post-tags">
       <span class="post-tag">Generative AI</span>
-      <span class="post-tag">Azure OpenAI</span>
       <span class="post-tag">RAG</span>
-      <span class="post-tag">LLM</span>
-      <span class="post-tag">Responsible AI</span>
-      <span class="post-tag">AI FinOps</span>
+      <span class="post-tag">Azure AI Search</span>
+      <span class="post-tag">API Management</span>
+      <span class="post-tag">Microsoft Foundry</span>
     </div>
   </header>
 
   <section class="article-section">
     <div class="article-body">
 
-      <p>Most enterprise generative AI projects fail not because the models are inadequate, but because the architecture is not production-ready. A prototype that works beautifully in a demo environment collapses under real load when it encounters the full diversity of production data, concurrent users, adversarial inputs, and compliance requirements that were never modelled in the proof of concept.</p>
+      <figure class="architecture-diagram" aria-labelledby="fig-title">
+        <figcaption id="fig-title">The platform under a production chat app</figcaption>
+        <p class="diagram-subtitle">Retrieval, an AI gateway and guardrails do most of the work. The model is the easy part.</p>
+        <img src="assets/diagrams/post-genai-enterprise.svg" alt="Diagram: a chat app on App Service first retrieves chunks from Azure AI Search, which uses hybrid query with semantic ranking and filters results to what the user may see. Search is fed by an ingestion pipeline that chunks and embeds content from storage and uses Document Intelligence for PDFs. The app then sends the prompt and chunks to API Management, which enforces token limits, looks up a semantic cache in Azure Managed Redis, screens content with guardrails and load-balances across model deployments in Microsoft Foundry in two regions. Private endpoints, evaluations and Application Insights apply across the platform." loading="lazy" />
+        <p class="diagram-note">Editable source: assets/diagrams/post-genai-enterprise.drawio</p>
+      </figure>
 
-      <p>This article covers the architectural patterns, design decisions, and operational disciplines that separate a reliable, cost-efficient enterprise GenAI deployment from an expensive prototype that never made it to production.</p>
+      <p>A generative AI prototype takes a week. What comes after is mostly the same on every project, and very little of it is about the model. This is the platform I put under a chat or question-answering app before real users touch it.</p>
 
-      <div class="arch-diagram">
-        <svg viewBox="0 0 720 200" role="img" aria-label="Enterprise RAG pipeline">
-          <rect x="10" y="20" width="700" height="160" rx="10" fill="#fff" stroke="#cbd5e1"/>
-          <rect x="30" y="80" width="100" height="50" rx="8" fill="#e3f2fd" stroke="#1565c0"/><text x="80" y="110" text-anchor="middle" font-size="10" fill="#0d1b2a">User query</text>
-          <rect x="165" y="80" width="110" height="50" rx="8" fill="#bbdefb" stroke="#1565c0"/><text x="220" y="104" text-anchor="middle" font-size="10" fill="#0d1b2a">Embed +</text><text x="220" y="118" text-anchor="middle" font-size="10" fill="#0d1b2a">retrieve</text>
-          <rect x="310" y="80" width="110" height="50" rx="8" fill="#fff" stroke="#475569"/><text x="365" y="104" text-anchor="middle" font-size="10" fill="#0d1b2a">AI Search</text><text x="365" y="118" text-anchor="middle" font-size="10" fill="#0d1b2a">vector store</text>
-          <rect x="455" y="80" width="110" height="50" rx="8" fill="#e8f5e9" stroke="#388e3c"/><text x="510" y="104" text-anchor="middle" font-size="10" fill="#0d1b2a">LLM +</text><text x="510" y="118" text-anchor="middle" font-size="10" fill="#0d1b2a">guardrails</text>
-          <rect x="600" y="80" width="90" height="50" rx="8" fill="#e3f2fd" stroke="#1565c0"/><text x="645" y="110" text-anchor="middle" font-size="10" fill="#0d1b2a">Response</text>
-          <line x1="130" y1="105" x2="163" y2="105" stroke="#94a3b8" stroke-width="2" marker-end="url(#g)"/><line x1="275" y1="105" x2="308" y2="105" stroke="#94a3b8" stroke-width="2" marker-end="url(#g)"/><line x1="420" y1="105" x2="453" y2="105" stroke="#94a3b8" stroke-width="2" marker-end="url(#g)"/><line x1="565" y1="105" x2="598" y2="105" stroke="#94a3b8" stroke-width="2" marker-end="url(#g)"/>
-          <text x="360" y="50" text-anchor="middle" font-size="11" font-weight="700" fill="#1565c0">RAG: ground responses in private data + content safety</text>
-          <defs><marker id="g" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6" fill="#94a3b8"/></marker></defs>
-        </svg>
-        <div class="diagram-caption">Production RAG: retrieval grounds the LLM; guardrails enforce responsible-AI and PII controls</div>
-      </div>
+      <p>It's written for the common case: people asking questions that should be answered from the organization's own documents. Agents that take actions are a different problem, and I cover them in <a href="post-ai-agents-mcp.html">a separate post on agents and MCP</a>.</p>
 
-      <h2>The Three GenAI Pattern Families</h2>
+      <h2>Pick the pattern from the question</h2>
+      <p>Most enterprise requests turn out to be "answer from our documents," which means retrieval-augmented generation (RAG): fetch the relevant passages, give them to the model and ask it to answer only from them. Fine-tuning is useful when you need a particular format or style the model won't produce from instructions, but it's rarely where I start. It doesn't teach the model your latest policy document, and every model upgrade means doing it again.</p>
 
-      <p>Before choosing technology, choose the right pattern for your use case. Every enterprise GenAI use case maps to one of three families, each with a distinct architecture and trade-off profile:</p>
-
-      <div class="pattern-cards">
-        <div class="pattern-card">
-          <span class="pattern-label">Pattern 1</span>
-          <h4>Retrieval-Augmented Generation (RAG)</h4>
-          <p>Combine an LLM with a private knowledge base. The model retrieves relevant documents before generating a response. Best for Q&amp;A over enterprise documents, policies, or knowledge bases.</p>
-        </div>
-        <div class="pattern-card">
-          <span class="pattern-label">Pattern 2</span>
-          <h4>Fine-Tuning</h4>
-          <p>Adapt a base model on domain-specific data to improve performance on a specific task. Best when RAG is insufficient — the model needs to adopt a specific style, format, or domain vocabulary that cannot be conveyed through retrieval alone.</p>
-        </div>
-        <div class="pattern-card">
-          <span class="pattern-label">Pattern 3</span>
-          <h4>Prompt Engineering + Guardrails</h4>
-          <p>Design precise system prompts and wrap the LLM with input/output guardrails. Best for constrained, well-defined tasks where you need consistent, governed output without the operational overhead of RAG or fine-tuning.</p>
-        </div>
-        <div class="pattern-card">
-          <span class="pattern-label">Pattern 4</span>
-          <h4>Agentic (Tool-Using)</h4>
-          <p>Give the LLM access to tools to act on systems, query live data, and execute multi-step tasks. Best for automation workflows where the answer is not in a document but must be derived from real-time data or system state.</p>
-        </div>
-      </div>
-
-      <p>In practice, most production deployments combine patterns — a RAG backbone for knowledge retrieval, with agentic tool access for live data, all wrapped in prompt engineering and guardrails. Understand which pattern solves your specific problem before committing to an architecture.</p>
-
-      <h2>RAG Architecture — The Right Way</h2>
-
-      <p>RAG is the most broadly applicable enterprise GenAI pattern. However, naive RAG — chunk documents, embed them, retrieve the top-k chunks, stuff them into a prompt — works poorly in production. Enterprise RAG requires careful design at every stage of the pipeline.</p>
-
-      <h3>Ingestion Pipeline</h3>
+      <h2>Retrieval decides the quality</h2>
+      <p>When answers are wrong, the cause is usually retrieval, not the model. Fix retrieval before you pay for a bigger model.</p>
       <ul>
-        <li><strong>Document processing:</strong> Use Azure Document Intelligence (Form Recognizer) for PDFs and scanned documents — extract structure (tables, headers, paragraphs) rather than raw text. Structure-aware chunking produces dramatically better retrieval results than character-count-based splitting.</li>
-        <li><strong>Chunking strategy:</strong> Semantic chunking (split on meaning boundaries, not arbitrary character counts) outperforms fixed-size chunking. Aim for 400–600 tokens per chunk with 10–15% overlap. Preserve document hierarchy metadata (section title, document name, page number) on every chunk.</li>
-        <li><strong>Embedding model:</strong> Use text-embedding-3-large (Azure OpenAI) for general-purpose enterprise content. Multilingual content requires a multilingual embedding model — the embedding and the query must use the same model.</li>
-        <li><strong>Vector store:</strong> Azure AI Search with hybrid search (vector + keyword BM25) consistently outperforms pure vector search by 15–25% on enterprise document retrieval benchmarks. Enable semantic reranking (Semantic Ranker in Azure AI Search) for further quality improvement.</li>
+        <li><strong>Use hybrid search.</strong> Azure AI Search runs keyword and vector queries in parallel and merges them with Reciprocal Rank Fusion. Keywords catch exact terms like product codes and names. Vectors catch meaning. Add the semantic ranker on top to re-score the merged results.</li>
+        <li><strong>Chunk with structure in mind.</strong> The built-in indexer and skillset can split and embed content for you. For PDFs with tables and headings, extract structure first with Document Intelligence so a chunk doesn't start in the middle of a table.</li>
+        <li><strong>Keep metadata on every chunk.</strong> Document name, section, date and classification. You need them for filtering and for citations.</li>
+        <li><strong>Trim results to the user.</strong> Retrieval must return only what the person asking is allowed to see. If it doesn't, the model will happily summarize a document the user could never open.</li>
+      </ul>
+      <p>For complex questions, Azure AI Search also offers agentic retrieval, where a model plans several sub-queries across knowledge sources. Query planning is still in preview, so I use it where classic hybrid search falls short, not by default.</p>
+
+      <h2>Put an AI gateway in front of the models</h2>
+      <p>I don't let applications call model deployments directly. They call API Management, which gives me one place for the controls that every app needs:</p>
+      <ul>
+        <li><strong>Token limits per app.</strong> The <code>llm-token-limit</code> policy sets tokens per minute or a quota per subscription key, so one team's batch job can't starve everyone else.</li>
+        <li><strong>Usage metrics.</strong> The token metric policy sends usage to Application Insights, which is how you do chargeback.</li>
+        <li><strong>Load balancing and failover.</strong> Deploy models in two regions and let the gateway spread traffic and retry.</li>
+        <li><strong>Semantic caching.</strong> With Azure Managed Redis, similar prompts can reuse a previous answer. I only turn this on for FAQ-style apps where a slightly stale answer is acceptable.</li>
+        <li><strong>Content safety checks.</strong> A policy can send prompts to Azure AI Content Safety before they reach the model.</li>
+      </ul>
+<pre><code>&lt;llm-token-limit counter-key="@(context.Subscription.Id)"
+    tokens-per-minute="500" estimate-prompt-tokens="false"
+    remaining-tokens-variable-name="remainingTokens" /&gt;</code></pre>
+      <p>The backend call from API Management to Foundry uses a managed identity, so there are no API keys in the app or the gateway.</p>
+
+      <h2>Keep it private</h2>
+      <p>Foundry, AI Search and the storage behind ingestion all get private endpoints, with public network access turned off. Services authenticate to each other with managed identities. The result is that prompts, retrieved documents and answers never cross the public internet, and there's no key to leak.</p>
+
+      <h2>Guardrails that match the risk</h2>
+      <p>Foundry guardrails filter harmful content in prompts and responses, and Prompt Shields detect attacks. Two details matter for RAG:</p>
+      <ul>
+        <li>User prompt attack detection is on by default. Document attack detection, which catches instructions hidden in retrieved content, is off by default. For RAG you want it on.</li>
+        <li>The safety system can only tell documents from user input if you mark them. Wrap retrieved content in the documented <code>&lt;documents&gt;</code> delimiter inside the message so indirect attack and groundedness checks know what's what.</li>
+      </ul>
+      <p>Guardrails reduce risk. They don't prove an answer is right, which is what evaluations are for.</p>
+
+      <h2>Evaluate like you test code</h2>
+      <p>Prompts, chunking, index settings and model versions all change answer quality in ways unit tests can't see. I treat evaluation as part of CI:</p>
+      <ol>
+        <li>Keep a golden set of real questions with expected answers, written by people who know the domain, not generated by the model.</li>
+        <li>Run evaluations for groundedness and relevance on every change to prompts, the index or the model deployment.</li>
+        <li>Block the release if quality drops against the last accepted baseline.</li>
+        <li>Have a person read a sample of answers each week. Scores miss things people notice.</li>
+      </ol>
+
+      <h2>Watch the cost per answer</h2>
+      <ul>
+        <li><strong>Right-size the model.</strong> Model router in Foundry picks a model per prompt, with Balanced, Cost or Quality modes. When a workflow needs the same model every time, pin a deployment instead.</li>
+        <li><strong>Use prompt caching.</strong> Keep the long, reused part of the prompt (instructions, examples) identical and at the start. On newer model families, cache writes can be billed as well as discounted reads, so a stable prefix matters more than it used to.</li>
+        <li><strong>Consider provisioned throughput</strong> for steady, predictable traffic, and size it with the capacity calculator rather than guessing.</li>
+        <li><strong>Track cost per answer</strong>, not just the monthly total. If it creeps up, something is sending more context or more calls than it should.</li>
       </ul>
 
-      <h3>Query Processing</h3>
-      <ul>
-        <li><strong>Query rewriting:</strong> Before retrieval, have a lightweight LLM call rewrite the user's query into an optimised search query — expanding abbreviations, adding synonyms, resolving ambiguous pronouns from conversation history. This single step typically improves retrieval precision by 20–30%.</li>
-        <li><strong>HyDE (Hypothetical Document Embeddings):</strong> Generate a hypothetical answer to the query, embed it, and use that embedding for retrieval. Documents semantically similar to the ideal answer are retrieved, even if they don't match the question's vocabulary. Effective for technical documentation retrieval.</li>
-        <li><strong>Metadata filtering:</strong> Use document metadata (department, date, classification) to pre-filter the search space before vector similarity. This improves precision and reduces context pollution from irrelevant documents.</li>
-      </ul>
+      <h2>What I build first</h2>
+      <ol>
+        <li>Private networking and managed identities.</li>
+        <li>API Management in front of the models, with token limits and usage metrics.</li>
+        <li>An AI Search index with hybrid search, semantic ranking and security trimming.</li>
+        <li>Guardrails with document attack detection on.</li>
+        <li>A golden question set and an evaluation step in the pipeline.</li>
+      </ol>
+      <p>Then the chat app. Done in that order, the app is the small part.</p>
 
-      <h3>Generation and Grounding</h3>
-      <p>Ground the LLM response strictly in the retrieved context. Your system prompt must instruct the model to: answer only from provided context, cite sources explicitly, and respond with "I don't know" rather than hallucinating when the context doesn't contain the answer. Measure groundedness automatically using Microsoft Foundry's evaluation framework before promoting any RAG configuration change to production.</p>
-
-      <div class="callout callout-tip">
-        <div class="callout-title">💡 Architect's Tip</div>
-        <p>The most impactful RAG improvement is usually better chunking and metadata, not a larger or more expensive model. Before upgrading from GPT-4o-mini to GPT-4o (4x cost increase), optimise your retrieval pipeline. In most cases, better retrieval on a cheaper model outperforms poor retrieval on the best model.</p>
-      </div>
-
-      <h2>Private LLM Deployment on Azure</h2>
-
-      <p>For regulated industries — healthcare, finance, government — model calls must never traverse the public internet with enterprise data in the payload. Azure provides the controls to deploy LLMs with complete network isolation.</p>
-
-      <h3>Provisioned Throughput Units (PTU)</h3>
-      <p>Azure OpenAI offers two deployment modes: Pay-As-You-Go (token-based billing, subject to shared capacity throttling) and Provisioned Throughput Units (PTU — reserved capacity with guaranteed latency SLAs). For production workloads with predictable traffic, PTU deployments offer consistent latency, no throttling under load, and 50–70% cost reduction at scale compared to PAYG. Size PTU based on your peak tokens-per-minute requirement with 20% headroom.</p>
-
-      <h3>Private Endpoints and VNet Integration</h3>
-      <ul>
-        <li>Deploy Azure OpenAI with a private endpoint in your workload VNet — disable public network access</li>
-        <li>All model traffic stays within your Azure network boundary — no data egress to the public internet</li>
-        <li>Use Azure API Management as the LLM gateway: centralised auth, rate limiting, usage tracking, model routing, and retry logic across multiple Azure OpenAI deployments</li>
-        <li>For multi-region resilience, deploy Azure OpenAI in two regions and use APIM load balancing between them</li>
-      </ul>
-
-      <h3>Data Residency and Sovereignty</h3>
-      <p>When you call the Azure OpenAI API, your prompts and completions are processed in the Azure region you select and are not used to train Microsoft's models (with standard data processing agreements). For customers requiring explicit data residency guarantees, use Azure OpenAI's Customer Managed Keys for encryption and verify the specific regional data boundary documentation. For the highest isolation requirements, Azure Government regions provide separate sovereign infrastructure.</p>
-
-      <h2>Responsible AI — Not Optional</h2>
-
-      <p>Responsible AI in production means operationalising the principles at the infrastructure layer, not just writing a policy document. Azure provides the tooling; the architect's job is to wire it in.</p>
-
-      <table class="arch-table">
-        <thead>
-          <tr><th>Risk</th><th>Azure Control</th><th>Implementation Note</th></tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td>Harmful content generation</td>
-            <td>Azure AI Content Safety</td>
-            <td>Wrap all model endpoints — filter inputs and outputs for hate speech, violence, self-harm, and sexual content. Configure severity thresholds per use case.</td>
-          </tr>
-          <tr>
-            <td>Prompt injection / jailbreak</td>
-            <td>Azure AI Content Safety (Prompt Shield)</td>
-            <td>Detect and block both direct jailbreak attempts and indirect injection via documents or web content.</td>
-          </tr>
-          <tr>
-            <td>Hallucination / ungrounded output</td>
-            <td>Microsoft Foundry Groundedness Evaluation</td>
-            <td>Automated groundedness scoring in CI/CD pipeline — block deployment if score drops below threshold.</td>
-          </tr>
-          <tr>
-            <td>PII exposure in prompts or responses</td>
-            <td>Microsoft Purview + Azure AI Content Safety</td>
-            <td>Scan prompts and completions for PII before logging. Never log raw prompts containing customer data to shared observability stores.</td>
-          </tr>
-          <tr>
-            <td>Model bias and fairness</td>
-            <td>Microsoft Foundry Evaluations (fairness metrics)</td>
-            <td>Run fairness evaluations on diverse test sets before production deployment for any user-facing application.</td>
-          </tr>
-        </tbody>
-      </table>
-
-      <h2>AI FinOps — Controlling LLM Costs</h2>
-
-      <p>LLM token consumption is the fastest-growing cloud cost category in most enterprises. Without active management, GenAI costs scale superlinearly with usage. Build cost governance into the architecture, not as an afterthought.</p>
-
-      <h3>Model Selection Strategy</h3>
-      <p>Not every query requires GPT-4o. Use a routing layer (implemented in Azure API Management or as an orchestration step) that classifies query complexity and routes to the most cost-effective model capable of handling it. Simple classification tasks → GPT-4o-mini (10–20x cheaper). Complex reasoning, multi-step analysis → o3. Document summarisation → GPT-4o. Correct model routing typically reduces LLM spend by 40–60% with no user-visible quality change.</p>
-
-      <h3>Caching</h3>
-      <ul>
-        <li><strong>Semantic caching:</strong> Cache LLM responses and retrieve them for semantically similar future queries without calling the model. Azure Redis Cache with vector similarity lookup. Effective for FAQ-style applications where many users ask the same or similar questions.</li>
-        <li><strong>Prompt caching:</strong> Azure OpenAI supports prompt prefix caching — if multiple requests share a long system prompt, the prefix is cached and only billed on first use. Design system prompts to maximise the cacheable prefix length.</li>
-      </ul>
-
-      <h3>Token Budget Enforcement</h3>
-      <p>Set hard token budgets per user session, per API key, and per day at the Azure OpenAI resource level. Use Azure Monitor metrics to alert when a deployment approaches its quota. Track cost per task completion, not just total spend — if cost-per-task rises, it indicates the system is doing more work than necessary (e.g., excessive tool calls, bloated contexts) and signals an optimisation opportunity.</p>
-
-      <div class="callout callout-arch">
-        <div class="callout-title">🏗 Architecture Pattern</div>
-        <p>Deploy Azure API Management as your AI Gateway — it provides a single, observable entry point for all LLM calls across your organisation. Configure products and subscriptions per team, track usage by cost centre, enforce per-subscription rate limits, and route to different Azure OpenAI deployments based on capacity. This single investment pays back across every GenAI use case you build.</p>
-      </div>
-
-      <h2>Evaluation-Driven Development</h2>
-
-      <p>GenAI systems must be evaluated continuously — model updates, prompt changes, data drift, and retrieval configuration changes all affect output quality in ways that traditional unit tests cannot detect. Build an evaluation pipeline into your CI/CD process:</p>
-
-      <ul>
-        <li>Maintain a golden dataset of representative queries with expected outputs — curated by domain experts, not generated by the model</li>
-        <li>Run automated evaluations (groundedness, relevance, coherence, task completion rate) on every pull request that touches prompts, retrieval configuration, or model deployments</li>
-        <li>Gate production deployment on evaluation scores — if groundedness drops below 0.85 or task completion drops 5% vs baseline, block the deployment and alert the team</li>
-        <li>Run A/B experiments for significant changes: serve the new configuration to 10% of traffic, measure quality metrics, promote or roll back based on data</li>
-      </ul>
-
-      <h2>Key Takeaway</h2>
-
-      <p>Production-grade GenAI is an engineering discipline, not a prompt engineering exercise. The same principles that make distributed systems reliable — observability, fault isolation, graceful degradation, cost governance, automated testing — apply directly to LLM-based systems, with additional dimensions unique to AI: evaluation, content safety, grounding, and model selection.</p>
-
-      <p>The enterprises extracting real value from GenAI in 2026 are not those that adopted the technology earliest — they are those that invested in robust architecture, evaluation pipelines, and operational discipline from the start.</p>
-
+      <section class="sources">
+        <h2>Sources</h2>
+        <ol>
+          <li><a href="https://learn.microsoft.com/azure/search/retrieval-augmented-generation-overview" target="_blank" rel="noopener">Retrieval-augmented generation (RAG) in Azure AI Search</a> (Microsoft Learn)</li>
+          <li><a href="https://learn.microsoft.com/azure/search/hybrid-search-overview" target="_blank" rel="noopener">Hybrid search using vectors and full text in Azure AI Search</a> (Microsoft Learn)</li>
+          <li><a href="https://learn.microsoft.com/azure/api-management/genai-gateway-capabilities" target="_blank" rel="noopener">AI gateway in Azure API Management</a> (Microsoft Learn)</li>
+          <li><a href="https://learn.microsoft.com/azure/foundry/guardrails/how-to-create-guardrails" target="_blank" rel="noopener">Configure guardrails and controls in Microsoft Foundry</a> (Microsoft Learn)</li>
+          <li><a href="https://learn.microsoft.com/azure/foundry/openai/concepts/content-filter-prompt-shields" target="_blank" rel="noopener">Prompt Shields in Microsoft Foundry</a> (Microsoft Learn)</li>
+          <li><a href="https://learn.microsoft.com/azure/foundry/openai/concepts/model-router" target="_blank" rel="noopener">Model router for Microsoft Foundry</a> (Microsoft Learn)</li>
+          <li><a href="https://learn.microsoft.com/azure/foundry/openai/how-to/prompt-caching" target="_blank" rel="noopener">Prompt caching</a> (Microsoft Learn)</li>
+          <li><a href="https://learn.microsoft.com/azure/foundry/openai/concepts/provisioned-throughput" target="_blank" rel="noopener">What is provisioned throughput for Foundry Models?</a> (Microsoft Learn)</li>
+        </ol>
+      </section>
     </div>
   </section>
 
@@ -283,7 +215,7 @@
   </section>
 
   <div style="max-width:720px;margin:2.5rem auto;padding:1.25rem 1.5rem;background:#f8fafc;border:1px solid #e2e8f0;border-left:4px solid #94a3b8;border-radius:8px;">
-    <p style="margin:0;font-size:.82rem;color:#64748b;line-height:1.75;"><strong style="color:#475569;">Disclaimer:</strong> The views and opinions expressed in this article are solely those of the author (Srinivas Yenuganti) and do not represent the views of any employer, client, or affiliated organisation. All information is based on publicly available sources and personal research as of the date of publication. Content is provided for educational and informational purposes only and should not be relied upon as professional or legal advice. Product names and trademarks referenced herein are the property of their respective owners.</p>
+    <p style="margin:0;font-size:.82rem;color:#64748b;line-height:1.75;"><strong style="color:#475569;">Disclaimer:</strong> These are my own views, not those of any employer or client. Examples use placeholder names. Azure features and prices change, so check Microsoft&rsquo;s documentation before relying on anything here.</p>
   </div>
 
   <footer class="main-footer">
